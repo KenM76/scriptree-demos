@@ -20,6 +20,7 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 |------|--------------|--------|----------|
 | **parfit** | Reflows prose inside code comments using optimal-fit line breaking, leaving machine-readable directives untouched. | [`parfit/`](parfit/) | [caldempsey/parfit](https://github.com/caldempsey/parfit) |
 | **jit** | Jira CLI — ticket lookup, detail views, sprint lists, and create/edit from the terminal. | [`jit/`](jit/) | [cesarferreira/jit](https://github.com/cesarferreira/jit) |
+| **agg** | Renders an asciinema `.cast` recording into an animated GIF. | [`agg/`](agg/) | [asciinema/agg](https://github.com/asciinema/agg) |
 
 More on the way — every useful CLI tool I run into is a candidate.
 

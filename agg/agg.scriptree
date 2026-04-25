@@ -1,0 +1,229 @@
+{
+  "schema_version": 2,
+  "name": "agg",
+  "description": "Render an asciinema cast (.cast) into an animated GIF. Pick the input cast and an output .gif path, then tune theme, font, speed, and idle-time-limit to taste. Source: https://github.com/asciinema/agg",
+  "executable": "./agg.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["--theme", "{theme}"],
+    ["--font-family", "{font_family}"],
+    ["--font-size", "{font_size}"],
+    ["--line-height", "{line_height}"],
+    ["--font-dir", "{font_dir}"],
+    ["--speed", "{speed}"],
+    ["--fps-cap", "{fps_cap}"],
+    ["--idle-time-limit", "{idle_time_limit}"],
+    ["--last-frame-duration", "{last_frame_duration}"],
+    ["--cols", "{cols}"],
+    ["--rows", "{rows}"],
+    ["--renderer", "{renderer}"],
+    "{no_loop?--no-loop}",
+    "{quiet?-q}",
+    "{verbose?-v}",
+    "{input}",
+    "{output}"
+  ],
+  "params": [
+    {
+      "id": "input",
+      "label": "Input cast (.cast or asciinema.org URL)",
+      "description": "Path to a local asciicast v2 file or an asciinema.org URL. Required.",
+      "type": "path",
+      "widget": "file_open",
+      "required": true,
+      "default": "",
+      "section": "Input / output"
+    },
+    {
+      "id": "output",
+      "label": "Output GIF",
+      "description": "Path to write the animated GIF. Will be overwritten if it exists.",
+      "type": "path",
+      "widget": "file_save",
+      "required": true,
+      "default": "",
+      "section": "Input / output"
+    },
+    {
+      "id": "theme",
+      "label": "Theme (--theme)",
+      "description": "Color theme. Pick a built-in or paste a custom 8/16-color hex string (foreground,background,black,red,...). Leave blank for the default (dracula).",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "asciinema",
+        "dracula",
+        "github-dark",
+        "github-light",
+        "monokai",
+        "nord",
+        "solarized-dark",
+        "solarized-light"
+      ],
+      "section": "Appearance"
+    },
+    {
+      "id": "font_family",
+      "label": "Font family (--font-family)",
+      "description": "Comma-separated font family list, e.g. 'JetBrains Mono,Fira Code,monospace'. Leave blank for agg's built-in default.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Appearance"
+    },
+    {
+      "id": "font_size",
+      "label": "Font size (--font-size)",
+      "description": "Font size in pixels. Default 14.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 14,
+      "min": 6,
+      "max": 96,
+      "section": "Appearance"
+    },
+    {
+      "id": "line_height",
+      "label": "Line height (--line-height)",
+      "description": "Line-height multiplier (e.g. 1.4). Leave blank for agg's default.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "section": "Appearance"
+    },
+    {
+      "id": "font_dir",
+      "label": "Extra font directory (--font-dir)",
+      "description": "Directory of additional font files agg should pick up. The flag is repeatable upstream; this widget exposes one entry. For multiple, edit the .scriptree by hand or call agg directly.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Appearance"
+    },
+    {
+      "id": "speed",
+      "label": "Playback speed (--speed)",
+      "description": "Multiplier applied to the recording's timing. 1.0 = real time. 2.0 = double speed. Default 1.0.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": 1,
+      "min": 0.1,
+      "max": 20,
+      "section": "Timing"
+    },
+    {
+      "id": "idle_time_limit",
+      "label": "Idle time limit, seconds (--idle-time-limit)",
+      "description": "Cap long pauses between keystrokes. Pauses longer than this are shrunk to this value. Leave blank for the cast's own setting (or agg's default of 5s).",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "section": "Timing"
+    },
+    {
+      "id": "fps_cap",
+      "label": "FPS cap (--fps-cap)",
+      "description": "Upper bound on output frame rate. Default 30. Lower for smaller GIFs; higher for smoother animation.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 30,
+      "min": 1,
+      "max": 60,
+      "section": "Timing"
+    },
+    {
+      "id": "last_frame_duration",
+      "label": "Last frame duration, seconds (--last-frame-duration)",
+      "description": "How long to hold the final frame before the GIF loops. Useful when the cast ends mid-keystroke and you want a beat to read the result.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "section": "Timing"
+    },
+    {
+      "id": "no_loop",
+      "label": "Disable loop (--no-loop)",
+      "description": "Render a one-shot GIF that stops on the last frame. By default the GIF loops forever.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Timing"
+    },
+    {
+      "id": "cols",
+      "label": "Override columns (--cols)",
+      "description": "Force the rendered terminal width in columns. Leave blank to use the cast's own dimensions.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 20,
+      "max": 400,
+      "section": "Geometry"
+    },
+    {
+      "id": "rows",
+      "label": "Override rows (--rows)",
+      "description": "Force the rendered terminal height in rows. Leave blank to use the cast's own dimensions.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 5,
+      "max": 200,
+      "section": "Geometry"
+    },
+    {
+      "id": "renderer",
+      "label": "Renderer (--renderer)",
+      "description": "Frame-rendering backend. Leave blank for the default. 'fontdue' is the pure-Rust renderer; 'resvg' is SVG-based.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "fontdue",
+        "resvg"
+      ],
+      "section": "Geometry"
+    },
+    {
+      "id": "quiet",
+      "label": "Quiet (-q)",
+      "description": "Suppress diagnostic messages and the progress bar.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Logging"
+    },
+    {
+      "id": "verbose",
+      "label": "Verbose (-v)",
+      "description": "Enable verbose logging. Useful when debugging font lookup or theme parsing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Logging"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/asciinema/agg",
+    "help_text_cached": "agg [OPTIONS] <input> <output.gif>\n\nPositional:\n  input    asciicast path/filename or asciinema.org URL\n  output   GIF path/filename\n\nOptions:\n      --renderer <RENDERER>            Select frame rendering backend\n      --font-family <FONT_FAMILY>      Specify font family\n      --font-size <FONT_SIZE>          Specify font size (in pixels)\n      --line-height <LINE_HEIGHT>      Specify line height\n      --theme <THEME>                  Select color theme\n      --font-dir <FONT_DIR>            Use additional font directory\n      --speed <SPEED>                  Adjust playback speed\n      --no-loop                        Disable animation loop\n      --idle-time-limit <SECONDS>      Limit idle time to max number of seconds\n      --fps-cap <FPS>                  Set FPS cap\n      --last-frame-duration <SECONDS>  Set last frame duration\n      --cols <COLS>                    Override terminal width\n      --rows <ROWS>                    Override terminal height\n  -v, --verbose                        Enable verbose logging\n  -q, --quiet                          Quiet mode"
+  }
+}
