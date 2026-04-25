@@ -1,0 +1,317 @@
+{
+  "schema_version": 2,
+  "name": "dust",
+  "description": "A more intuitive du. Walks the given directory and prints a sorted, percentage-bar-annotated tree of the largest entries. One-shot CLI: defaults are sensible, every flag is a presentation knob. Source: https://github.com/bootandy/dust",
+  "executable": "./dust.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["-n", "{number}"],
+    ["-d", "{depth}"],
+    ["-z", "{min_size}"],
+    ["-o", "{output_format}"],
+    "{full_path?-p}",
+    "{apparent_size?-s}",
+    "{only_dir?-D}",
+    "{only_file?-F}",
+    "{reverse?-r}",
+    "{ignore_hidden?-i}",
+    "{file_count?-f}",
+    "{filetype?-t}",
+    "{same_filesystem?-x}",
+    "{dereference_links?-L}",
+    "{no_bars?-b}",
+    "{bars_on_right?-B}",
+    "{no_colors?-c}",
+    "{force_colors?-C}",
+    "{no_progress?-P}",
+    "{skip_total?--skip-total}",
+    "{json?-j}",
+    "{ignore}",
+    ["-e", "{include_regex}"],
+    ["-v", "{exclude_regex}"],
+    ["--collapse", "{collapse}"],
+    "{directories}"
+  ],
+  "params": [
+    {
+      "id": "directories",
+      "label": "Directory or directories",
+      "description": "One or more paths to scan. Space-separated. Defaults to the current directory if blank.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "number",
+      "label": "Number of entries (-n / --number)",
+      "description": "How many of the largest entries to show. Default is roughly your terminal height.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 1000,
+      "section": "Display"
+    },
+    {
+      "id": "depth",
+      "label": "Max depth (-d / --depth)",
+      "description": "Don't show entries deeper than this many levels.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 100,
+      "section": "Display"
+    },
+    {
+      "id": "min_size",
+      "label": "Min size (-z / --min-size)",
+      "description": "Hide entries smaller than this. Format: number+unit, e.g. '10M', '1G'. Units: K/M/G/T (decimal) or KiB/MiB/GiB (binary).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Display"
+    },
+    {
+      "id": "output_format",
+      "label": "Size unit (-o / --output-format)",
+      "description": "Force a specific size unit. Leave blank for auto-pick. 'si' = SI prefixes (KB/MB/GB), the rest force a single unit.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "si",
+        "b",
+        "kb",
+        "kib",
+        "mb",
+        "mib",
+        "gb",
+        "gib"
+      ],
+      "section": "Display"
+    },
+    {
+      "id": "reverse",
+      "label": "Reverse order (-r / --reverse)",
+      "description": "Print smallest-first instead of the default largest-first.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "full_path",
+      "label": "Full subdirectory paths (-p / --full-paths)",
+      "description": "Show full subdirectory paths instead of names relative to their parent.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "skip_total",
+      "label": "Skip total row (--skip-total)",
+      "description": "Don't print the total-size summary line at the bottom.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "only_dir",
+      "label": "Directories only (-D / --only-dir)",
+      "description": "Hide individual files; show only directory entries.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filtering"
+    },
+    {
+      "id": "only_file",
+      "label": "Files only (-F / --only-file)",
+      "description": "Hide directories; show only individual file entries.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filtering"
+    },
+    {
+      "id": "ignore_hidden",
+      "label": "Hide hidden (-i / --ignore_hidden)",
+      "description": "Skip dotfiles and dot-directories during the walk.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filtering"
+    },
+    {
+      "id": "ignore",
+      "label": "Ignore by name (-X / --ignore-directory, repeatable)",
+      "description": "Skip entries with these exact names. Repeatable — write the full flag for each entry. Example:\n    -X node_modules -X target -X .git",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "include_regex",
+      "label": "Include regex (-e)",
+      "description": "Only include files matching this regex.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "exclude_regex",
+      "label": "Exclude regex (-v / --invert-filter)",
+      "description": "Exclude files matching this regex.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "collapse",
+      "label": "Collapse folder (--collapse)",
+      "description": "Render this folder as a single rolled-up entry. Useful for summarising a known-large tree without expanding it.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "apparent_size",
+      "label": "Apparent size (-s / --apparent-size)",
+      "description": "Show file sizes as apparent (logical) bytes rather than actual disk usage. Sparse files report large; small files round up to a block by default.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Counting"
+    },
+    {
+      "id": "file_count",
+      "label": "File count (-f / --filecount)",
+      "description": "Count number of files instead of summing sizes.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Counting"
+    },
+    {
+      "id": "filetype",
+      "label": "Group by filetype (-t / --filetype)",
+      "description": "Group sizes by file extension/type rather than directory tree.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Counting"
+    },
+    {
+      "id": "same_filesystem",
+      "label": "Same filesystem only (-x / --limit-filesystem)",
+      "description": "Don't cross filesystem boundaries during the walk. Mirrors `du -x`.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Counting"
+    },
+    {
+      "id": "dereference_links",
+      "label": "Dereference symlinks (-L / --dereference-links)",
+      "description": "Follow symbolic links when walking. Off by default to avoid double-counting.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Counting"
+    },
+    {
+      "id": "no_bars",
+      "label": "No percent bars (-b / --no-percent-bars)",
+      "description": "Hide the ASCII percentage bars. Just show sizes and names.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    },
+    {
+      "id": "bars_on_right",
+      "label": "Bars on right (-B / --bars-on-right)",
+      "description": "Put the percent bars to the right of the entry instead of the left.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    },
+    {
+      "id": "no_colors",
+      "label": "No colors (-c / --no-colors)",
+      "description": "Monochrome output. Useful for piping or screen readers.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    },
+    {
+      "id": "force_colors",
+      "label": "Force colors (-C / --force-colors)",
+      "description": "Emit ANSI colors even when stdout is not a TTY.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    },
+    {
+      "id": "no_progress",
+      "label": "No progress indicator (-P / --no-progress)",
+      "description": "Disable the in-flight progress indicator. Helpful for clean log output.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    },
+    {
+      "id": "json",
+      "label": "JSON output (-j / --output-json)",
+      "description": "Print machine-readable JSON instead of the formatted tree.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Style"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/bootandy/dust",
+    "help_text_cached": "dust [OPTIONS] [DIRECTORY]...\n\nA more intuitive du. Walks the tree and prints sorted, bar-annotated\nsize entries.\n\n  -n, --number N            Number of entries to show\n  -d, --depth N             Max recursion depth\n  -z, --min-size SIZE       Hide entries smaller than this (e.g. 10M)\n  -o, --output-format UNIT  Force size unit (si, kb, mib, gib, ...)\n  -p, --full-paths          Show full subdir paths\n  -s, --apparent-size       Apparent size, not disk usage\n  -D, --only-dir            Directories only\n  -F, --only-file           Files only\n  -r, --reverse             Smallest-first\n  -i, --ignore_hidden       Skip dotfiles\n  -X, --ignore-directory N  Skip entries by name (repeatable)\n  -t, --filetype            Group by file type\n  -x, --limit-filesystem    Don't cross filesystem boundaries\n  -L, --dereference-links   Follow symlinks\n  -b, --no-percent-bars     Hide percent bars\n  -j, --output-json         JSON output"
+  }
+}

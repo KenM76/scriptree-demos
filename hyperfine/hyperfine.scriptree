@@ -1,0 +1,391 @@
+{
+  "schema_version": 2,
+  "name": "hyperfine",
+  "description": "Statistical benchmarking for shell commands. Type one or more commands to compare; hyperfine runs them N times, controls for warm-up and prepare/cleanup steps, and reports mean/stddev plus a relative speed comparison. Source: https://github.com/sharkdp/hyperfine",
+  "executable": "./hyperfine.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["--warmup", "{warmup}"],
+    ["--min-runs", "{min_runs}"],
+    ["--max-runs", "{max_runs}"],
+    ["--runs", "{runs}"],
+    ["--setup", "{setup}"],
+    ["--prepare", "{prepare}"],
+    ["--conclude", "{conclude}"],
+    ["--cleanup", "{cleanup}"],
+    "{prepare_extra}",
+    "{conclude_extra}",
+    ["--parameter-scan", "{parameter_scan}"],
+    ["--parameter-step-size", "{parameter_step_size}"],
+    "{parameter_list}",
+    ["--shell", "{shell}"],
+    "{no_shell?-N}",
+    ["--ignore-failure", "{ignore_failure}"],
+    ["--style", "{style}"],
+    ["--sort", "{sort}"],
+    ["--time-unit", "{time_unit}"],
+    "{show_output?--show-output}",
+    ["--output", "{output_redirect}"],
+    ["--input", "{input_source}"],
+    "{command_name}",
+    ["--export-markdown", "{export_markdown}"],
+    ["--export-json", "{export_json}"],
+    ["--export-csv", "{export_csv}"],
+    ["--export-asciidoc", "{export_asciidoc}"],
+    ["--export-orgmode", "{export_orgmode}"],
+    ["--reference", "{reference}"],
+    ["--reference-name", "{reference_name}"],
+    "{commands}"
+  ],
+  "params": [
+    {
+      "id": "commands",
+      "label": "Command(s) to benchmark",
+      "description": "One or more shell commands to benchmark, separated by spaces. Wrap each command in quotes if it contains spaces or shell metacharacters.\nExample:\n    \"sleep 0.3\" \"sleep 0.5\"\nFor parameter scans, use {param_name} placeholders here that match --parameter-scan or --parameter-list.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Commands"
+    },
+    {
+      "id": "warmup",
+      "label": "Warmup runs (-w / --warmup)",
+      "description": "Run the command this many times before timing begins. Useful for cache-priming so disk-cold timings don't skew results.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 1000,
+      "section": "Run control"
+    },
+    {
+      "id": "runs",
+      "label": "Exact run count (-r / --runs)",
+      "description": "Force exactly this many timed runs. Overrides --min-runs and --max-runs. Leave blank to let hyperfine auto-decide (default: at least 10 runs and 3+ seconds total).",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 100000,
+      "section": "Run control"
+    },
+    {
+      "id": "min_runs",
+      "label": "Min runs (-m / --min-runs)",
+      "description": "Lower bound on the number of timed runs. Default 10 if --runs is not set.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 100000,
+      "section": "Run control"
+    },
+    {
+      "id": "max_runs",
+      "label": "Max runs (-M / --max-runs)",
+      "description": "Upper bound on the number of timed runs. Useful when each run is slow and you want to cap total wall-time.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 100000,
+      "section": "Run control"
+    },
+    {
+      "id": "setup",
+      "label": "Setup (-s / --setup)",
+      "description": "Command run once before each set of timed runs (per benchmarked command, but not per-iteration). Good for builds.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "prepare",
+      "label": "Prepare (-p / --prepare)",
+      "description": "Command run before EACH timed iteration. Use to drop caches, reset fixtures, etc. Not included in the timing.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "prepare_extra",
+      "label": "Extra --prepare entries (repeatable)",
+      "description": "hyperfine accepts multiple --prepare flags (one per command). Write the full flag for each extra entry, e.g.:\n    --prepare \"echo 3 > /proc/sys/vm/drop_caches\" --prepare \"sync\"",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "conclude",
+      "label": "Conclude (-C / --conclude)",
+      "description": "Command run after EACH timed iteration. Mirror of --prepare.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "conclude_extra",
+      "label": "Extra --conclude entries (repeatable)",
+      "description": "Repeatable like --prepare. Same per-command-position semantics.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "cleanup",
+      "label": "Cleanup (-c / --cleanup)",
+      "description": "Command run once after all timed runs for a given command finish. Inverse of --setup.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Setup / teardown"
+    },
+    {
+      "id": "parameter_scan",
+      "label": "Parameter scan (-P / --parameter-scan)",
+      "description": "Sweep one variable across a numeric range. Format: VAR MIN MAX (e.g. 'threads 1 8'). Reference {threads} inside your benchmarked command.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Parameterization"
+    },
+    {
+      "id": "parameter_step_size",
+      "label": "Step size (-D / --parameter-step-size)",
+      "description": "Step value for --parameter-scan. Default 1. Use a decimal for floating-point sweeps.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "section": "Parameterization"
+    },
+    {
+      "id": "parameter_list",
+      "label": "Parameter list (-L / --parameter-list, repeatable)",
+      "description": "Sweep one variable across discrete values. Repeatable — write the full flag for each entry. Example:\n    --parameter-list compiler gcc,clang --parameter-list opt 0,2,3",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Parameterization"
+    },
+    {
+      "id": "command_name",
+      "label": "Command name(s) (-n / --command-name, repeatable)",
+      "description": "Friendly label(s) for the positional commands, in order. Repeatable — write the full flag per entry. Example:\n    -n \"current\" -n \"refactor\"",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Naming & comparison"
+    },
+    {
+      "id": "reference",
+      "label": "Reference command (--reference)",
+      "description": "Force this command to be the baseline for the relative-speed comparison, regardless of which is fastest.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Naming & comparison"
+    },
+    {
+      "id": "reference_name",
+      "label": "Reference name (--reference-name)",
+      "description": "Friendly name for the reference command in output tables.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Naming & comparison"
+    },
+    {
+      "id": "shell",
+      "label": "Shell (-S / --shell)",
+      "description": "Shell used to execute commands. Default: /bin/sh on Unix, cmd.exe on Windows. Set to 'none' (or tick 'No shell' below) to skip the shell wrapper for purer measurements.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Shell & I/O"
+    },
+    {
+      "id": "no_shell",
+      "label": "No shell (-N)",
+      "description": "Run commands directly with no shell wrapper. Removes ~1ms of shell-startup overhead. Equivalent to --shell=none.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Shell & I/O"
+    },
+    {
+      "id": "show_output",
+      "label": "Show command output (--show-output)",
+      "description": "Print the benchmarked command's stdout/stderr instead of suppressing it. Useful for debugging — but adds I/O overhead, so don't leave on for fine-grained timing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Shell & I/O"
+    },
+    {
+      "id": "output_redirect",
+      "label": "Output redirection (--output, repeatable)",
+      "description": "Where to send the benchmarked command's stdout/stderr. Values: 'null' (discard), 'pipe' (capture), 'inherit' (passthrough), or a file path. Repeatable — order matches positional commands.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Shell & I/O"
+    },
+    {
+      "id": "input_source",
+      "label": "Input source (--input)",
+      "description": "Where to source the benchmarked command's stdin. Values: 'null', a file path, etc.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Shell & I/O"
+    },
+    {
+      "id": "ignore_failure",
+      "label": "Ignore-failure mode (-i / --ignore-failure)",
+      "description": "How to treat non-zero exit codes from the benchmarked command. 'all-non-zero' = ignore any non-zero. 'none' = abort on any failure. Leave blank for hyperfine's default.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "none",
+        "all-non-zero"
+      ],
+      "section": "Failure handling"
+    },
+    {
+      "id": "time_unit",
+      "label": "Time unit (-u / --time-unit)",
+      "description": "Force the time unit shown in tables. Auto-picked from data if blank.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "microsecond",
+        "millisecond",
+        "second"
+      ],
+      "section": "Output style"
+    },
+    {
+      "id": "style",
+      "label": "Style (--style)",
+      "description": "Output style. 'full' = ANSI bars + colors, 'basic' = no bars, 'nocolor' = no ANSI, 'none' = quiet, 'auto' = pick based on TTY.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "basic",
+        "full",
+        "nocolor",
+        "color",
+        "none"
+      ],
+      "section": "Output style"
+    },
+    {
+      "id": "sort",
+      "label": "Sort order (--sort)",
+      "description": "How to sort the relative-speed comparison table.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "command",
+        "mean-time"
+      ],
+      "section": "Output style"
+    },
+    {
+      "id": "export_markdown",
+      "label": "Export Markdown (--export-markdown)",
+      "description": "Write a Markdown comparison table to this file path.",
+      "type": "path",
+      "widget": "file_save",
+      "required": false,
+      "default": "",
+      "section": "Export"
+    },
+    {
+      "id": "export_json",
+      "label": "Export JSON (--export-json)",
+      "description": "Write the full timing dataset as JSON to this file path.",
+      "type": "path",
+      "widget": "file_save",
+      "required": false,
+      "default": "",
+      "section": "Export"
+    },
+    {
+      "id": "export_csv",
+      "label": "Export CSV (--export-csv)",
+      "description": "Write timings as CSV to this file path.",
+      "type": "path",
+      "widget": "file_save",
+      "required": false,
+      "default": "",
+      "section": "Export"
+    },
+    {
+      "id": "export_asciidoc",
+      "label": "Export AsciiDoc (--export-asciidoc)",
+      "description": "Write the comparison table as AsciiDoc to this file path.",
+      "type": "path",
+      "widget": "file_save",
+      "required": false,
+      "default": "",
+      "section": "Export"
+    },
+    {
+      "id": "export_orgmode",
+      "label": "Export org-mode (--export-orgmode)",
+      "description": "Write the comparison table as an org-mode table to this file path.",
+      "type": "path",
+      "widget": "file_save",
+      "required": false,
+      "default": "",
+      "section": "Export"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/sharkdp/hyperfine",
+    "help_text_cached": "hyperfine [OPTIONS] <command>...\n\nA command-line benchmarking tool. Runs each command N times and reports\nmean/stddev/min/max plus a relative-speed comparison.\n\nKey flags:\n  -w, --warmup N        Warmup runs before timing\n  -r, --runs N          Force exactly N runs\n  -m/-M, --min/max-runs Bounds on auto-chosen run count\n  -s, --setup CMD       Run once before each command's batch\n  -p, --prepare CMD     Run before each timed iteration (repeatable)\n  -c, --cleanup CMD     Run once after each command's batch\n  -P, --parameter-scan VAR MIN MAX   Numeric sweep\n  -L, --parameter-list VAR VALUES    Discrete sweep (repeatable)\n  -S, --shell SHELL     Shell to use (or --shell=none / -N)\n  -i, --ignore-failure  Tolerate non-zero exits\n  --export-{markdown,json,csv,asciidoc,orgmode} FILE\n  --reference CMD       Force baseline for relative comparison"
+  }
+}

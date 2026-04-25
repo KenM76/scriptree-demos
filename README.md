@@ -21,6 +21,9 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 | **parfit** | Reflows prose inside code comments using optimal-fit line breaking, leaving machine-readable directives untouched. | [`parfit/`](parfit/) | [caldempsey/parfit](https://github.com/caldempsey/parfit) |
 | **jit** | Jira CLI — ticket lookup, detail views, sprint lists, and create/edit from the terminal. | [`jit/`](jit/) | [cesarferreira/jit](https://github.com/cesarferreira/jit) |
 | **agg** | Renders an asciinema `.cast` recording into an animated GIF. | [`agg/`](agg/) | [asciinema/agg](https://github.com/asciinema/agg) |
+| **hyperfine** | Statistical benchmarking for shell commands — runs N times, controls warmup, exports tables. | [`hyperfine/`](hyperfine/) | [sharkdp/hyperfine](https://github.com/sharkdp/hyperfine) |
+| **fd** | User-friendly `find` replacement — regex/glob patterns, smart filters, parallel walk. | [`fd/`](fd/) | [sharkdp/fd](https://github.com/sharkdp/fd) |
+| **dust** | More intuitive `du` — sorted tree of largest entries with percent bars. | [`dust/`](dust/) | [bootandy/dust](https://github.com/bootandy/dust) |
 
 More on the way — every useful CLI tool I run into is a candidate.
 

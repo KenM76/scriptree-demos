@@ -1,0 +1,354 @@
+{
+  "schema_version": 2,
+  "name": "fd",
+  "description": "A user-friendly, fast alternative to find. Pattern is a regex by default; tick 'Glob' to use shell-glob patterns instead. Smart-case is the default — overridden by the case-sensitive / ignore-case checkboxes. Source: https://github.com/sharkdp/fd",
+  "executable": "./fd.exe",
+  "working_directory": null,
+  "argument_template": [
+    "{hidden?-H}",
+    "{no_ignore?-I}",
+    "{case_sensitive?-s}",
+    "{ignore_case?-i}",
+    "{glob?-g}",
+    "{absolute_path?-a}",
+    "{list_details?-l}",
+    "{follow?-L}",
+    "{full_path?-p}",
+    "{print0?-0}",
+    ["-d", "{max_depth}"],
+    ["--min-depth", "{min_depth}"],
+    ["-t", "{type}"],
+    ["-e", "{extension}"],
+    "{exclude}",
+    "{extension_extra}",
+    ["-S", "{size}"],
+    ["--changed-within", "{changed_within}"],
+    ["--changed-before", "{changed_before}"],
+    ["-o", "{owner}"],
+    ["--format", "{format}"],
+    ["--color", "{color}"],
+    ["--hyperlink", "{hyperlink}"],
+    ["-j", "{threads}"],
+    "{exec}",
+    "{exec_batch}",
+    "{pattern}",
+    "{paths}"
+  ],
+  "params": [
+    {
+      "id": "pattern",
+      "label": "Pattern",
+      "description": "Regex (default) or glob (with --glob ticked) to match against filenames. Smart-case unless overridden. Leave blank to match every entry under the search path.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "paths",
+      "label": "Search path(s)",
+      "description": "One or more directories to search. Space-separated. Defaults to the current working directory.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "hidden",
+      "label": "Include hidden (-H / --hidden)",
+      "description": "Include dotfiles and dot-directories. Off by default.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "no_ignore",
+      "label": "Ignore .gitignore / .fdignore (-I / --no-ignore)",
+      "description": "Don't respect .gitignore, .fdignore, or .ignore files. Use this when searching inside a vendored or ignored tree.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "case_sensitive",
+      "label": "Case-sensitive (-s)",
+      "description": "Force case-sensitive matching, overriding smart-case.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "ignore_case",
+      "label": "Ignore case (-i)",
+      "description": "Force case-insensitive matching, overriding smart-case.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "glob",
+      "label": "Glob mode (-g / --glob)",
+      "description": "Treat the pattern as a shell glob (e.g. '*.rs') instead of a regex.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "full_path",
+      "label": "Match against full path (-p / --full-path)",
+      "description": "Match the pattern against each entry's full absolute path, not just the filename.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filters"
+    },
+    {
+      "id": "type",
+      "label": "Type (-t / --type)",
+      "description": "Restrict results to one entry type. f=file, d=directory, l=symlink, x=executable, e=empty, s=socket, p=pipe, c=char device, b=block device.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "f",
+        "d",
+        "l",
+        "x",
+        "e",
+        "s",
+        "p",
+        "c",
+        "b"
+      ],
+      "section": "Filters"
+    },
+    {
+      "id": "extension",
+      "label": "Extension (-e / --extension)",
+      "description": "Filter by file extension (no leading dot). Repeatable upstream — write further entries in the field below.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "extension_extra",
+      "label": "Extra --extension entries (repeatable)",
+      "description": "Additional extension flags. Write the full flag per entry. Example:\n    --extension md --extension rst",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "exclude",
+      "label": "Exclude globs (-E / --exclude, repeatable)",
+      "description": "Skip entries matching the given glob(s). Repeatable — write the full flag for each entry. Example:\n    --exclude '*.lock' --exclude 'node_modules'",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "size",
+      "label": "Size (-S / --size)",
+      "description": "Filter by file size. Use +/- with a unit, e.g. '+100k', '-1m', '+1g'. Units: b, k, m, g, t (powers of 1000) or kib, mib, gib, tib (powers of 1024).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "changed_within",
+      "label": "Changed within (--changed-within)",
+      "description": "Only entries modified more recently than this. Accepts durations ('1h', '2d', '1week') or absolute dates ('2024-01-01').",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "changed_before",
+      "label": "Changed before (--changed-before)",
+      "description": "Only entries modified before this. Same format as --changed-within.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "owner",
+      "label": "Owner (-o / --owner)",
+      "description": "Filter by owning user/group. Forms: 'user', ':group', 'user:group', '!user' (negation).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filters"
+    },
+    {
+      "id": "max_depth",
+      "label": "Max depth (-d / --max-depth)",
+      "description": "Don't descend deeper than this many levels below the search root.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 100,
+      "section": "Traversal"
+    },
+    {
+      "id": "min_depth",
+      "label": "Min depth (--min-depth)",
+      "description": "Only print entries at this depth or deeper.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 100,
+      "section": "Traversal"
+    },
+    {
+      "id": "follow",
+      "label": "Follow symlinks (-L / --follow)",
+      "description": "Traverse into directories pointed to by symlinks. Off by default to avoid loops.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Traversal"
+    },
+    {
+      "id": "absolute_path",
+      "label": "Absolute paths (-a / --absolute-path)",
+      "description": "Print absolute paths instead of paths relative to the search root.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "list_details",
+      "label": "Long listing (-l / --list-details)",
+      "description": "ls -l-style output: permissions, size, mtime alongside each path.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "print0",
+      "label": "NUL-terminate (-0 / --print0)",
+      "description": "Separate paths with NUL (\\0) instead of newlines. Use with downstream tools that expect xargs -0 input.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "format",
+      "label": "Format template (--format)",
+      "description": "Custom output template. Placeholders: {} = full path, {/} = basename, {//} = parent, {.} = path without extension, {/.} = basename without extension.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "color",
+      "label": "Color (-c / --color)",
+      "description": "When to colorize output.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "hyperlink",
+      "label": "Hyperlink (--hyperlink)",
+      "description": "Wrap each result path in an OSC 8 terminal hyperlink.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "threads",
+      "label": "Threads (-j / --threads)",
+      "description": "Number of worker threads. 0 = auto (default). Set to 1 for deterministic ordering.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 256,
+      "section": "Output"
+    },
+    {
+      "id": "exec",
+      "label": "Per-result exec (-x / --exec, repeatable)",
+      "description": "Run a command for each match. Pass the full flag and command per entry; placeholders {} {/} {//} {.} {/.} expand per match. Example:\n    --exec 'wc -l {}'",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Exec"
+    },
+    {
+      "id": "exec_batch",
+      "label": "Batch exec (-X / --exec-batch, repeatable)",
+      "description": "Run a single command with all matches as arguments. Example:\n    --exec-batch 'tar czf out.tar.gz'",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Exec"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/sharkdp/fd",
+    "help_text_cached": "fd [OPTIONS] [pattern] [path]...\n\nUser-friendly find replacement.\n\n  -H, --hidden             Search hidden entries\n  -I, --no-ignore          Ignore .gitignore / .fdignore\n  -s, --case-sensitive     Force case-sensitive\n  -i, --ignore-case        Force case-insensitive\n  -g, --glob               Glob mode\n  -p, --full-path          Match against full path\n  -t, --type TYPE          Filter by entry type (f, d, l, x, e, ...)\n  -e, --extension EXT      Filter by extension (repeatable)\n  -E, --exclude GLOB       Exclude glob (repeatable)\n  -S, --size SIZE          Filter by size (e.g. +100k)\n  -d, --max-depth N        Max recursion depth\n  -L, --follow             Follow symlinks\n  -a, --absolute-path      Print absolute paths\n  -l, --list-details       ls -l-style output\n  -x, --exec CMD           Run command per match (repeatable)\n  -X, --exec-batch CMD     Run command with all matches"
+  }
+}
