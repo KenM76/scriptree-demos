@@ -1,0 +1,97 @@
+# Demo catalog
+
+Detailed summary of every ScripTree demo in this repo. The top table is a quick index; the section below has the longer story for each.
+
+## Index
+
+| Folder | Program | Upstream repository | Short description |
+|--------|---------|---------------------|-------------------|
+| [`parfit/`](parfit/) | parfit | [caldempsey/parfit](https://github.com/caldempsey/parfit) | Reflow prose inside code comments using optimal-fit line breaking. |
+| [`jit/`](jit/) | jit | [cesarferreira/jit](https://github.com/cesarferreira/jit) | Jira CLI — ticket lookup, detail views, sprint lists, create/edit. |
+| [`agg/`](agg/) | agg | [asciinema/agg](https://github.com/asciinema/agg) | Render asciinema `.cast` recordings into animated GIFs. |
+| [`hyperfine/`](hyperfine/) | hyperfine | [sharkdp/hyperfine](https://github.com/sharkdp/hyperfine) | Statistical benchmarking for shell commands. |
+| [`fd/`](fd/) | fd | [sharkdp/fd](https://github.com/sharkdp/fd) | User-friendly `find` replacement with regex/glob, smart filters, parallel walk. |
+| [`dust/`](dust/) | dust | [bootandy/dust](https://github.com/bootandy/dust) | More intuitive `du` — sorted tree of largest entries with percent bars. |
+| [`bat/`](bat/) | bat | [sharkdp/bat](https://github.com/sharkdp/bat) | `cat` clone with syntax highlighting, line numbers, Git, and an automatic pager. |
+| [`eza/`](eza/) | eza | [eza-community/eza](https://github.com/eza-community/eza) | Modern, more-featureful `ls` with colour, icons, Git, tree view. |
+| [`dog/`](dog/) | dog | [ogham/dog](https://github.com/ogham/dog) | Friendly DNS lookup CLI with UDP/TCP/TLS/HTTPS transports. |
+| [`cvforge/`](cvforge/) | cvforge | [SoAp9035/cvforge](https://github.com/SoAp9035/cvforge) | YAML → ATS-friendly PDF resume via Typst. Four subcommands. |
+| [`bifrost/`](bifrost/) | bifrost | [axiom0x0/bifrost](https://github.com/axiom0x0/bifrost) | Bridge files between computer and phone via QR code over LAN. |
+| [`gh/`](gh/) | gh | [cli/cli](https://github.com/cli/cli) | GitHub CLI — pull requests, issues, repos, releases (eleven leaves). |
+
+## Detailed summaries
+
+### parfit
+
+Reflows prose inside code comments to a target column width using Knuth-Plass-style optimal-fit line breaking, while passing machine-readable directives (rustdoc attributes, doctest fences, `//#` markers, shebangs) through unchanged. Point at a file, folder, or glob; tick **Recursive** to expand globs across subtrees; use **Print to stdout** for a dry-run before any in-place rewrite.
+
+Single-form demo. The repeatable `--include` / `--exclude` / `--skip` flags are exposed as raw-text fields per the demo-wide repeatable convention. Drop `parfit.exe` next to the `.scriptree`.
+
+### jit
+
+Multi-form demo for the Jira CLI. Five scriptrees grouped under [`jit.scriptreetree`](jit/jit.scriptreetree):
+
+- **Lookup** folder — `lookup` (one ticket by key/URL), `show` (detailed view with comments / linked PRs), `my-tickets` (current sprint).
+- **Modify** folder — `create` (new issue), `edit` (modify existing).
+
+Demonstrates how to wrap a multi-subcommand tool with `.scriptreetree`. Each subcommand is its own form so flag sets stay focused. Drop `jit.exe` next to the scriptrees.
+
+### agg
+
+Renders an asciinema `.cast` recording into an animated GIF. Single-form demo with sections for input/output, appearance (theme dropdown, font, line height), timing (speed, FPS cap, idle-time-limit), geometry (cols/rows override, renderer), and logging.
+
+The `--theme` dropdown lists the built-in themes (asciinema, dracula, monokai, nord, solarized, etc.) but accepts any custom hex string too. `--font-dir` is repeatable upstream; the form exposes one entry.
+
+### hyperfine
+
+Statistical benchmarking for shell commands. Roughly 25 fields across nine sections — Commands, Run control, Setup/teardown, Parameterization, Naming & comparison, Shell & I/O, Failure handling, Output style, Export.
+
+The five export-format flags (markdown / JSON / CSV / AsciiDoc / org-mode) all get file pickers. `--prepare`, `--conclude`, `-L/--parameter-list`, `-n/--command-name`, and `--output` are all repeatable upstream; each has a paired raw-text field for additional entries. Drop `hyperfine.exe` next to the scriptree.
+
+### fd
+
+User-friendly `find` replacement. Single-form demo, ~26 fields across Target, Filters, Traversal, Output, Exec. The `-t/--type` enum lists every entry type fd recognises (file, directory, link, executable, empty, socket, pipe, char/block device). `-c/--color` and `--hyperlink` are auto/always/never dropdowns. `--extension`, `--exclude`, `--exec`, `--exec-batch` are repeatable; raw-text "extra entries" fields cover those.
+
+### dust
+
+More intuitive `du`. Single-form demo, ~25 fields across Target, Display, Filtering, Counting, Style. The `-o/--output-format` enum forces a specific size unit (si, kb, kib, mb, mib, gb, gib) or auto-picks if blank. `-X/--ignore-directory` is repeatable; the form has a raw-text field for entries.
+
+### bat
+
+`cat` clone with syntax highlighting. ~33 fields across Input, Highlighting, Display, Layout, Color & paging, Diff & misc. Most appearance knobs are enum dropdowns: `--italic-text` (always/never), `--nonprintable-notation` (unicode/caret), `--binary` (no-printing/as-text), `--wrap` (auto/never/character/word), `--color` (auto/always/never), `--decorations` (auto/always/never), `--strip-ansi`, `--paging`. `-m/--map-syntax` is repeatable.
+
+### eza
+
+Modern, more-featureful `ls`. The biggest form in the repo — ~55 fields across Target, Layout, Filtering & sort, Symlinks, Appearance, Long format, Time, Git. Most long-format columns (header, binary/bytes sizes, group, smart-group, links, inode, numeric uid/gid, octal permissions, flags, blocksize, mounts, extended attrs, security context, total-size) only render with `--long` ticked.
+
+### dog
+
+Friendly DNS lookup. ~19 fields across Query, Transport, Protocol tweaks, Output. The `-t/--type` dropdown covers every record type dog supports (A, AAAA, CAA, CNAME, HINFO, LOC, MX, NAPTR, NS, OPT, PTR, SOA, SRV, SSHFP, TLSA, TXT). The four transport flags (`-U` UDP, `-T` TCP, `-S` TLS, `-H` HTTPS) are exposed as separate booleans — pick one. `-q`, `-t`, `-n`, `-Z` are all repeatable.
+
+### cvforge
+
+YAML → ATS-friendly PDF resume via Typst. Four scriptrees grouped under [`cvforge.scriptreetree`](cvforge/cvforge.scriptreetree):
+
+- **Render** folder — `build` (YAML → PDF), `init` (scaffold a starter `cv.yaml`).
+- **Inspect** folder — `fonts` (list available fonts), `ats-check` (verify a PDF parses through ATS).
+
+Each subcommand's form is tiny — most have one or zero arguments — but the four-button launcher is the value: one click each, no remembering subcommand names. Expects `cvforge` on `PATH` (`pip install cvforge` or `uv tool install cvforge`).
+
+### bifrost
+
+Bridges files between computer and phone via QR code. Single Go binary spins up a local HTTP server on the LAN, prints a QR, and the phone scans it to download (`-f` send file, `-d` browse directory) or upload (`-r` receive). Optional AES-256-GCM end-to-end encryption with `-e`.
+
+The three modes (`-f`, `-d`, `-r`) are mutually exclusive but exposed as three independent fields — ScripTree's `argument_template` only supports boolean-conditional emission, so we can't drive three different argv outputs from one radio control. The section headers ("Send (one of three modes)" / "Receive (one of three modes)") nudge you to pick exactly one.
+
+### gh
+
+GitHub CLI. Eleven scriptrees grouped under [`gh.scriptreetree`](gh/gh.scriptreetree):
+
+- **Pull requests** folder — `pr list`, `pr view`, `pr create`, `pr checkout`, `pr merge`.
+- **Issues** folder — `issue list`, `issue view`, `issue create`.
+- **Repository** folder — `repo view`, `repo clone`.
+- **Releases** folder — `release create`.
+
+Most `gh` commands have `-R/--repo` plus 5–15 flags; the form factor names every flag, lays out the enum choices for `--state`, and gives file pickers for `--body-file` / `--notes-file`. The `pr merge` form models merge / squash / rebase as three booleans in a "Strategy (one of three)" section — same pattern as bifrost's mode selector. Repeatable flags (`-l/--label`, `-a/--assignee`, `-r/--reviewer`) use the paired typed-widget + raw-text "extra entries" pattern.
+
+Intentionally omitted: `gh auth login` (interactive flow), `gh release upload` (no repeatable-file widget), `gh api` (raw HTTP — typing it is faster), and the `workflow` / `run` group (a separate demo on its own). Expects `gh` on `PATH`.
