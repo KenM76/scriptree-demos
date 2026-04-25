@@ -4,6 +4,12 @@
   "description": "File a new issue. Title and body can be typed directly, read from a file, or composed in $EDITOR. Use --web to fall back to the GitHub create-issue page in your browser. Source: https://cli.github.com/manual/gh_issue_create",
   "executable": "gh",
   "working_directory": null,
+  "sections": [
+    { "name": "Repo", "layout": "tab" },
+    { "name": "Body", "layout": "tab" },
+    { "name": "Metadata", "layout": "tab" },
+    { "name": "Submission", "layout": "tab" }
+  ],
   "argument_template": [
     "issue",
     "create",

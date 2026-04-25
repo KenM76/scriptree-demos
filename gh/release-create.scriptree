@@ -4,6 +4,11 @@
   "description": "Cut a new release tied to a Git tag. Auto-generate notes from commit history with --generate-notes, ship as draft for review with --draft, or mark as prerelease. Asset uploads are not exposed in the form — invoke `gh release upload <tag> file...` separately. Source: https://cli.github.com/manual/gh_release_create",
   "executable": "gh",
   "working_directory": null,
+  "sections": [
+    { "name": "Tag", "layout": "tab" },
+    { "name": "Body", "layout": "tab" },
+    { "name": "Visibility", "layout": "tab" }
+  ],
   "argument_template": [
     "release",
     "create",

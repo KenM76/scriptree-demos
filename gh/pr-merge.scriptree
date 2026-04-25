@@ -4,6 +4,14 @@
   "description": "Merge a pull request. Pick exactly one strategy — merge / squash / rebase — and optionally delete the branch, set the merge commit subject/body, or queue for auto-merge once required checks pass. Source: https://cli.github.com/manual/gh_pr_merge",
   "executable": "gh",
   "working_directory": null,
+  "sections": [
+    { "name": "Target", "layout": "tab" },
+    { "name": "Strategy (one of three)", "layout": "tab" },
+    { "name": "Cleanup", "layout": "tab" },
+    { "name": "Auto-merge", "layout": "tab" },
+    { "name": "Commit message", "layout": "tab" },
+    { "name": "Safety", "layout": "tab" }
+  ],
   "argument_template": [
     "pr",
     "merge",

@@ -4,6 +4,14 @@
   "description": "Open a pull request from the current branch. Title and body can be typed in directly, read from a file, or auto-filled from commit messages with --fill. Use --draft to open as a draft, --web to launch the GitHub create page in a browser, or --dry-run to preview the PR payload without submitting. Source: https://cli.github.com/manual/gh_pr_create",
   "executable": "gh",
   "working_directory": null,
+  "sections": [
+    { "name": "Repo", "layout": "tab" },
+    { "name": "Branches", "layout": "tab" },
+    { "name": "Body", "layout": "tab" },
+    { "name": "State", "layout": "tab" },
+    { "name": "People & metadata", "layout": "tab" },
+    { "name": "Submission", "layout": "tab" }
+  ],
   "argument_template": [
     "pr",
     "create",
