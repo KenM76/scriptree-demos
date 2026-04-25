@@ -1,0 +1,442 @@
+{
+  "schema_version": 2,
+  "name": "bat",
+  "description": "A cat clone with syntax highlighting, line numbers, Git integration, and an automatic pager. Point at one or more files (or leave blank to read stdin) and tune highlighting, paging, and decoration knobs. Source: https://github.com/sharkdp/bat",
+  "executable": "./bat.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["-l", "{language}"],
+    ["--fallback-syntax", "{fallback_syntax}"],
+    ["--theme", "{theme}"],
+    ["--theme-light", "{theme_light}"],
+    ["--theme-dark", "{theme_dark}"],
+    ["--style", "{style}"],
+    ["--color", "{color}"],
+    ["--decorations", "{decorations}"],
+    ["--italic-text", "{italic_text}"],
+    ["--paging", "{paging}"],
+    ["--pager", "{pager}"],
+    ["--wrap", "{wrap}"],
+    ["--terminal-width", "{terminal_width}"],
+    ["--tabs", "{tabs}"],
+    ["-r", "{line_range}"],
+    ["-H", "{highlight_line}"],
+    ["--map-syntax", "{map_syntax}"],
+    "{map_syntax_extra}",
+    ["--file-name", "{file_name}"],
+    "{show_all?-A}",
+    ["--nonprintable-notation", "{nonprintable_notation}"],
+    ["--binary", "{binary}"],
+    "{plain?-p}",
+    "{number?-n}",
+    "{chop_long_lines?-S}",
+    "{squeeze_blank?-s}",
+    ["--squeeze-limit", "{squeeze_limit}"],
+    "{diff?-d}",
+    ["--diff-context", "{diff_context}"],
+    "{force_colorization?-f}",
+    "{quiet_empty?-E}",
+    "{set_terminal_title?--set-terminal-title}",
+    ["--strip-ansi", "{strip_ansi}"],
+    "{files}"
+  ],
+  "params": [
+    {
+      "id": "files",
+      "label": "File(s)",
+      "description": "One or more files to print. Space-separated. Use '-' or leave blank to read from stdin.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Input"
+    },
+    {
+      "id": "file_name",
+      "label": "Override file name (--file-name)",
+      "description": "Display name to use when input comes from stdin. Drives syntax detection too.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Input"
+    },
+    {
+      "id": "language",
+      "label": "Language (-l / --language)",
+      "description": "Force a syntax for highlighting. Leave blank to auto-detect by extension. Examples: rust, python, json, dockerfile, ini.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "fallback_syntax",
+      "label": "Fallback syntax (--fallback-syntax)",
+      "description": "Syntax to use when bat can't auto-detect. Common pick: 'Plain Text'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "theme",
+      "label": "Theme (--theme)",
+      "description": "Color theme name. Run `bat --list-themes` for the full list. Leave blank to use the auto-picked theme based on terminal background.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "theme_light",
+      "label": "Light-mode theme (--theme-light)",
+      "description": "Theme to use when bat detects a light terminal background. Pairs with --theme-dark.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "theme_dark",
+      "label": "Dark-mode theme (--theme-dark)",
+      "description": "Theme to use when bat detects a dark terminal background. Pairs with --theme-light.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "italic_text",
+      "label": "Italic text (--italic-text)",
+      "description": "When to emit ANSI italic codes. Set to 'never' if your terminal renders italics as garbage.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "always",
+        "never"
+      ],
+      "section": "Highlighting"
+    },
+    {
+      "id": "map_syntax",
+      "label": "Map syntax (-m / --map-syntax)",
+      "description": "Map a glob pattern to a syntax name. Format: 'GLOB:syntax'. Example: '*.conf:INI'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "map_syntax_extra",
+      "label": "Extra --map-syntax entries (repeatable)",
+      "description": "Additional --map-syntax flags. Write the full flag for each. Example:\n    --map-syntax '*.conf:INI' --map-syntax '.envrc:Bash'",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Highlighting"
+    },
+    {
+      "id": "style",
+      "label": "Style components (--style)",
+      "description": "Comma-separated list of decorations to show. Common values: full, auto, plain, changes, header, header-filename, header-filesize, grid, rule, numbers, snip. Example: 'numbers,changes,header'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Display"
+    },
+    {
+      "id": "plain",
+      "label": "Plain (-p / --plain)",
+      "description": "No decorations: no line numbers, header, or grid. Pass twice (use -pp at the CLI) to also disable paging.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "number",
+      "label": "Line numbers only (-n / --number)",
+      "description": "Show line numbers but no other decorations. Equivalent to --style=numbers.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "show_all",
+      "label": "Show non-printables (-A / --show-all)",
+      "description": "Render normally invisible characters (NUL, control chars, etc.). Use the dropdown below to pick the notation.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Display"
+    },
+    {
+      "id": "nonprintable_notation",
+      "label": "Non-printable notation (--nonprintable-notation)",
+      "description": "Style used when --show-all is on. 'unicode' uses the Unicode 'symbols for control characters' block; 'caret' uses ^X notation.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "unicode",
+        "caret"
+      ],
+      "section": "Display"
+    },
+    {
+      "id": "binary",
+      "label": "Binary handling (--binary)",
+      "description": "What to do when input is binary. 'no-printing' (default) refuses to dump bytes; 'as-text' treats it as text anyway.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "no-printing",
+        "as-text"
+      ],
+      "section": "Display"
+    },
+    {
+      "id": "tabs",
+      "label": "Tab width (--tabs)",
+      "description": "Render tabs as N spaces. 0 keeps tabs literal. Default 8.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 16,
+      "section": "Layout"
+    },
+    {
+      "id": "wrap",
+      "label": "Wrap mode (--wrap)",
+      "description": "How to handle lines wider than the terminal. 'never' chops, 'character' wraps mid-character, 'word' breaks at word boundaries, 'auto' picks based on terminal width.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "never",
+        "character",
+        "word"
+      ],
+      "section": "Layout"
+    },
+    {
+      "id": "chop_long_lines",
+      "label": "Chop long lines (-S / --chop-long-lines)",
+      "description": "Truncate lines longer than the terminal width instead of wrapping. Equivalent to --wrap=never.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Layout"
+    },
+    {
+      "id": "terminal_width",
+      "label": "Terminal width (--terminal-width)",
+      "description": "Force a specific width in columns. Accepts a literal number, '+N', or '-N' (e.g. '+10' for terminal-width plus 10).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Layout"
+    },
+    {
+      "id": "line_range",
+      "label": "Line range (-r / --line-range)",
+      "description": "Print only lines in this range. Format: 'N:M', 'N:', ':M', or 'N:+K'. Repeatable upstream — comma-separate or write multiple flags via the highlighting field.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Layout"
+    },
+    {
+      "id": "highlight_line",
+      "label": "Highlight line(s) (-H / --highlight-line)",
+      "description": "Highlight the given line(s) with a different background. Same N:M / N:+K syntax as --line-range.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Layout"
+    },
+    {
+      "id": "squeeze_blank",
+      "label": "Squeeze blank lines (-s / --squeeze-blank)",
+      "description": "Collapse runs of blank lines into one. Mirrors `cat -s`.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Layout"
+    },
+    {
+      "id": "squeeze_limit",
+      "label": "Squeeze limit (--squeeze-limit)",
+      "description": "When --squeeze-blank is on, the maximum consecutive blank lines kept. 1 collapses everything to a single blank line.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 10,
+      "section": "Layout"
+    },
+    {
+      "id": "color",
+      "label": "Color (--color)",
+      "description": "When to colorize output.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Color & paging"
+    },
+    {
+      "id": "decorations",
+      "label": "Decorations (--decorations)",
+      "description": "When to apply style decorations (headers, line numbers, grid).",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Color & paging"
+    },
+    {
+      "id": "force_colorization",
+      "label": "Force colorization (-f)",
+      "description": "Shortcut for --color=always --decorations=always. Useful when piping to less -R or to a logging system that you know handles ANSI.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Color & paging"
+    },
+    {
+      "id": "strip_ansi",
+      "label": "Strip ANSI (--strip-ansi)",
+      "description": "Strip pre-existing ANSI sequences from the input before bat re-styles it.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Color & paging"
+    },
+    {
+      "id": "paging",
+      "label": "Paging (--paging)",
+      "description": "When to invoke the pager. 'auto' = page if output exceeds the terminal; 'never' = always print straight; 'always' = always page.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "never",
+        "always"
+      ],
+      "section": "Color & paging"
+    },
+    {
+      "id": "pager",
+      "label": "Pager (--pager)",
+      "description": "Override the pager. Default is `less`. Set to e.g. 'less -F' or '/usr/local/bin/most'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Color & paging"
+    },
+    {
+      "id": "diff",
+      "label": "Diff mode (-d / --diff)",
+      "description": "Show only added/removed/modified lines (relative to the Git index, like `git diff`).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Diff & misc"
+    },
+    {
+      "id": "diff_context",
+      "label": "Diff context (--diff-context)",
+      "description": "Lines of context above/below each change when --diff is on.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 100,
+      "section": "Diff & misc"
+    },
+    {
+      "id": "set_terminal_title",
+      "label": "Set terminal title (--set-terminal-title)",
+      "description": "Set the terminal window title to the file name(s) being viewed.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Diff & misc"
+    },
+    {
+      "id": "quiet_empty",
+      "label": "Quiet on empty (-E / --quiet-empty)",
+      "description": "Produce no output when input is empty.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Diff & misc"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/sharkdp/bat",
+    "help_text_cached": "bat [OPTIONS] [FILE]...\n\nA cat clone with syntax highlighting and Git integration.\n\nKey flags:\n  -l, --language NAME       Force a syntax\n      --theme NAME          Color theme\n      --style COMPS         Decorations to show (numbers, changes, header, ...)\n  -p, --plain               No decorations\n  -n, --number              Line numbers only\n  -A, --show-all            Show non-printables\n  -r, --line-range N:M      Restrict output to a line range\n  -H, --highlight-line N    Highlight a line (or range)\n      --wrap MODE           never|character|word|auto\n      --paging WHEN         auto|never|always\n      --color WHEN          auto|always|never\n  -d, --diff                Only added/removed/modified lines\n      --map-syntax G:S      Glob -> syntax mapping (repeatable)"
+  }
+}

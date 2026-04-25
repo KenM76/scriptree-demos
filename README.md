@@ -24,6 +24,9 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 | **hyperfine** | Statistical benchmarking for shell commands — runs N times, controls warmup, exports tables. | [`hyperfine/`](hyperfine/) | [sharkdp/hyperfine](https://github.com/sharkdp/hyperfine) |
 | **fd** | User-friendly `find` replacement — regex/glob patterns, smart filters, parallel walk. | [`fd/`](fd/) | [sharkdp/fd](https://github.com/sharkdp/fd) |
 | **dust** | More intuitive `du` — sorted tree of largest entries with percent bars. | [`dust/`](dust/) | [bootandy/dust](https://github.com/bootandy/dust) |
+| **bat** | `cat` clone with syntax highlighting, line numbers, Git integration, and an automatic pager. | [`bat/`](bat/) | [sharkdp/bat](https://github.com/sharkdp/bat) |
+| **eza** | Modern, more-featureful `ls` with colour, icons, Git, tree view, and rich long-format columns. | [`eza/`](eza/) | [eza-community/eza](https://github.com/eza-community/eza) |
+| **dog** | Friendly DNS lookup CLI — colour output, JSON, plus UDP/TCP/TLS/HTTPS transports. | [`dog/`](dog/) | [ogham/dog](https://github.com/ogham/dog) |
 
 More on the way — every useful CLI tool I run into is a candidate.
 

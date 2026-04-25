@@ -1,0 +1,264 @@
+{
+  "schema_version": 2,
+  "name": "dog",
+  "description": "A friendly DNS lookup CLI — like dig, but with colour, sensible defaults, multiple transports (UDP/TCP/TLS/HTTPS), and JSON output. Type a host (and optionally a record type), pick a transport, hit Run. Source: https://github.com/ogham/dog",
+  "executable": "./dog.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["-q", "{query}"],
+    "{queries_extra}",
+    ["-t", "{type}"],
+    "{type_extra}",
+    ["--class", "{class}"],
+    ["-n", "{nameserver}"],
+    "{nameserver_extra}",
+    "{udp?-U}",
+    "{tcp?-T}",
+    "{tls?-S}",
+    "{https?-H}",
+    ["--edns", "{edns}"],
+    ["--txid", "{txid}"],
+    "{tweaks}",
+    "{short?-1}",
+    "{json?-J}",
+    ["--color", "{color}"],
+    "{seconds?--seconds}",
+    "{time?--time}"
+  ],
+  "params": [
+    {
+      "id": "query",
+      "label": "Host / domain (-q / --query)",
+      "description": "Domain to look up. Required. Example: 'example.com', 'mail.protonmail.ch', '8.8.8.8.in-addr.arpa'.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Query"
+    },
+    {
+      "id": "queries_extra",
+      "label": "Additional queries (-q, repeatable)",
+      "description": "Extra hosts to look up in the same invocation. Write the full flag for each. Example:\n    -q google.com -q apple.com",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Query"
+    },
+    {
+      "id": "type",
+      "label": "Record type (-t / --type)",
+      "description": "DNS record type to fetch. Default 'A'. dog also auto-detects type tokens passed positionally, but using the flag is unambiguous.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "A",
+        "AAAA",
+        "CAA",
+        "CNAME",
+        "HINFO",
+        "LOC",
+        "MX",
+        "NAPTR",
+        "NS",
+        "OPT",
+        "PTR",
+        "SOA",
+        "SRV",
+        "SSHFP",
+        "TLSA",
+        "TXT"
+      ],
+      "section": "Query"
+    },
+    {
+      "id": "type_extra",
+      "label": "Additional types (-t, repeatable)",
+      "description": "Ask for more than one record type at once. Write the full flag for each. Example:\n    -t MX -t TXT -t NS",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Query"
+    },
+    {
+      "id": "class",
+      "label": "Class (--class)",
+      "description": "DNS class. 'IN' = Internet (default), 'CH' = CHAOS (used for things like version.bind), 'HS' = Hesiod (legacy).",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "IN",
+        "CH",
+        "HS"
+      ],
+      "section": "Query"
+    },
+    {
+      "id": "nameserver",
+      "label": "Nameserver (-n / --nameserver)",
+      "description": "Server to ask. IP or hostname, with optional ':port'. Examples: '1.1.1.1', '8.8.8.8', 'dns.google', 'one.one.one.one:53'. Leave blank to use the system resolver.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Transport"
+    },
+    {
+      "id": "nameserver_extra",
+      "label": "Additional nameservers (-n, repeatable)",
+      "description": "Query multiple nameservers in one invocation. Write the full flag for each. Example:\n    -n 1.1.1.1 -n 8.8.8.8 -n 9.9.9.9",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Transport"
+    },
+    {
+      "id": "udp",
+      "label": "UDP (-U / --udp)",
+      "description": "Force plain UDP. Default protocol; tick this only when you want to override --tcp/--tls/--https.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Transport"
+    },
+    {
+      "id": "tcp",
+      "label": "TCP (-T / --tcp)",
+      "description": "Use plain TCP instead of UDP. Useful for large responses (DNSSEC, AXFR-style queries).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Transport"
+    },
+    {
+      "id": "tls",
+      "label": "DNS-over-TLS (-S / --tls)",
+      "description": "Encrypted DNS over TCP/853. Pair with a DoT-capable nameserver (1.1.1.1, 9.9.9.9, dns.google, etc.).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Transport"
+    },
+    {
+      "id": "https",
+      "label": "DNS-over-HTTPS (-H / --https)",
+      "description": "Encrypted DNS over HTTPS/443 (RFC 8484). The nameserver value should be the full DoH URL, e.g. 'https://cloudflare-dns.com/dns-query'.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Transport"
+    },
+    {
+      "id": "edns",
+      "label": "EDNS (--edns)",
+      "description": "EDNS(0) opt-in mode. 'disable' omits the OPT record entirely; 'hide' enables EDNS but doesn't print the OPT record; 'show' enables and prints it.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "disable",
+        "hide",
+        "show"
+      ],
+      "section": "Protocol tweaks"
+    },
+    {
+      "id": "txid",
+      "label": "Transaction ID (--txid)",
+      "description": "Pin a specific 16-bit DNS transaction ID. Mostly useful for capture-replay or debugging.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 0,
+      "max": 65535,
+      "section": "Protocol tweaks"
+    },
+    {
+      "id": "tweaks",
+      "label": "Protocol tweaks (-Z, repeatable)",
+      "description": "Set protocol-level flags. Write the full flag for each. Values: 'aa' (authoritative answer), 'ad' (authentic data), 'cd' (checking disabled), 'bufsize=NUM'. Example:\n    -Z ad -Z bufsize=4096",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Protocol tweaks"
+    },
+    {
+      "id": "short",
+      "label": "Short form (-1 / --short)",
+      "description": "Print only the answer values, one per line. Friendly for piping (e.g. `dog -1 example.com | head -1`).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "json",
+      "label": "JSON (-J / --json)",
+      "description": "Emit machine-readable JSON instead of the human-friendly table.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "color",
+      "label": "Color (--color / --colour)",
+      "description": "When to colorize output.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "auto",
+        "always",
+        "never"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "seconds",
+      "label": "TTL in seconds (--seconds)",
+      "description": "Show TTL values as raw seconds rather than '5m', '1h' etc.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "time",
+      "label": "Show response time (--time)",
+      "description": "Display how long the DNS response took. Handy for benchmarking different resolvers.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/ogham/dog",
+    "help_text_cached": "dog [OPTIONS] [HOST [TYPE]...]\n\nA command-line DNS client.\n\nKey flags:\n  -q HOST                Query host (repeatable)\n  -t TYPE                Record type (repeatable)\n  --class IN|CH|HS       DNS class\n  -n ADDR                Nameserver (repeatable; ip[:port] or hostname)\n  -U / -T / -S / -H      Transport: UDP / TCP / TLS / HTTPS\n  --edns disable|hide|show\n  --txid N               Set DNS transaction ID\n  -Z TWEAK               aa, ad, cd, bufsize=NUM (repeatable)\n  -1 / --short           One value per line\n  -J / --json            JSON output\n  --color WHEN           auto|always|never\n  --seconds              Raw-seconds TTLs\n  --time                 Show response latency"
+  }
+}
