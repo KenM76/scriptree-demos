@@ -2,6 +2,8 @@
 
 A ScripTree GUI for **[parfit](https://github.com/caldempsey/parfit)** by [Cal Dempsey](https://github.com/caldempsey).
 
+![parfit in ScripTree](screenshot.png)
+
 ## What parfit does
 
 parfit reflows the prose inside source-code comments to a target column width using optimal-fit (Knuth-Plass-style) line breaking, while passing machine-readable directives — rustdoc attributes, doctest fences, `//#` / `#!`-style markers, shebangs, etc. — through unchanged.

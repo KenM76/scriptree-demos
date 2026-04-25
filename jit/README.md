@@ -2,6 +2,8 @@
 
 A ScripTree GUI for **[jit](https://github.com/cesarferreira/jit)** by [César Ferreira](https://github.com/cesarferreira).
 
+![jit show-detail in ScripTree](screenshot.png)
+
 ## What jit does
 
 jit is a Jira CLI for ticket lookup, detailed issue inspection, sprint views, and creating or editing issues from the terminal. It's fully scriptable — every operation is a one-shot command with flags, no interactive prompts.
