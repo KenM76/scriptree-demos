@@ -1,0 +1,171 @@
+{
+  "schema_version": 2,
+  "name": "gh — PR merge",
+  "description": "Merge a pull request. Pick exactly one strategy — merge / squash / rebase — and optionally delete the branch, set the merge commit subject/body, or queue for auto-merge once required checks pass. Source: https://cli.github.com/manual/gh_pr_merge",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "pr",
+    "merge",
+    "{pr}",
+    ["-R", "{repo}"],
+    "{merge?-m}",
+    "{squash?-s}",
+    "{rebase?-r}",
+    "{auto?--auto}",
+    "{disable_auto?--disable-auto}",
+    "{admin?--admin}",
+    "{delete_branch?-d}",
+    ["-t", "{subject}"],
+    ["-b", "{body}"],
+    ["-F", "{body_file}"],
+    ["-A", "{author_email}"],
+    ["--match-head-commit", "{match_head_commit}"]
+  ],
+  "params": [
+    {
+      "id": "pr",
+      "label": "PR (number, URL, or branch)",
+      "description": "Which PR to merge. Leave blank to operate on the PR for the current branch.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "merge",
+      "label": "Merge commit (-m / --merge)",
+      "description": "Standard merge — preserves commit history with a merge commit. Pick exactly one of merge / squash / rebase.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Strategy (one of three)"
+    },
+    {
+      "id": "squash",
+      "label": "Squash (-s / --squash)",
+      "description": "Squash all commits into one and merge. Pick exactly one of merge / squash / rebase.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Strategy (one of three)"
+    },
+    {
+      "id": "rebase",
+      "label": "Rebase (-r / --rebase)",
+      "description": "Rebase commits onto the base branch (no merge commit). Pick exactly one of merge / squash / rebase.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Strategy (one of three)"
+    },
+    {
+      "id": "delete_branch",
+      "label": "Delete branch (-d / --delete-branch)",
+      "description": "Delete both the local and remote head branch after merging.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Cleanup"
+    },
+    {
+      "id": "auto",
+      "label": "Auto-merge (--auto)",
+      "description": "Queue the PR to merge automatically once all required checks pass. Requires the repository to have auto-merge enabled.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Auto-merge"
+    },
+    {
+      "id": "disable_auto",
+      "label": "Disable auto-merge (--disable-auto)",
+      "description": "Cancel a previously-queued auto-merge for this PR.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Auto-merge"
+    },
+    {
+      "id": "admin",
+      "label": "Admin override (--admin)",
+      "description": "Use admin privileges to bypass branch protection (required reviews, status checks, etc.). Use sparingly.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Auto-merge"
+    },
+    {
+      "id": "subject",
+      "label": "Commit subject (-t / --subject)",
+      "description": "Subject line for the merge commit. Only used by --merge and --squash.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Commit message"
+    },
+    {
+      "id": "body",
+      "label": "Commit body (-b / --body)",
+      "description": "Body for the merge commit. Use --body-file or omit for the default.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "",
+      "section": "Commit message"
+    },
+    {
+      "id": "body_file",
+      "label": "Body file (-F / --body-file)",
+      "description": "Read the merge-commit body from this file. Use '-' for stdin.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Commit message"
+    },
+    {
+      "id": "author_email",
+      "label": "Author email (-A / --author-email)",
+      "description": "Email used as the author of the merge commit. Useful when your default GitHub email differs from what you want recorded.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Commit message"
+    },
+    {
+      "id": "match_head_commit",
+      "label": "Match head commit (--match-head-commit)",
+      "description": "SHA the PR head must match before merging. Guards against racing pushes that would otherwise be merged blind.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Safety"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_pr_merge"
+  }
+}

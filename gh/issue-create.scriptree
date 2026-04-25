@@ -1,0 +1,171 @@
+{
+  "schema_version": 2,
+  "name": "gh — issue create",
+  "description": "File a new issue. Title and body can be typed directly, read from a file, or composed in $EDITOR. Use --web to fall back to the GitHub create-issue page in your browser. Source: https://cli.github.com/manual/gh_issue_create",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "issue",
+    "create",
+    ["-R", "{repo}"],
+    ["-t", "{title}"],
+    ["-b", "{body}"],
+    ["-F", "{body_file}"],
+    ["-a", "{assignee}"],
+    "{assignee_extra}",
+    ["-l", "{label}"],
+    "{label_extra}",
+    ["-m", "{milestone}"],
+    ["-p", "{project}"],
+    ["-T", "{template_name}"],
+    "{editor?-e}",
+    "{web?-w}",
+    ["--recover", "{recover}"]
+  ],
+  "params": [
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Repo"
+    },
+    {
+      "id": "title",
+      "label": "Title (-t / --title)",
+      "description": "Issue title. Required unless using --editor or --web.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "body",
+      "label": "Body (-b / --body)",
+      "description": "Issue description. Use --body-file or --editor for longer prose.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "body_file",
+      "label": "Body file (-F / --body-file)",
+      "description": "Read the issue description from this file. Use '-' to read from stdin.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "template_name",
+      "label": "Issue template (-T / --template)",
+      "description": "Name of the issue template to use (from .github/ISSUE_TEMPLATE/). Example: 'bug_report.md'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "assignee",
+      "label": "Assignee (-a / --assignee)",
+      "description": "Assign the issue to this login. '@me' = assign to yourself.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "assignee_extra",
+      "label": "Extra --assignee entries (repeatable)",
+      "description": "Additional assignees. Write the full flag for each. Example:\n    -a alice -a bob",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "label",
+      "label": "Label (-l / --label)",
+      "description": "Apply a label. Repeatable upstream — use the field below for additional labels.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "label_extra",
+      "label": "Extra --label entries (repeatable)",
+      "description": "Additional labels. Write the full flag for each. Example:\n    -l bug -l priority:high",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "milestone",
+      "label": "Milestone (-m / --milestone)",
+      "description": "Attach to a milestone by name.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "project",
+      "label": "Project (-p / --project)",
+      "description": "Add the issue to a Project (Beta) by title.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Metadata"
+    },
+    {
+      "id": "editor",
+      "label": "Use editor (-e / --editor)",
+      "description": "Drop into $EDITOR to compose title/body interactively.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Submission"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the GitHub create-issue page in your browser instead of submitting from the CLI.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Submission"
+    },
+    {
+      "id": "recover",
+      "label": "Recover from file (--recover)",
+      "description": "Recover input from a previous failed run. gh writes recovery files when submission fails partway.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Submission"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_issue_create"
+  }
+}

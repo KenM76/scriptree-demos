@@ -1,0 +1,61 @@
+{
+  "schema_version": 2,
+  "name": "gh — repo clone",
+  "description": "Clone a GitHub repository. Auth is handled by gh, so private repos clone without SSH key juggling. When cloning your own fork, gh adds an 'upstream' remote pointing at the parent — disable with --no-upstream or rename with --upstream-remote-name. Source: https://cli.github.com/manual/gh_repo_clone",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "repo",
+    "clone",
+    "{repository}",
+    "{directory}",
+    ["-u", "{upstream_remote_name}"],
+    "{no_upstream?--no-upstream}"
+  ],
+  "params": [
+    {
+      "id": "repository",
+      "label": "Repository (OWNER/REPO or URL)",
+      "description": "Repo to clone. Examples: 'cli/cli', 'https://github.com/cli/cli'. Required.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Source"
+    },
+    {
+      "id": "directory",
+      "label": "Destination directory",
+      "description": "Where to clone to. Defaults to a folder named after the repo in the current working directory.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Destination"
+    },
+    {
+      "id": "upstream_remote_name",
+      "label": "Upstream remote name (-u / --upstream-remote-name)",
+      "description": "Name to use for the auto-added 'upstream' remote when cloning a fork. Default: 'upstream'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Fork handling"
+    },
+    {
+      "id": "no_upstream",
+      "label": "No upstream remote (--no-upstream)",
+      "description": "Don't add an upstream remote when cloning a fork. Useful if you only ever push to your fork and pull from origin.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Fork handling"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_repo_clone"
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "schema_version": 2,
+  "name": "gh — issue list",
+  "description": "List issues in a repository. Defaults to open issues in the current repo. Filter by state, author/assignee, labels, milestone, or a free-form GitHub search query. Source: https://cli.github.com/manual/gh_issue_list",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "issue",
+    "list",
+    ["-R", "{repo}"],
+    ["-s", "{state}"],
+    ["-A", "{author}"],
+    ["-a", "{assignee}"],
+    ["--mention", "{mention}"],
+    ["-l", "{label}"],
+    "{label_extra}",
+    ["-m", "{milestone}"],
+    ["--app", "{app}"],
+    ["-S", "{search}"],
+    ["-L", "{limit}"],
+    ["--json", "{json}"],
+    ["-q", "{jq}"],
+    ["-t", "{template}"],
+    "{web?-w}"
+  ],
+  "params": [
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Repo"
+    },
+    {
+      "id": "state",
+      "label": "State (-s / --state)",
+      "description": "Filter by issue state. Default 'open' if blank.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": ["", "open", "closed", "all"],
+      "section": "Filter"
+    },
+    {
+      "id": "author",
+      "label": "Author (-A / --author)",
+      "description": "Filter by issue author login. Use '@me' for yourself.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "assignee",
+      "label": "Assignee (-a / --assignee)",
+      "description": "Filter by assigned login. '@me' = assigned to you.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "mention",
+      "label": "Mentions (--mention)",
+      "description": "Filter to issues that mention this login.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "label",
+      "label": "Label (-l / --label)",
+      "description": "Filter by label. Repeatable upstream — write further labels in the field below.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "label_extra",
+      "label": "Extra --label entries (repeatable)",
+      "description": "Additional label filters. Write the full flag for each. Example:\n    -l bug -l priority:high",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "milestone",
+      "label": "Milestone (-m / --milestone)",
+      "description": "Filter by milestone number or title.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "app",
+      "label": "GitHub App author (--app)",
+      "description": "Filter to issues opened by a specific GitHub App.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "search",
+      "label": "Search query (-S / --search)",
+      "description": "Free-form GitHub search query. Example: 'is:open label:bug created:>2025-01-01'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "limit",
+      "label": "Limit (-L / --limit)",
+      "description": "Max number of issues to fetch. Default 30 if blank.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "max": 1000,
+      "section": "Filter"
+    },
+    {
+      "id": "json",
+      "label": "JSON fields (--json)",
+      "description": "Comma-separated list of fields to return as JSON. Run `gh issue list --json` for the full field list.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "jq",
+      "label": "jq filter (-q / --jq)",
+      "description": "Apply a jq expression to the JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "template",
+      "label": "Go template (-t / --template)",
+      "description": "Go template applied to JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the filtered issue list in the GitHub web UI.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_issue_list"
+  }
+}

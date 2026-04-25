@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "name": "gh — repo view",
+  "description": "Show a repository's README and metadata. Identify by OWNER/REPO or URL — leave blank to view the repo of the current working directory. Source: https://cli.github.com/manual/gh_repo_view",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "repo",
+    "view",
+    "{repository}",
+    ["-b", "{branch}"],
+    ["--json", "{json}"],
+    ["-q", "{jq}"],
+    ["-t", "{template}"],
+    "{web?-w}"
+  ],
+  "params": [
+    {
+      "id": "repository",
+      "label": "Repository (OWNER/REPO or URL)",
+      "description": "Repository to view. Examples: 'cli/cli', 'https://github.com/cli/cli'. Leave blank to use the repo of the current working directory.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "branch",
+      "label": "Branch (-b / --branch)",
+      "description": "View the README at this branch instead of the default.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "json",
+      "label": "JSON fields (--json)",
+      "description": "Comma-separated list of fields to return as JSON (e.g. 'name,description,stargazerCount,defaultBranchRef'). Run `gh repo view --json` for the full list.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "jq",
+      "label": "jq filter (-q / --jq)",
+      "description": "Apply a jq expression to the JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "template",
+      "label": "Go template (-t / --template)",
+      "description": "Go template applied to JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the repo in the GitHub web UI instead of printing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_repo_view"
+  }
+}

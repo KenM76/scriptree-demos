@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "name": "gh — PR checkout",
+  "description": "Check out a pull request into a local branch. Identify by number, URL, or branch name. Use --force to reset an already-checked-out branch to the latest PR head, --detach for a read-only inspection, or --recurse-submodules to update nested submodules. Source: https://cli.github.com/manual/gh_pr_checkout",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "pr",
+    "checkout",
+    "{pr}",
+    ["-R", "{repo}"],
+    ["-b", "{branch}"],
+    "{detach?--detach}",
+    "{force?-f}",
+    "{recurse_submodules?--recurse-submodules}"
+  ],
+  "params": [
+    {
+      "id": "pr",
+      "label": "PR (number, URL, or branch)",
+      "description": "Which PR to check out. Examples: '1234', 'https://github.com/owner/repo/pull/1234', 'feature/topic'.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank to use the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "branch",
+      "label": "Local branch name (-b / --branch)",
+      "description": "Override the local branch name. By default gh uses the PR's head branch name.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Checkout"
+    },
+    {
+      "id": "detach",
+      "label": "Detached HEAD (--detach)",
+      "description": "Check out the PR with a detached HEAD instead of creating a local branch. Read-only inspection mode.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Checkout"
+    },
+    {
+      "id": "force",
+      "label": "Force reset (-f / --force)",
+      "description": "Reset an existing local branch to match the PR head, discarding any local divergence. Destructive — confirm before using.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Checkout"
+    },
+    {
+      "id": "recurse_submodules",
+      "label": "Recurse submodules (--recurse-submodules)",
+      "description": "Update all submodules after checkout. Required if the PR touches submodule references.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Checkout"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_pr_checkout"
+  }
+}

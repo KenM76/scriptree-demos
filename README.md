@@ -29,6 +29,7 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 | **dog** | Friendly DNS lookup CLI — colour output, JSON, plus UDP/TCP/TLS/HTTPS transports. | [`dog/`](dog/) | [ogham/dog](https://github.com/ogham/dog) |
 | **cvforge** | YAML → ATS-friendly PDF resume via Typst. Four subcommands (build / init / fonts / ats-check). | [`cvforge/`](cvforge/) | [SoAp9035/cvforge](https://github.com/SoAp9035/cvforge) |
 | **bifrost** | Bridge files between computer and phone via QR code — single Go binary, LAN HTTP server, optional AES-256-GCM. | [`bifrost/`](bifrost/) | [axiom0x0/bifrost](https://github.com/axiom0x0/bifrost) |
+| **gh** | GitHub CLI — eleven scriptrees covering PRs (list / view / create / checkout / merge), issues (list / view / create), repos (view / clone), and releases (create). | [`gh/`](gh/) | [cli/cli](https://github.com/cli/cli) |
 
 More on the way — every useful CLI tool I run into is a candidate.
 

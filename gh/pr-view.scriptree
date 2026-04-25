@@ -1,0 +1,94 @@
+{
+  "schema_version": 2,
+  "name": "gh — PR view",
+  "description": "Show one pull request: title, status checks, description, optionally comments. Identify by number, URL, or branch — leave blank to view the PR for the current branch. Source: https://cli.github.com/manual/gh_pr_view",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "pr",
+    "view",
+    "{pr}",
+    ["-R", "{repo}"],
+    "{comments?-c}",
+    ["--json", "{json}"],
+    ["-q", "{jq}"],
+    ["-t", "{template}"],
+    "{web?-w}"
+  ],
+  "params": [
+    {
+      "id": "pr",
+      "label": "PR (number, URL, or branch)",
+      "description": "Pull request to view. Leave blank to use the PR associated with the current branch. Examples: '1234', 'https://github.com/owner/repo/pull/1234', 'feature/my-branch'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank to use the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "comments",
+      "label": "Show comments (-c / --comments)",
+      "description": "Append the PR comment thread to the output.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail"
+    },
+    {
+      "id": "json",
+      "label": "JSON fields (--json)",
+      "description": "Comma-separated list of fields to return as JSON. Run `gh pr view --json` for the full field list.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "jq",
+      "label": "jq filter (-q / --jq)",
+      "description": "Apply a jq expression to the JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "template",
+      "label": "Go template (-t / --template)",
+      "description": "Go template applied to JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the PR in the GitHub web UI instead of printing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_pr_view"
+  }
+}

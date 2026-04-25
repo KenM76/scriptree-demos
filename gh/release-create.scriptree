@@ -1,0 +1,182 @@
+{
+  "schema_version": 2,
+  "name": "gh — release create",
+  "description": "Cut a new release tied to a Git tag. Auto-generate notes from commit history with --generate-notes, ship as draft for review with --draft, or mark as prerelease. Asset uploads are not exposed in the form — invoke `gh release upload <tag> file...` separately. Source: https://cli.github.com/manual/gh_release_create",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "release",
+    "create",
+    "{tag}",
+    ["-R", "{repo}"],
+    ["-t", "{title}"],
+    ["-n", "{notes}"],
+    ["-F", "{notes_file}"],
+    "{notes_from_tag?--notes-from-tag}",
+    ["--notes-start-tag", "{notes_start_tag}"],
+    "{generate_notes?--generate-notes}",
+    ["--target", "{target}"],
+    "{draft?-d}",
+    "{prerelease?-p}",
+    "{latest?--latest}",
+    ["--discussion-category", "{discussion_category}"],
+    "{verify_tag?--verify-tag}",
+    "{fail_on_no_commits?--fail-on-no-commits}"
+  ],
+  "params": [
+    {
+      "id": "tag",
+      "label": "Tag",
+      "description": "Git tag for the release (e.g. 'v1.2.3'). Required. If the tag doesn't exist locally, gh creates it pointing at --target.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Tag"
+    },
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Tag"
+    },
+    {
+      "id": "target",
+      "label": "Target branch or commit (--target)",
+      "description": "Branch name or commit SHA to tag from. Defaults to the repo's default branch tip.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Tag"
+    },
+    {
+      "id": "verify_tag",
+      "label": "Verify tag exists remotely (--verify-tag)",
+      "description": "Abort if the tag does not already exist on the remote. Use to prevent gh from creating a new tag.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Tag"
+    },
+    {
+      "id": "title",
+      "label": "Title (-t / --title)",
+      "description": "Release title. Defaults to the tag name.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "notes",
+      "label": "Notes (-n / --notes)",
+      "description": "Release notes body. Use --notes-file or --generate-notes for longer/automated content.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "notes_file",
+      "label": "Notes file (-F / --notes-file)",
+      "description": "Read notes from this file. Use '-' to read from stdin.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "generate_notes",
+      "label": "Auto-generate notes (--generate-notes)",
+      "description": "Have GitHub compute the title and notes from PRs/commits since the previous release. Pairs well with --notes-start-tag.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "notes_from_tag",
+      "label": "Notes from tag annotation (--notes-from-tag)",
+      "description": "Use the tag's annotation/commit message as the release notes. Useful when you sign annotated tags with the changelog.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "notes_start_tag",
+      "label": "Notes start tag (--notes-start-tag)",
+      "description": "Generate notes starting from this tag instead of the previous release. Use when releases skip tags.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "fail_on_no_commits",
+      "label": "Fail on no commits (--fail-on-no-commits)",
+      "description": "Error out if there are no commits since the previous release. Catches accidental empty releases in CI.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "draft",
+      "label": "Draft (-d / --draft)",
+      "description": "Save as a draft. Drafts aren't visible to users until published from the GitHub UI or via `gh release edit`.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Visibility"
+    },
+    {
+      "id": "prerelease",
+      "label": "Pre-release (-p / --prerelease)",
+      "description": "Mark as a pre-release. Hides the release from 'latest' and adds a Pre-release badge.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Visibility"
+    },
+    {
+      "id": "latest",
+      "label": "Force latest (--latest)",
+      "description": "Mark this release as the latest, overriding GitHub's automatic semver-based pick.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Visibility"
+    },
+    {
+      "id": "discussion_category",
+      "label": "Discussion category (--discussion-category)",
+      "description": "Open a discussion thread for the release in this Discussions category. The category must already exist on the repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Visibility"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_release_create"
+  }
+}

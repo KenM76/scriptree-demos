@@ -1,0 +1,94 @@
+{
+  "schema_version": 2,
+  "name": "gh — issue view",
+  "description": "Show one issue: title, state, labels, body, optionally comments. Identify by number or URL. Source: https://cli.github.com/manual/gh_issue_view",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "issue",
+    "view",
+    "{issue}",
+    ["-R", "{repo}"],
+    "{comments?-c}",
+    ["--json", "{json}"],
+    ["-q", "{jq}"],
+    ["-t", "{template}"],
+    "{web?-w}"
+  ],
+  "params": [
+    {
+      "id": "issue",
+      "label": "Issue (number or URL)",
+      "description": "Issue identifier. Examples: '1234', 'https://github.com/owner/repo/issues/1234'.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "comments",
+      "label": "Show comments (-c / --comments)",
+      "description": "Append the comment thread to the output.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail"
+    },
+    {
+      "id": "json",
+      "label": "JSON fields (--json)",
+      "description": "Comma-separated list of fields to return as JSON.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "jq",
+      "label": "jq filter (-q / --jq)",
+      "description": "Apply a jq expression to the JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "template",
+      "label": "Go template (-t / --template)",
+      "description": "Go template applied to JSON output. Implies --json.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the issue in the GitHub web UI instead of printing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_issue_view"
+  }
+}

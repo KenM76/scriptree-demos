@@ -1,0 +1,281 @@
+{
+  "schema_version": 2,
+  "name": "gh — PR create",
+  "description": "Open a pull request from the current branch. Title and body can be typed in directly, read from a file, or auto-filled from commit messages with --fill. Use --draft to open as a draft, --web to launch the GitHub create page in a browser, or --dry-run to preview the PR payload without submitting. Source: https://cli.github.com/manual/gh_pr_create",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "pr",
+    "create",
+    ["-R", "{repo}"],
+    ["-t", "{title}"],
+    ["-b", "{body}"],
+    ["-F", "{body_file}"],
+    "{draft?-d}",
+    "{fill?-f}",
+    "{fill_first?--fill-first}",
+    "{fill_verbose?--fill-verbose}",
+    ["-B", "{base}"],
+    ["-H", "{head}"],
+    ["-a", "{assignee}"],
+    "{assignee_extra}",
+    ["-r", "{reviewer}"],
+    "{reviewer_extra}",
+    ["-l", "{label}"],
+    "{label_extra}",
+    ["-m", "{milestone}"],
+    ["-p", "{project}"],
+    ["-T", "{template_file}"],
+    "{no_maintainer_edit?--no-maintainer-edit}",
+    "{editor?-e}",
+    "{web?-w}",
+    "{dry_run?--dry-run}",
+    ["--recover", "{recover}"]
+  ],
+  "params": [
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank to use the current working directory's repo.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Repo"
+    },
+    {
+      "id": "base",
+      "label": "Base branch (-B / --base)",
+      "description": "Branch the PR merges into. Defaults to the repo's default branch.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Branches"
+    },
+    {
+      "id": "head",
+      "label": "Head branch (-H / --head)",
+      "description": "Source branch (the one with your changes). Defaults to the current branch. Use 'OWNER:branch' for cross-fork PRs.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Branches"
+    },
+    {
+      "id": "title",
+      "label": "Title (-t / --title)",
+      "description": "PR title. Required unless using --fill, --editor, or --web.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "body",
+      "label": "Body (-b / --body)",
+      "description": "PR description. Use --body-file or --editor for longer prose.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "body_file",
+      "label": "Body file (-F / --body-file)",
+      "description": "Read the PR description from this file. Use '-' to read from stdin.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "template_file",
+      "label": "PR template file (-T / --template)",
+      "description": "Use a non-default PR template by file name (e.g. 'bugfix.md'). The repo's .github/PULL_REQUEST_TEMPLATE/ folder lists the available templates.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Body"
+    },
+    {
+      "id": "fill",
+      "label": "Auto-fill from commits (-f / --fill)",
+      "description": "Use the commit info as title and body — first commit's subject becomes the title, subsequent commit messages become the body.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "fill_first",
+      "label": "Fill from first commit only (--fill-first)",
+      "description": "Use only the first commit's message for both title and body. Handy when subsequent commits are noisy fixups.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "fill_verbose",
+      "label": "Fill verbose (--fill-verbose)",
+      "description": "Include the full commit body (not just the subject) when filling.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Body"
+    },
+    {
+      "id": "draft",
+      "label": "Draft (-d / --draft)",
+      "description": "Open as a draft PR (not yet ready for review).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "State"
+    },
+    {
+      "id": "no_maintainer_edit",
+      "label": "Disable maintainer edits (--no-maintainer-edit)",
+      "description": "Block upstream maintainers from editing the PR head branch. Only relevant for cross-fork PRs.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "State"
+    },
+    {
+      "id": "assignee",
+      "label": "Assignee (-a / --assignee)",
+      "description": "Assign the PR to this login. '@me' = assign to yourself.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "assignee_extra",
+      "label": "Extra --assignee entries (repeatable)",
+      "description": "Additional assignees. Write the full flag for each. Example:\n    -a alice -a bob",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "reviewer",
+      "label": "Reviewer (-r / --reviewer)",
+      "description": "Request a review from this login or team (e.g. 'octocat' or 'github/security').",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "reviewer_extra",
+      "label": "Extra --reviewer entries (repeatable)",
+      "description": "Additional reviewers. Write the full flag for each. Example:\n    -r alice -r github/platform",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "label",
+      "label": "Label (-l / --label)",
+      "description": "Apply a label to the PR. Repeatable upstream — use the field below for additional labels.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "label_extra",
+      "label": "Extra --label entries (repeatable)",
+      "description": "Additional labels. Write the full flag for each. Example:\n    -l bug -l priority:high",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "milestone",
+      "label": "Milestone (-m / --milestone)",
+      "description": "Attach to a milestone by name.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "project",
+      "label": "Project (-p / --project)",
+      "description": "Add the PR to a Project (Beta) by title.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "People & metadata"
+    },
+    {
+      "id": "editor",
+      "label": "Use editor (-e / --editor)",
+      "description": "Drop into $EDITOR to compose title/body interactively.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Submission"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the GitHub PR-create page in your browser instead of submitting from the CLI.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Submission"
+    },
+    {
+      "id": "dry_run",
+      "label": "Dry run (--dry-run)",
+      "description": "Print the PR payload without actually creating it. Safe way to preview the form filling.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Submission"
+    },
+    {
+      "id": "recover",
+      "label": "Recover from file (--recover)",
+      "description": "Recover input from a previous failed run by file path. gh writes recovery files when submission fails partway.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Submission"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_pr_create"
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "schema_version": 2,
+  "name": "gh — PR list",
+  "description": "List pull requests in a repository. Defaults to open PRs in the current repo. Filter by state, author, assignee, base/head branch, labels, or a free-form GitHub search query. Add --json + --jq for pipeable output. Source: https://cli.github.com/manual/gh_pr_list",
+  "executable": "gh",
+  "working_directory": null,
+  "argument_template": [
+    "pr",
+    "list",
+    ["-R", "{repo}"],
+    ["-s", "{state}"],
+    "{draft?-d}",
+    ["-A", "{author}"],
+    ["-a", "{assignee}"],
+    ["-B", "{base}"],
+    ["-H", "{head}"],
+    ["-l", "{label}"],
+    "{label_extra}",
+    ["-m", "{milestone}"],
+    ["--app", "{app}"],
+    ["-S", "{search}"],
+    ["-L", "{limit}"],
+    ["--json", "{json}"],
+    ["-q", "{jq}"],
+    ["-t", "{template}"],
+    "{web?-w}"
+  ],
+  "params": [
+    {
+      "id": "repo",
+      "label": "Repository (-R / --repo)",
+      "description": "Target repo in [HOST/]OWNER/REPO form (e.g. 'cli/cli' or 'github.enterprise.local/owner/repo'). Leave blank to use the repo of the current working directory.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Repo"
+    },
+    {
+      "id": "state",
+      "label": "State (-s / --state)",
+      "description": "Filter by PR state. Default 'open' if blank.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": ["", "open", "closed", "merged", "all"],
+      "section": "Filter"
+    },
+    {
+      "id": "draft",
+      "label": "Drafts only (-d / --draft)",
+      "description": "Show only draft pull requests.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filter"
+    },
+    {
+      "id": "author",
+      "label": "Author (-A / --author)",
+      "description": "Filter by PR author login (or 'app/<name>' for a GitHub App). Use '@me' for yourself.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "assignee",
+      "label": "Assignee (-a / --assignee)",
+      "description": "Filter by assigned login. '@me' = assigned to you.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "base",
+      "label": "Base branch (-B / --base)",
+      "description": "Only PRs targeting this base branch (e.g. 'main', 'develop').",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "head",
+      "label": "Head branch (-H / --head)",
+      "description": "Only PRs whose head branch matches. Useful when chasing a specific topic branch across PRs.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "label",
+      "label": "Label (-l / --label)",
+      "description": "Filter by label name. Repeatable upstream — write further labels in the field below.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "label_extra",
+      "label": "Extra --label entries (repeatable)",
+      "description": "Additional label filters. Write the full flag for each entry. Example:\n    -l bug -l priority:high",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "milestone",
+      "label": "Milestone (-m / --milestone)",
+      "description": "Filter by milestone number or title.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "app",
+      "label": "GitHub App author (--app)",
+      "description": "Filter to PRs opened by a specific GitHub App (e.g. 'dependabot').",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "search",
+      "label": "Search query (-S / --search)",
+      "description": "Free-form GitHub search query (same syntax as the web UI). Example: 'review:approved comments:>5'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filter"
+    },
+    {
+      "id": "limit",
+      "label": "Limit (-L / --limit)",
+      "description": "Max number of PRs to fetch. Default 30 if blank.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "max": 1000,
+      "section": "Filter"
+    },
+    {
+      "id": "json",
+      "label": "JSON fields (--json)",
+      "description": "Comma-separated list of fields to return as JSON (e.g. 'number,title,state,author'). Run `gh pr list --json` with no value to see all available fields.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "jq",
+      "label": "jq filter (-q / --jq)",
+      "description": "Apply a jq expression to the JSON output. Implies --json. Example: '.[] | .title'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "template",
+      "label": "Go template (-t / --template)",
+      "description": "Go template applied to JSON output. Implies --json. Example: '{{range .}}{{.number}} {{.title}}{{\"\\n\"}}{{end}}'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "web",
+      "label": "Open in browser (-w / --web)",
+      "description": "Open the filtered PR list in the GitHub web UI instead of printing.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://cli.github.com/manual/gh_pr_list",
+    "help_text_cached": "gh pr list [flags]\n\nFlags:\n  -A, --author <user>     Filter by author\n  -a, --assignee <user>   Filter by assignee\n  -B, --base <branch>     Filter by base branch\n  -H, --head <branch>     Filter by head branch\n  -d, --draft             Filter by draft state\n  -l, --label <label>     Filter by label (repeatable)\n  -m, --milestone <name>  Filter by milestone\n  -s, --state <state>     open|closed|merged|all\n      --app <name>        Filter by GitHub App author\n  -S, --search <query>    Search syntax\n  -L, --limit <n>         Max PRs to fetch (default 30)\n      --json <fields>     JSON output\n  -q, --jq <expr>         jq expression\n  -t, --template <tpl>    Go template\n  -w, --web               Open in browser\n  -R, --repo <repo>       Target repository"
+  }
+}
