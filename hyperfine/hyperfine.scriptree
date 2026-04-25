@@ -4,6 +4,17 @@
   "description": "Statistical benchmarking for shell commands. Type one or more commands to compare; hyperfine runs them N times, controls for warm-up and prepare/cleanup steps, and reports mean/stddev plus a relative speed comparison. Source: https://github.com/sharkdp/hyperfine",
   "executable": "./hyperfine.exe",
   "working_directory": null,
+  "sections": [
+    { "name": "Commands", "layout": "tab" },
+    { "name": "Run control", "layout": "tab" },
+    { "name": "Setup / teardown", "layout": "tab" },
+    { "name": "Parameterization", "layout": "tab" },
+    { "name": "Naming & comparison", "layout": "tab" },
+    { "name": "Shell & I/O", "layout": "tab" },
+    { "name": "Failure handling", "layout": "tab" },
+    { "name": "Output style", "layout": "tab" },
+    { "name": "Export", "layout": "tab" }
+  ],
   "argument_template": [
     ["--warmup", "{warmup}"],
     ["--min-runs", "{min_runs}"],
@@ -170,7 +181,7 @@
       "id": "parameter_step_size",
       "label": "Step size (-D / --parameter-step-size)",
       "description": "Step value for --parameter-scan. Default 1. Use a decimal for floating-point sweeps.",
-      "type": "number",
+      "type": "float",
       "widget": "number",
       "required": false,
       "default": 0,

@@ -4,6 +4,13 @@
   "description": "A user-friendly, fast alternative to find. Pattern is a regex by default; tick 'Glob' to use shell-glob patterns instead. Smart-case is the default — overridden by the case-sensitive / ignore-case checkboxes. Source: https://github.com/sharkdp/fd",
   "executable": "./fd.exe",
   "working_directory": null,
+  "sections": [
+    { "name": "Target", "layout": "tab" },
+    { "name": "Filters", "layout": "tab" },
+    { "name": "Traversal", "layout": "tab" },
+    { "name": "Output", "layout": "tab" },
+    { "name": "Exec", "layout": "tab" }
+  ],
   "argument_template": [
     "{hidden?-H}",
     "{no_ignore?-I}",

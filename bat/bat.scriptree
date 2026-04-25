@@ -4,6 +4,14 @@
   "description": "A cat clone with syntax highlighting, line numbers, Git integration, and an automatic pager. Point at one or more files (or leave blank to read stdin) and tune highlighting, paging, and decoration knobs. Source: https://github.com/sharkdp/bat",
   "executable": "./bat.exe",
   "working_directory": null,
+  "sections": [
+    { "name": "Input", "layout": "tab" },
+    { "name": "Highlighting", "layout": "tab" },
+    { "name": "Display", "layout": "tab" },
+    { "name": "Layout", "layout": "tab" },
+    { "name": "Color & paging", "layout": "tab" },
+    { "name": "Diff & misc", "layout": "tab" }
+  ],
   "argument_template": [
     ["-l", "{language}"],
     ["--fallback-syntax", "{fallback_syntax}"],

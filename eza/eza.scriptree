@@ -4,6 +4,16 @@
   "description": "A modern, more-featureful ls. Sensible colours, file-type icons, Git integration, recursive tree view, and rich long-format columns. One-shot CLI: every flag is a presentation knob. Source: https://github.com/eza-community/eza",
   "executable": "./eza.exe",
   "working_directory": null,
+  "sections": [
+    { "name": "Target", "layout": "tab" },
+    { "name": "Layout", "layout": "tab" },
+    { "name": "Filtering & sort", "layout": "tab" },
+    { "name": "Symlinks", "layout": "tab" },
+    { "name": "Appearance", "layout": "tab" },
+    { "name": "Long format", "layout": "tab" },
+    { "name": "Time", "layout": "tab" },
+    { "name": "Git", "layout": "tab" }
+  ],
   "argument_template": [
     "{oneline?-1}",
     "{long?-l}",

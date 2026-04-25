@@ -4,6 +4,13 @@
   "description": "A more intuitive du. Walks the given directory and prints a sorted, percentage-bar-annotated tree of the largest entries. One-shot CLI: defaults are sensible, every flag is a presentation knob. Source: https://github.com/bootandy/dust",
   "executable": "./dust.exe",
   "working_directory": null,
+  "sections": [
+    { "name": "Target", "layout": "tab" },
+    { "name": "Display", "layout": "tab" },
+    { "name": "Filtering", "layout": "tab" },
+    { "name": "Counting", "layout": "tab" },
+    { "name": "Style", "layout": "tab" }
+  ],
   "argument_template": [
     ["-n", "{number}"],
     ["-d", "{depth}"],
