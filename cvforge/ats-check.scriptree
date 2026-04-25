@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "name": "cvforge ats-check",
+  "description": "Check whether a rendered PDF passes basic Applicant Tracking System scrubbers (text extractability, no images-of-text, etc.). Source: https://github.com/SoAp9035/cvforge",
+  "executable": "cvforge",
+  "working_directory": null,
+  "argument_template": [
+    "ats-check",
+    "{pdf}"
+  ],
+  "params": [
+    {
+      "id": "pdf",
+      "label": "PDF to check",
+      "description": "Path to a PDF resume. Required. Typically the file produced by `cvforge build`.",
+      "type": "path",
+      "widget": "file_open",
+      "required": true,
+      "default": "",
+      "section": "Input"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/SoAp9035/cvforge",
+    "help_text_cached": "cvforge ats-check <pdf>\n\n  pdf    PDF file to analyze\n\nReports whether the PDF is likely to be parsed correctly by typical\nApplicant Tracking Systems."
+  }
+}

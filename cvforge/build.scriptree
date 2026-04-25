@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "name": "cvforge build",
+  "description": "Render a YAML CV definition into an ATS-friendly PDF using Typst. The most common subcommand. Source: https://github.com/SoAp9035/cvforge",
+  "executable": "cvforge",
+  "working_directory": null,
+  "argument_template": [
+    "build",
+    "{input}"
+  ],
+  "params": [
+    {
+      "id": "input",
+      "label": "Input YAML",
+      "description": "Path to the YAML CV definition. Defaults to 'cv.yaml' in the current directory if blank.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Input"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/SoAp9035/cvforge",
+    "help_text_cached": "cvforge build [input]\n\n  input    Input YAML file (default: cv.yaml)\n\nRenders the YAML resume into a PDF using Typst. Output filename\nis derived from the input filename."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "cvforge — YAML \u2192 ATS-friendly PDF resume",
+  "nodes": [
+    {
+      "type": "folder",
+      "name": "Render",
+      "children": [
+        { "type": "leaf", "path": "./build.scriptree" },
+        { "type": "leaf", "path": "./init.scriptree" }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "Inspect",
+      "children": [
+        { "type": "leaf", "path": "./fonts.scriptree" },
+        { "type": "leaf", "path": "./ats-check.scriptree" }
+      ]
+    }
+  ]
+}

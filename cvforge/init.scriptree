@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "name": "cvforge init",
+  "description": "Create a starter cv.yaml template in the chosen directory. Source: https://github.com/SoAp9035/cvforge",
+  "executable": "cvforge",
+  "working_directory": null,
+  "argument_template": [
+    "init",
+    "{directory}"
+  ],
+  "params": [
+    {
+      "id": "directory",
+      "label": "Target directory",
+      "description": "Folder to create the cv.yaml template in. Defaults to '.' (the current directory) if blank.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/SoAp9035/cvforge",
+    "help_text_cached": "cvforge init [directory]\n\n  directory    Directory to create template in (default: .)\n\nGenerates a complete cv.yaml template populated with every available\nfield. Edit it, then `cvforge build` to render the PDF."
+  }
+}
