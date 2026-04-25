@@ -1,0 +1,18 @@
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Vendored upstream executables — never commit third-party binaries.
+# Each demo expects you to drop the upstream tool's binary in its folder
+# locally, but those binaries belong to their respective authors.
+*.exe
+*.dll
+*.dylib
+*.so

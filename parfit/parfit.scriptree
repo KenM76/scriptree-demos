@@ -1,0 +1,155 @@
+{
+  "schema_version": 2,
+  "name": "parfit",
+  "description": "Reflow prose inside code comments to a target column width using optimal-fit line breaking, while passing machine-readable directives (//#, /*!, doctest, rustdoc attributes, etc.) through unchanged. Point at a file, folder, or glob; tick 'Recursive' to expand positional globs across subtrees. Use 'Print to stdout' for a dry run — files are not modified. Source: https://github.com/caldempsey/parfit",
+  "executable": "./parfit.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["-w", "{width}"],
+    "{recursive?-r}",
+    "{stdout?--stdout}",
+    ["-l", "{lang}"],
+    ["-p", "{prefix}"],
+    "{no_default_skips?--no-default-skips}",
+    "{include}",
+    "{exclude}",
+    "{skip}",
+    "{path}",
+    "{extra_paths}"
+  ],
+  "params": [
+    {
+      "id": "path",
+      "label": "Path / file / glob",
+      "description": "Primary positional argument. A file path, a folder path, or a glob pattern. Globs are expanded by parfit (not the shell). With 'Recursive' ticked, patterns like src/**/*.rs match across subdirectories. Leave blank to read from stdin (in which case parfit prints to stdout).",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "extra_paths",
+      "label": "Additional paths / globs",
+      "description": "Space-separated extra positional arguments, appended after the primary path. Example: src/lib.rs src/bin/*.rs tests/**/*.rs. Use this when you need to reformat several disjoint trees in one invocation.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Target"
+    },
+    {
+      "id": "recursive",
+      "label": "Recursive (-r)",
+      "description": "Match positional arguments recursively. Without this flag, 'src/*.rs' only matches files directly under src/. With it, 'src/**/*.rs' walks the whole subtree.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Target"
+    },
+    {
+      "id": "stdout",
+      "label": "Print to stdout (--stdout)",
+      "description": "Write reformatted output to stdout instead of rewriting files in place. Safe default for first-time runs — diff the output before committing to an in-place rewrite. Always on when input comes from stdin.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Target"
+    },
+    {
+      "id": "width",
+      "label": "Target width (-w)",
+      "description": "Column width parfit reflows comment prose toward, using Knuth-Plass-style optimal-fit line breaking. Does not hard-wrap — short paragraphs stay short. Code inside comments, machine directives, and skip-matched paragraphs are left alone.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 68,
+      "min": 20,
+      "max": 240,
+      "section": "Formatting"
+    },
+    {
+      "id": "prefix",
+      "label": "Force comment prefix (-p)",
+      "description": "Force every reflowed paragraph to start with this comment prefix. Useful when the detected prefix is wrong (e.g. processing a fragment that starts mid-block). Leave blank to let parfit infer the prefix from context.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Formatting"
+    },
+    {
+      "id": "lang",
+      "label": "Language (-l)",
+      "description": "Override auto-detection of comment syntax. Leave blank to detect by file extension. 'text' forces plain-text reflow regardless of extension — handy for Markdown, plain READMEs, or piped stdin.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "rust",
+        "python",
+        "shell",
+        "go",
+        "c",
+        "javascript",
+        "java",
+        "scala",
+        "elixir",
+        "lua",
+        "sql",
+        "lisp",
+        "text"
+      ],
+      "section": "Language"
+    },
+    {
+      "id": "include",
+      "label": "Include globs (--include, repeatable)",
+      "description": "Extra globs to include, on top of the positional paths. Write the full flag for each entry, space-separated. Example:\n    --include src/**/*.rs --include build.rs",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "exclude",
+      "label": "Exclude globs (--exclude, repeatable)",
+      "description": "Globs to skip. Same repeatable-flag syntax as Include. Example:\n    --exclude target/** --exclude vendor/**",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "skip",
+      "label": "Skip-paragraph regexes (-s / --skip, repeatable)",
+      "description": "Regex patterns matched against each comment paragraph. Matching paragraphs are emitted verbatim — no reflow — which lets you protect ASCII art, tables, or project-specific directives. Stacks on top of the built-in directive patterns unless 'No default skips' is ticked. Example:\n    --skip \"^\\\\s*\\\\|.*\\\\|$\" --skip \"^\\\\s*@?SAFETY:\"",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Filtering"
+    },
+    {
+      "id": "no_default_skips",
+      "label": "Disable built-in directive skips (--no-default-skips)",
+      "description": "Turn off parfit's built-in skip patterns (rustdoc attributes, doctest fences, //#/#!-style directives, shebangs, etc.). Only tick this if you want full control via --skip; otherwise the defaults handle almost everything machine-readable.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filtering"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/caldempsey/parfit",
+    "help_text_cached": "parfit [OPTIONS] [PATH]...\n\n  -w, --width N           Target width in columns (default: 68)\n  -r, --recursive         Match positional arguments recursively as globs\n      --stdout            Print to stdout instead of rewriting files\n      --include GLOB      Extra glob to include (repeatable)\n      --exclude GLOB      Glob to exclude (repeatable)\n  -l, --lang NAME         Language selection; overrides auto-detection\n                          (python, shell, elixir, go, rust, javascript,\n                           java, scala, c, lua, sql, lisp, text)\n  -s, --skip REGEX        Paragraphs matching REGEX are left verbatim\n                          (repeatable)\n      --no-default-skips  Disable built-in directive patterns\n  -p, --prefix STRING     Force comment prefix on every paragraph\n\nParfit reflows prose inside code comments using optimal-fit line\nbreaking, and passes machine-readable directives through unchanged."
+  }
+}

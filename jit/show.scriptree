@@ -1,0 +1,129 @@
+{
+  "schema_version": 2,
+  "name": "jit — show detail",
+  "description": "Print a detailed table view of a Jira ticket, optionally including the description, comments, linked pull requests, and extra metadata. Use 'Full' for the everything-on shortcut, or tick individual sections for a leaner view. Comment volume can be tamed with the limit/since filters.",
+  "executable": "./jit.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["--config-file", "{config_file}"],
+    "--show",
+    "{full?--full}",
+    "{include_description?--include-description}",
+    "{include_comments?--include-comments}",
+    "{include_prs?--include-prs}",
+    ["--comments-limit", "{comments_limit}"],
+    "{all_comments?--all-comments}",
+    ["--since", "{since}"],
+    "{json?--json}",
+    "{key}"
+  ],
+  "params": [
+    {
+      "id": "key",
+      "label": "Issue key or URL",
+      "description": "Jira issue key (e.g. RW-123) or a full Atlassian URL to the ticket.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Ticket"
+    },
+    {
+      "id": "full",
+      "label": "Everything (--full)",
+      "description": "Shortcut for --include-description + --include-comments + --include-prs + metadata. If ticked, the individual section toggles below are redundant (but harmless).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail sections"
+    },
+    {
+      "id": "include_description",
+      "label": "Description (--include-description)",
+      "description": "Append the ticket's description body to the output.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail sections"
+    },
+    {
+      "id": "include_comments",
+      "label": "Comments (--include-comments)",
+      "description": "Append the comment thread. Use the comment-volume controls below to avoid a wall of text on noisy tickets.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail sections"
+    },
+    {
+      "id": "include_prs",
+      "label": "Linked PRs (--include-prs)",
+      "description": "Append the pull requests linked to this ticket (Bitbucket / GitHub via Jira's dev-tools integration).",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Detail sections"
+    },
+    {
+      "id": "comments_limit",
+      "label": "Comments limit (--comments-limit)",
+      "description": "Cap the number of comments shown. Leave blank to use jit's default. Ignored when 'All comments' is ticked.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 1000,
+      "section": "Comment volume"
+    },
+    {
+      "id": "all_comments",
+      "label": "All comments (--all-comments)",
+      "description": "Override the default/custom limit and fetch every comment on the ticket. Slower on long-running epics.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Comment volume"
+    },
+    {
+      "id": "since",
+      "label": "Comments since (--since)",
+      "description": "Filter comments to those posted on or after this date. Format: YYYY-MM-DD (e.g. 2026-01-01).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Comment volume"
+    },
+    {
+      "id": "json",
+      "label": "JSON (--json)",
+      "description": "Emit the detailed view as JSON instead of a formatted table. Great for piping into jq.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "config_file",
+      "label": "Config file (--config-file)",
+      "description": "Override the default jit config file. Useful for switching between multiple Jira instances.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "file_filter": "TOML config (*.toml);;All files (*)",
+      "section": "Config"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/cesarferreira/jit"
+  }
+}

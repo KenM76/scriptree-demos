@@ -1,0 +1,95 @@
+{
+  "schema_version": 2,
+  "name": "jit — edit issue",
+  "description": "Edit an existing Jira issue. Only the fields you fill in are sent — blank fields are left untouched. To clear a description, set it to an explicit empty string by typing a single space then deleting it (jit treats an empty --description as 'clear'). Assignee accepts 'me', 'unassigned', or a user identifier.",
+  "executable": "./jit.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["--config-file", "{config_file}"],
+    "edit",
+    "{key}",
+    ["--summary", "{summary}"],
+    ["--description", "{description}"],
+    ["--type", "{type}"],
+    ["--assignee", "{assignee}"],
+    "{json?--json}"
+  ],
+  "params": [
+    {
+      "id": "key",
+      "label": "Issue key",
+      "description": "Key of the issue to edit (e.g. RW-123). This is the positional argument — required.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Ticket"
+    },
+    {
+      "id": "summary",
+      "label": "New summary (--summary)",
+      "description": "Replace the issue title. Leave blank to leave the current summary untouched.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Changes"
+    },
+    {
+      "id": "description",
+      "label": "New description (--description)",
+      "description": "Replace the description body. Leave blank to leave it untouched; pass an explicit empty string to clear. Multi-line content is supported.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Changes"
+    },
+    {
+      "id": "type",
+      "label": "New issue type (--type)",
+      "description": "Change the issue type. Leave blank to keep the current type. Your Jira may expose additional types beyond the three listed — type them in manually if needed.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": ["", "Task", "Story", "Bug"],
+      "section": "Changes"
+    },
+    {
+      "id": "assignee",
+      "label": "New assignee (--assignee)",
+      "description": "Reassign the issue. 'me' = the authenticated user, 'unassigned' = clear the assignee, or enter a user identifier. Leave blank to leave assignment untouched.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Changes"
+    },
+    {
+      "id": "json",
+      "label": "JSON (--json)",
+      "description": "Return the edit result as JSON — the updated issue payload. Handy for chaining updates in scripts.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "config_file",
+      "label": "Config file (--config-file)",
+      "description": "Override the default jit config file. Useful for editing issues on a non-default Jira instance.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "file_filter": "TOML config (*.toml);;All files (*)",
+      "section": "Config"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/cesarferreira/jit"
+  }
+}

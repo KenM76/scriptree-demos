@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "name": "parfit",
+  "nodes": [
+    {
+      "type": "folder",
+      "name": "Reflow comments",
+      "children": [
+        { "type": "leaf", "path": "./parfit.scriptree" }
+      ]
+    }
+  ]
+}

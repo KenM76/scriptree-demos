@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "name": "jit — Jira CLI",
+  "nodes": [
+    {
+      "type": "folder",
+      "name": "Lookup",
+      "children": [
+        { "type": "leaf", "path": "./lookup.scriptree" },
+        { "type": "leaf", "path": "./show.scriptree" },
+        { "type": "leaf", "path": "./my-tickets.scriptree" }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "Modify",
+      "children": [
+        { "type": "leaf", "path": "./create.scriptree" },
+        { "type": "leaf", "path": "./edit.scriptree" }
+      ]
+    }
+  ]
+}

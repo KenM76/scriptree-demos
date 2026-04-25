@@ -1,0 +1,119 @@
+{
+  "schema_version": 2,
+  "name": "jit — create issue",
+  "description": "Create a new Jira issue from the terminal. Project and Summary are required. By default the new issue lands in the backlog as a Task assigned to you — tick 'Add to current sprint' to drop it straight into the active sprint instead. Use the Board ID only if you have multiple active sprints and need to disambiguate.",
+  "executable": "./jit.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["--config-file", "{config_file}"],
+    "create",
+    ["--project", "{project}"],
+    ["--summary", "{summary}"],
+    ["--description", "{description}"],
+    ["--type", "{type}"],
+    ["--assignee", "{assignee}"],
+    ["--board", "{board}"],
+    "{current_sprint?--current-sprint}",
+    "{json?--json}"
+  ],
+  "params": [
+    {
+      "id": "project",
+      "label": "Project key (--project)",
+      "description": "Jira project key the issue will be created in (e.g. RW, PLAT, DEV). Case-sensitive — use the exact key shown in Jira.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Issue"
+    },
+    {
+      "id": "summary",
+      "label": "Summary (--summary)",
+      "description": "Issue title. Keep it concise — the description field is where detail belongs.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "Issue"
+    },
+    {
+      "id": "description",
+      "label": "Description (--description)",
+      "description": "Optional longer description. Multi-line content is supported; Jira-flavoured Markdown / wiki markup will render in the browser.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Issue"
+    },
+    {
+      "id": "type",
+      "label": "Issue type (--type)",
+      "description": "Issue type. Defaults to Task if left blank. Your Jira instance may expose additional types (Epic, Sub-task, Incident, etc.) — type them in manually if needed; the dropdown only lists the three most common.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "Task",
+      "choices": ["", "Task", "Story", "Bug"],
+      "section": "Issue"
+    },
+    {
+      "id": "assignee",
+      "label": "Assignee (--assignee)",
+      "description": "Who the issue is assigned to. Accepts 'me' (the authenticated user), 'unassigned', or a specific Atlassian account ID / username depending on your jit config. Defaults to 'me'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "me",
+      "section": "Assignment"
+    },
+    {
+      "id": "current_sprint",
+      "label": "Add to current sprint (--current-sprint)",
+      "description": "Drop the new issue into the active sprint instead of the backlog. Requires an active sprint on the target board — jit will error out if there isn't one.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Destination"
+    },
+    {
+      "id": "board",
+      "label": "Board ID (--board)",
+      "description": "Numeric board ID used to resolve the 'current sprint'. Leave blank to let jit pick your default board — only needed when multiple boards hold active sprints for the same project.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": "",
+      "min": 1,
+      "max": 999999,
+      "section": "Destination"
+    },
+    {
+      "id": "json",
+      "label": "JSON (--json)",
+      "description": "Return the creation result as JSON — the new key, self-link, and full issue payload. Ideal for piping into automation.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Output"
+    },
+    {
+      "id": "config_file",
+      "label": "Config file (--config-file)",
+      "description": "Override the default jit config file. Useful for creating issues against a non-default Jira instance.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "file_filter": "TOML config (*.toml);;All files (*)",
+      "section": "Config"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/cesarferreira/jit"
+  }
+}
