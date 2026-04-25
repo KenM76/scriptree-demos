@@ -214,7 +214,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 1,
       "max": 100,
       "section": "Traversal"
@@ -226,7 +226,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 100,
       "section": "Traversal"
@@ -320,7 +320,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 256,
       "section": "Output"

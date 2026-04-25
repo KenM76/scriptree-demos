@@ -28,6 +28,7 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 | **eza** | Modern, more-featureful `ls` with colour, icons, Git, tree view, and rich long-format columns. | [`eza/`](eza/) | [eza-community/eza](https://github.com/eza-community/eza) |
 | **dog** | Friendly DNS lookup CLI — colour output, JSON, plus UDP/TCP/TLS/HTTPS transports. | [`dog/`](dog/) | [ogham/dog](https://github.com/ogham/dog) |
 | **cvforge** | YAML → ATS-friendly PDF resume via Typst. Four subcommands (build / init / fonts / ats-check). | [`cvforge/`](cvforge/) | [SoAp9035/cvforge](https://github.com/SoAp9035/cvforge) |
+| **bifrost** | Bridge files between computer and phone via QR code — single Go binary, LAN HTTP server, optional AES-256-GCM. | [`bifrost/`](bifrost/) | [axiom0x0/bifrost](https://github.com/axiom0x0/bifrost) |
 
 More on the way — every useful CLI tool I run into is a candidate.
 

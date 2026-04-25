@@ -223,7 +223,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 16,
       "section": "Layout"
@@ -302,7 +302,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 1,
       "max": 10,
       "section": "Layout"
@@ -408,7 +408,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 100,
       "section": "Diff & misc"

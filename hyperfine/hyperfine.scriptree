@@ -20,7 +20,7 @@
     "{parameter_list}",
     ["--shell", "{shell}"],
     "{no_shell?-N}",
-    ["--ignore-failure", "{ignore_failure}"],
+    "{ignore_failure?-i}",
     ["--style", "{style}"],
     ["--sort", "{sort}"],
     ["--time-unit", "{time_unit}"],
@@ -55,7 +55,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 1000,
       "section": "Run control"
@@ -67,7 +67,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 1,
       "max": 100000,
       "section": "Run control"
@@ -79,7 +79,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 1,
       "max": 100000,
       "section": "Run control"
@@ -91,7 +91,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 1,
       "max": 100000,
       "section": "Run control"
@@ -128,7 +128,7 @@
     },
     {
       "id": "conclude",
-      "label": "Conclude (-C / --conclude)",
+      "label": "Conclude (--conclude)",
       "description": "Command run after EACH timed iteration. Mirror of --prepare.",
       "type": "string",
       "widget": "text",
@@ -173,7 +173,7 @@
       "type": "number",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "section": "Parameterization"
     },
     {
@@ -268,17 +268,12 @@
     },
     {
       "id": "ignore_failure",
-      "label": "Ignore-failure mode (-i / --ignore-failure)",
-      "description": "How to treat non-zero exit codes from the benchmarked command. 'all-non-zero' = ignore any non-zero. 'none' = abort on any failure. Leave blank for hyperfine's default.",
-      "type": "enum",
-      "widget": "dropdown",
+      "label": "Ignore failures (-i / --ignore-failure)",
+      "description": "Tolerate non-zero exit codes from the benchmarked command instead of aborting the run.",
+      "type": "bool",
+      "widget": "checkbox",
       "required": false,
-      "default": "",
-      "choices": [
-        "",
-        "none",
-        "all-non-zero"
-      ],
+      "default": false,
       "section": "Failure handling"
     },
     {

@@ -1,0 +1,84 @@
+{
+  "schema_version": 2,
+  "name": "bifrost",
+  "description": "Bridge files between your computer and your phone via QR code. Bifrost spins up a local HTTP server on your LAN, generates a QR code, and your phone scans it to download (send mode) or upload (receive mode). Three modes: serve a single file (-f), browse a whole directory (-d), or receive uploads (-r). Source: https://github.com/axiom0x0/bifrost",
+  "executable": "./bifrost.exe",
+  "working_directory": null,
+  "argument_template": [
+    ["-f", "{file}"],
+    ["-d", "{directory}"],
+    "{receive?-r}",
+    ["-o", "{output_directory}"],
+    ["-p", "{port}"],
+    "{encrypt?-e}"
+  ],
+  "params": [
+    {
+      "id": "file",
+      "label": "File to send (-f)",
+      "description": "Single file to serve in send mode. The phone scans the QR code and downloads this file. Mutually exclusive with -d and -r — pick one of the three modes.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "section": "Send (one of three modes)"
+    },
+    {
+      "id": "directory",
+      "label": "Directory to browse (-d)",
+      "description": "Serve a whole folder. The phone gets a browseable web view of the directory and can download any file from it. Mutually exclusive with -f and -r.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Send (one of three modes)"
+    },
+    {
+      "id": "receive",
+      "label": "Receive mode (-r)",
+      "description": "Run as a receiver. The phone scans the QR code and gets a page that lets it upload files to your computer. Pair with --output-directory below to control where uploads land. Mutually exclusive with -f and -d.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Receive (one of three modes)"
+    },
+    {
+      "id": "output_directory",
+      "label": "Output directory (-o)",
+      "description": "Where uploads from the phone are written when in receive mode. Defaults to the current directory.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Receive (one of three modes)"
+    },
+    {
+      "id": "port",
+      "label": "Port (-p)",
+      "description": "TCP port the local HTTP server binds to. Default 8888. Change if 8888 is taken or if your firewall only opens specific ports on the LAN side.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 8888,
+      "min": 1,
+      "max": 65535,
+      "section": "Server"
+    },
+    {
+      "id": "encrypt",
+      "label": "End-to-end encryption (-e)",
+      "description": "Encrypt the transfer with AES-256-GCM. Bifrost prints a passphrase the phone must enter (or includes it in the QR payload). Use this on networks you don't fully trust — coffee-shop wifi, conference networks, anywhere you wouldn't put plaintext on the wire.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Server"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://github.com/axiom0x0/bifrost",
+    "help_text_cached": "bifrost [flags] [file]\n\nBridge files between your computer and phone via QR code. No cloud,\nno cables, no apps — just scan and go.\n\n  -f FILE        File to serve (send mode)\n  -d DIR         Directory to browse and serve\n  -r             Receive-only mode (phone uploads to computer)\n  -o DIR         Output directory for received files (default: .)\n  -p PORT        Port to serve on (default: 8888)\n  -e             Enable end-to-end encryption (AES-256-GCM)\n  -v             Print version and exit\n\nPick exactly one of -f, -d, or -r as the mode."
+  }
+}

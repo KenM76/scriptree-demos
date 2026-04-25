@@ -184,7 +184,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 0,
       "max": 65535,
       "section": "Protocol tweaks"

@@ -94,7 +94,7 @@
       "type": "number",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "section": "Appearance"
     },
     {
@@ -126,7 +126,7 @@
       "type": "number",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "section": "Timing"
     },
     {
@@ -148,7 +148,7 @@
       "type": "number",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "section": "Timing"
     },
     {
@@ -168,7 +168,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 20,
       "max": 400,
       "section": "Geometry"
@@ -180,7 +180,7 @@
       "type": "integer",
       "widget": "number",
       "required": false,
-      "default": "",
+      "default": 0,
       "min": 5,
       "max": 200,
       "section": "Geometry"

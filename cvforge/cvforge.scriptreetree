@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "name": "cvforge — YAML \u2192 ATS-friendly PDF resume",
   "nodes": [
     {
