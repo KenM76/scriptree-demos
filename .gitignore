@@ -16,3 +16,8 @@ desktop.ini
 *.dll
 *.dylib
 *.so
+
+# ScripTree per-user configuration sidecars — local-only by design,
+# never committed (they hold per-user paths and preferences).
+*.configs.json
+*.treeconfigs.json
