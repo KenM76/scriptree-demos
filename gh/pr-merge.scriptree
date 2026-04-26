@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "gh — PR merge",
-  "description": "Merge a pull request. Pick exactly one strategy — merge / squash / rebase — and optionally delete the branch, set the merge commit subject/body, or queue for auto-merge once required checks pass. Source: https://cli.github.com/manual/gh_pr_merge",
+  "description": "Merge an approved pull request — fold the proposed changes into the main branch.\n\nThis is what happens at the END of a PR's life: review and discussion are done, automated checks pass, and now you incorporate the work. Choose ONE merge strategy in the 'Strategy' tab — see that tab's tooltips for what each style does to the project's history.\n\nThis form is for people with permission to merge into the target branch (project maintainers, repo admins). If you're a contributor proposing a change, you don't run this — you wait for a maintainer to do it. Source: https://cli.github.com/manual/gh_pr_merge",
   "executable": "gh",
   "working_directory": null,
   "sections": [
@@ -54,7 +54,7 @@
     {
       "id": "merge",
       "label": "Merge commit (-m / --merge)",
-      "description": "Standard merge — preserves commit history with a merge commit. Pick exactly one of merge / squash / rebase.",
+      "description": "Keep all the PR's individual commits AND add a special 'merge commit' on top of main showing where they came in. The history shows clearly that these commits arrived together as a single PR.\n\nGood when:  the individual commits each tell a useful story.\nLess good when:  the commits are noisy ('fix typo', 'fix typo again') — squash is cleaner.\n\nPICK EXACTLY ONE: merge / squash / rebase.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -64,7 +64,7 @@
     {
       "id": "squash",
       "label": "Squash (-s / --squash)",
-      "description": "Squash all commits into one and merge. Pick exactly one of merge / squash / rebase.",
+      "description": "Smash all the PR's commits into a SINGLE commit on main. The intermediate commits disappear from the official history; only one neat 'feature added' commit remains.\n\nGood when:  PRs are small (1 logical change per PR) and you want a clean linear history. Most projects pick this as their default.\nLess good when:  the individual commits really do represent distinct, useful steps.\n\nPICK EXACTLY ONE: merge / squash / rebase.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -74,7 +74,7 @@
     {
       "id": "rebase",
       "label": "Rebase (-r / --rebase)",
-      "description": "Rebase commits onto the base branch (no merge commit). Pick exactly one of merge / squash / rebase.",
+      "description": "Replay each of the PR's commits on top of main, ONE AT A TIME — no merge commit. The history looks like the work was done linearly with no branching ever happening.\n\nGood when:  you like a perfectly linear history and the individual commits are well-crafted.\nLess good when:  there's any chance reviewers cared about WHEN something was branched (you lose that signal).\n\nPICK EXACTLY ONE: merge / squash / rebase.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -84,7 +84,7 @@
     {
       "id": "delete_branch",
       "label": "Delete branch (-d / --delete-branch)",
-      "description": "Delete both the local and remote head branch after merging.",
+      "description": "After the merge succeeds, delete the side branch — both your local copy and the one on GitHub. Standard hygiene: once a PR is merged its branch has no further purpose. Most projects expect this.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -94,7 +94,7 @@
     {
       "id": "auto",
       "label": "Auto-merge (--auto)",
-      "description": "Queue the PR to merge automatically once all required checks pass. Requires the repository to have auto-merge enabled.",
+      "description": "Don't merge right now — instead queue the PR to merge automatically as soon as all the required automated checks (tests, builds, etc.) pass and any required reviews are approved. Useful when you've approved a PR but checks are still running and you don't want to come back to manually merge it later.\n\n(The repo must have auto-merge enabled in its settings; not all projects do.)",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -114,7 +114,7 @@
     {
       "id": "admin",
       "label": "Admin override (--admin)",
-      "description": "Use admin privileges to bypass branch protection (required reviews, status checks, etc.). Use sparingly.",
+      "description": "If the repo has 'branch protection' rules (requiring reviews, passing checks, etc.), tick this to BYPASS them and merge anyway. Only repository admins can use this. USE SPARINGLY — the protections exist for a reason; bypassing them is for emergencies (urgent hotfix while CI is broken, etc.).",
       "type": "bool",
       "widget": "checkbox",
       "required": false,

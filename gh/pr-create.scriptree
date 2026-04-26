@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "gh — PR create",
-  "description": "Open a pull request from the current branch. Title and body can be typed in directly, read from a file, or auto-filled from commit messages with --fill. Use --draft to open as a draft, --web to launch the GitHub create page in a browser, or --dry-run to preview the PR payload without submitting. Source: https://cli.github.com/manual/gh_pr_create",
+  "description": "Propose your changes by opening a pull request (PR).\n\nThe usual workflow this fits into:\n  1. You clone a repository.\n  2. You make a side branch and commit your changes there.\n  3. You push the side branch up to GitHub.\n  4. You run THIS form to ask the project to merge your side branch into their main branch.\n\nThe PR is a formal request — it includes a title, a description, and a discussion thread where reviewers can ask questions and request changes before it's merged.\n\nThis form needs to be run from inside a clone of the repo, on the branch you want to propose. The 'Body' tab lets you write the PR description; the 'People & metadata' tab lets you request reviews and apply labels. Use 'Draft' (in the State tab) if it's not ready for review yet, or 'Dry run' (Submission tab) to preview without actually opening the PR. Source: https://cli.github.com/manual/gh_pr_create",
   "executable": "gh",
   "working_directory": null,
   "sections": [
@@ -44,7 +44,7 @@
     {
       "id": "repo",
       "label": "Repository (-R / --repo)",
-      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank to use the current working directory's repo.",
+      "description": "Which GitHub project the PR is being filed against. Format is 'OWNER/REPO' (e.g. 'cli/cli'). Leave blank if you're running this from inside a local clone of the repo — gh figures it out from the folder.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -54,7 +54,7 @@
     {
       "id": "base",
       "label": "Base branch (-B / --base)",
-      "description": "Branch the PR merges into. Defaults to the repo's default branch.",
+      "description": "The branch your changes should be merged INTO — usually 'main'. This is the official version of the code that you want your changes added to. Leave blank to use the repo's default branch (almost always 'main' or 'master').",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -64,7 +64,7 @@
     {
       "id": "head",
       "label": "Head branch (-H / --head)",
-      "description": "Source branch (the one with your changes). Defaults to the current branch. Use 'OWNER:branch' for cross-fork PRs.",
+      "description": "The branch that HAS your changes — the one you want merged. Defaults to whichever branch you currently have checked out, which is what you usually want.\n\nIf you're proposing changes from your fork of someone else's repo, use the format 'OWNER:branch' (e.g. 'octocat:my-fix') so GitHub knows it's coming from a different account.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -74,7 +74,7 @@
     {
       "id": "title",
       "label": "Title (-t / --title)",
-      "description": "PR title. Required unless using --fill, --editor, or --web.",
+      "description": "A short, one-line summary of what the PR does. Shown at the top of the PR and in lists. Aim for under 70 characters. Examples: 'Fix crash on login when password contains emoji', 'Add dark mode toggle to settings'.\n\nRequired UNLESS you're using --fill (auto-fill from commits), --editor (open your editor to compose), or --web (open the GitHub create-page in a browser).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -84,7 +84,7 @@
     {
       "id": "body",
       "label": "Body (-b / --body)",
-      "description": "PR description. Use --body-file or --editor for longer prose.",
+      "description": "The longer description of what the PR does and why. This is where you explain context — what problem you're solving, how you tested it, anything reviewers should know. Markdown is supported.\n\nFor anything more than a sentence or two, use 'Body file' below or tick 'Use editor' (in the Submission tab) to compose in your text editor.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -114,7 +114,7 @@
     {
       "id": "fill",
       "label": "Auto-fill from commits (-f / --fill)",
-      "description": "Use the commit info as title and body — first commit's subject becomes the title, subsequent commit messages become the body.",
+      "description": "Skip writing a title/body manually and use the commit messages from the branch instead. The first commit's one-line summary becomes the PR title; the remaining commit messages become the body. Tick this when your commits are already well-written and you don't want to repeat yourself.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -144,7 +144,7 @@
     {
       "id": "draft",
       "label": "Draft (-d / --draft)",
-      "description": "Open as a draft PR (not yet ready for review).",
+      "description": "Open the PR with a 'Draft' marker meaning 'not ready to be reviewed yet'. You can keep pushing commits to the branch; reviewers will (politely) wait for you to mark it ready before they look. Useful when you want feedback on a work-in-progress, or to share early so others don't duplicate your effort.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -164,7 +164,7 @@
     {
       "id": "assignee",
       "label": "Assignee (-a / --assignee)",
-      "description": "Assign the PR to this login. '@me' = assign to yourself.",
+      "description": "The person responsible for shepherding this PR (usually you, the author). Use a GitHub username (e.g. 'octocat') or '@me' for yourself.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -184,7 +184,7 @@
     {
       "id": "reviewer",
       "label": "Reviewer (-r / --reviewer)",
-      "description": "Request a review from this login or team (e.g. 'octocat' or 'github/security').",
+      "description": "Ask a specific person (or team) to review your code before it merges. Use a GitHub username (e.g. 'octocat') or a team in 'org/team-name' form (e.g. 'github/security'). They'll get a notification and the PR shows up on their review dashboard.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -204,7 +204,7 @@
     {
       "id": "label",
       "label": "Label (-l / --label)",
-      "description": "Apply a label to the PR. Repeatable upstream — use the field below for additional labels.",
+      "description": "Attach a coloured tag to the PR for sorting and triage. Each repo defines its own labels — common ones are 'bug', 'enhancement', 'documentation'. Use the field below to add more labels (multiple labels are fine).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -254,7 +254,7 @@
     {
       "id": "web",
       "label": "Open in browser (-w / --web)",
-      "description": "Open the GitHub PR-create page in your browser instead of submitting from the CLI.",
+      "description": "Skip submitting from the CLI and open GitHub's web 'create PR' page in your browser instead. The branch info is pre-filled; you finish the title/body in the browser. Use this when you want GitHub's rich web editor (image paste, drag-drop attachments, live Markdown preview).",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -264,7 +264,7 @@
     {
       "id": "dry_run",
       "label": "Dry run (--dry-run)",
-      "description": "Print the PR payload without actually creating it. Safe way to preview the form filling.",
+      "description": "Show what gh WOULD send to GitHub without actually creating the PR. Safe way to verify the title, body, branches, reviewers, and labels are right before committing — nothing is published. Useful when scripting or when you're unsure about the form.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,

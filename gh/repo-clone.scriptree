@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "gh — repo clone",
-  "description": "Clone a GitHub repository. Auth is handled by gh, so private repos clone without SSH key juggling. When cloning your own fork, gh adds an 'upstream' remote pointing at the parent — disable with --no-upstream or rename with --upstream-remote-name. Source: https://cli.github.com/manual/gh_repo_clone",
+  "description": "Download a copy of a GitHub repository to your computer.\n\n'Cloning' is what Git calls downloading a repo. After this runs, you'll have a folder on your machine containing all the code, the full history of every change ever made to it, and a hidden link back to the GitHub original. You can then read it, run it, and (if you have permission) make changes and push them back.\n\nThis is usually the first step for any new project — you clone, then start working in your local copy.\n\ngh handles authentication automatically using your gh login, so private repos work without SSH-key juggling. If you're cloning your own FORK of someone else's project, gh adds a second link called 'upstream' pointing at the original — that lets you pull in their updates later. Source: https://cli.github.com/manual/gh_repo_clone",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
@@ -16,7 +16,7 @@
     {
       "id": "repository",
       "label": "Repository (OWNER/REPO or URL)",
-      "description": "Repo to clone. Examples: 'cli/cli', 'https://github.com/cli/cli'. Required.",
+      "description": "Which GitHub project to download. Examples:\n  cli/cli                            (means github.com/cli/cli)\n  microsoft/vscode\n  https://github.com/cli/cli         (full URL also works)\n  octocat/Hello-World                (anything you can find on github.com)\n\nRequired.",
       "type": "string",
       "widget": "text",
       "required": true,
@@ -26,7 +26,7 @@
     {
       "id": "directory",
       "label": "Destination directory",
-      "description": "Where to clone to. Defaults to a folder named after the repo in the current working directory.",
+      "description": "Where on your computer to put the cloned copy. By default gh creates a subfolder named after the repo in whatever folder you're currently in (e.g. cloning 'cli/cli' creates a 'cli' folder).\n\nOverride this if you want a different location or different folder name — e.g. pick 'C:/Projects/my-fork' to clone there instead.",
       "type": "path",
       "widget": "folder",
       "required": false,
@@ -36,7 +36,7 @@
     {
       "id": "upstream_remote_name",
       "label": "Upstream remote name (-u / --upstream-remote-name)",
-      "description": "Name to use for the auto-added 'upstream' remote when cloning a fork. Default: 'upstream'.",
+      "description": "ONLY relevant if you're cloning a fork (your copy of someone else's repo). gh automatically adds a second connection from your local clone back to the ORIGINAL repo so you can pull updates from it; this field renames that connection. Defaults to 'upstream', which is the convention almost everyone uses — leave blank.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -46,7 +46,7 @@
     {
       "id": "no_upstream",
       "label": "No upstream remote (--no-upstream)",
-      "description": "Don't add an upstream remote when cloning a fork. Useful if you only ever push to your fork and pull from origin.",
+      "description": "ONLY relevant if you're cloning a fork. Tick this to skip auto-adding the 'upstream' connection back to the original repo. Useful if you'll never sync from upstream — i.e. your fork has diverged for good and you don't care about pulling in the original's updates.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,

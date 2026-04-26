@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "gh — PR checkout",
-  "description": "Check out a pull request into a local branch. Identify by number, URL, or branch name. Use --force to reset an already-checked-out branch to the latest PR head, --detach for a read-only inspection, or --recurse-submodules to update nested submodules. Source: https://cli.github.com/manual/gh_pr_checkout",
+  "description": "Pull someone else's pull request down onto your computer so you can run, test, or read the code locally.\n\n'Check out' is Git terminology for 'switch the working directory to this branch'. After running this form, the files in your project folder will reflect the PR's proposed changes — so you can compile and run them, run the tests, browse the diff in your editor, etc. When you're done inspecting, switch back to your normal branch with `git checkout main` (or whatever).\n\nIdentify the PR by its number, URL, or branch name. Source: https://cli.github.com/manual/gh_pr_checkout",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
@@ -18,7 +18,7 @@
     {
       "id": "pr",
       "label": "PR (number, URL, or branch)",
-      "description": "Which PR to check out. Examples: '1234', 'https://github.com/owner/repo/pull/1234', 'feature/topic'.",
+      "description": "Which pull request to pull down. Identify it by:\n  - Number:  1234\n  - URL:     https://github.com/owner/repo/pull/1234\n  - Branch:  feature/topic\nThis field is required — there's no 'checkout the current PR' default like there is for 'view'.",
       "type": "string",
       "widget": "text",
       "required": true,
@@ -38,7 +38,7 @@
     {
       "id": "branch",
       "label": "Local branch name (-b / --branch)",
-      "description": "Override the local branch name. By default gh uses the PR's head branch name.",
+      "description": "What to call the branch in your local clone. Defaults to the same name the PR's author used. Override only if there's a name clash (e.g. you already have a branch called 'fix' from earlier work).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -48,7 +48,7 @@
     {
       "id": "detach",
       "label": "Detached HEAD (--detach)",
-      "description": "Check out the PR with a detached HEAD instead of creating a local branch. Read-only inspection mode.",
+      "description": "Read-only inspection mode. Switches to the PR's code without creating a local branch — so you can browse and test, but any commits you make would be lost when you switch back. Useful for 'I just want to look, not work on it'.\n\n('Detached HEAD' is Git's term for 'on no branch'. The HEAD pointer points directly at a commit, not at a branch name.)",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -58,7 +58,7 @@
     {
       "id": "force",
       "label": "Force reset (-f / --force)",
-      "description": "Reset an existing local branch to match the PR head, discarding any local divergence. Destructive — confirm before using.",
+      "description": "If the local branch already exists and has commits the PR doesn't have, OVERWRITE it with the PR's current state — your local-only work on that branch will be discarded. DESTRUCTIVE: use only when you're sure your local copy can be thrown away (e.g. you've already pushed your work to a different branch).",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -68,7 +68,7 @@
     {
       "id": "recurse_submodules",
       "label": "Recurse submodules (--recurse-submodules)",
-      "description": "Update all submodules after checkout. Required if the PR touches submodule references.",
+      "description": "Some Git projects embed other Git projects inside them ('submodules'). If the PR changes which version of a submodule is used, tick this so gh updates the submodule contents to match. If the project doesn't use submodules (most don't), this does nothing — safe to leave off.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "name": "gh — issue view",
-  "description": "Show one issue: title, state, labels, body, optionally comments. Identify by number or URL. Source: https://cli.github.com/manual/gh_issue_view",
+  "description": "Read one issue from the terminal — its title, current state (open or closed), labels, the original description, and (optionally) the comment thread.\n\nAn 'issue' on GitHub is a public conversation about a bug, a feature request, or a question. This form is for reading one specific issue; if you don't know which one yet, use 'gh issue list' first to find it.\n\nIdentify the issue by its number ('1234') or full URL. Source: https://cli.github.com/manual/gh_issue_view",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
@@ -19,7 +19,7 @@
     {
       "id": "issue",
       "label": "Issue (number or URL)",
-      "description": "Issue identifier. Examples: '1234', 'https://github.com/owner/repo/issues/1234'.",
+      "description": "Which issue to show. Identify it by:\n  - Number:  1234     (the # GitHub assigned the issue)\n  - URL:     https://github.com/owner/repo/issues/1234\nRequired.",
       "type": "string",
       "widget": "text",
       "required": true,
@@ -29,7 +29,7 @@
     {
       "id": "repo",
       "label": "Repository (-R / --repo)",
-      "description": "Target repo in [HOST/]OWNER/REPO form. Leave blank for the current working directory's repo.",
+      "description": "Which GitHub project to look at. Format is 'OWNER/REPO' (e.g. 'cli/cli'). Leave blank if you've already cd'd into a clone of the repo on your machine.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -39,7 +39,7 @@
     {
       "id": "comments",
       "label": "Show comments (-c / --comments)",
-      "description": "Append the comment thread to the output.",
+      "description": "Also print the comment discussion thread (replies, follow-up questions, debugging notes from other users). Off by default because comment threads can be long. Tick this when you want the full back-and-forth, not just the original post.",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
@@ -79,7 +79,7 @@
     {
       "id": "web",
       "label": "Open in browser (-w / --web)",
-      "description": "Open the issue in the GitHub web UI instead of printing.",
+      "description": "Skip the terminal output and open the issue in your default browser instead. Better for reading rich content (screenshots, code blocks with syntax highlighting, formatted comments).",
       "type": "bool",
       "widget": "checkbox",
       "required": false,
