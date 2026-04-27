@@ -22,6 +22,14 @@
     },
     {
       "type": "folder",
+      "name": "Text processing",
+      "children": [
+        { "type": "leaf", "path": "./awk/awk.scriptree" },
+        { "type": "leaf", "path": "./sed/sed.scriptree" }
+      ]
+    },
+    {
+      "type": "folder",
       "name": "Networking",
       "children": [
         { "type": "leaf", "path": "./dog/dog.scriptree" },

@@ -18,6 +18,8 @@ Detailed summary of every ScripTree demo in this repo. The top table is a quick 
 | [`cvforge/`](cvforge/) | cvforge | [SoAp9035/cvforge](https://github.com/SoAp9035/cvforge) | YAML → ATS-friendly PDF resume via Typst. Four subcommands. |
 | [`bifrost/`](bifrost/) | bifrost | [axiom0x0/bifrost](https://github.com/axiom0x0/bifrost) | Bridge files between computer and phone via QR code over LAN. |
 | [`gh/`](gh/) | gh | [cli/cli](https://github.com/cli/cli) | GitHub CLI — pull requests, issues, repos, releases (eleven leaves). |
+| [`awk/`](awk/) | awk | [gawk](https://www.gnu.org/software/gawk/) | Classic UNIX text-processing language. Field splitter + tiny pattern-action programs. |
+| [`sed/`](sed/) | sed | [GNU sed](https://www.gnu.org/software/sed/) | Stream editor — find/replace, line deletion, regex-driven line-by-line rewriting. |
 
 ## Detailed summaries
 
@@ -95,3 +97,15 @@ GitHub CLI. Eleven scriptrees grouped under [`gh.scriptreetree`](gh/gh.scriptree
 Most `gh` commands have `-R/--repo` plus 5–15 flags; the form factor names every flag, lays out the enum choices for `--state`, and gives file pickers for `--body-file` / `--notes-file`. The `pr merge` form models merge / squash / rebase as three booleans in a "Strategy (one of three)" section — same pattern as bifrost's mode selector. Repeatable flags (`-l/--label`, `-a/--assignee`, `-r/--reviewer`) use the paired typed-widget + raw-text "extra entries" pattern.
 
 Intentionally omitted: `gh auth login` (interactive flow), `gh release upload` (no repeatable-file widget), `gh api` (raw HTTP — typing it is faster), and the `workflow` / `run` group (a separate demo on its own). Expects `gh` on `PATH`.
+
+### awk
+
+Classic UNIX text-processing language. Single-form demo with ~8 fields covering the program (textarea), program file (`-f`), input files, field separator (`-F`), one `-v` variable, and gawk's `--posix` / `--traditional` / `-b` compatibility flags.
+
+The form leans hardest on noobie-friendly help: the top-level description explains the pattern-action model, the auto-variables (`$1`, `$NF`, `NR`, `NF`, `FS`, `OFS`), and lists ten essential one-liners. The README adds a glossary, a "what to know first" ladder, and worked examples. Expects `awk` on `PATH` (gawk recommended for the compatibility flags to do anything).
+
+### sed
+
+Stream editor for line-oriented text transforms. Single-form demo with ~9 fields: script (textarea), script file (`-f`), input files, plus mode flags (`-n` quiet, `-E` extended regex, `-i` in-place, `-s` separate streams, `-z` NUL-separated, `-l` line-wrap length).
+
+The `-i` flag emits bare (works on GNU sed); BSD sed users on macOS should `brew install gnu-sed` and switch the form's executable to `gsed` for cross-platform consistency. The README has a glossary (script / command / address / pattern space / hold space) and worked examples.

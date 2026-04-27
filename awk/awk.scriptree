@@ -1,0 +1,105 @@
+{
+  "schema_version": 2,
+  "name": "awk — text processor",
+  "description": "A miniature programming language for text processing. You feed awk lines of text (from a file or stdin), it splits each line into fields, and runs a tiny program you write against every line. Great for one-off tabular data work — extract a column from a CSV, sum a column of numbers, reformat a log file, count word frequencies — without writing a real script.\n\n=== ANATOMY OF AN AWK PROGRAM ===\n\nThe whole program is a list of pattern { action } pairs. For each input line, awk runs every action whose pattern matches.\n\n  pattern1 { action1 }\n  pattern2 { action2 }\n\nEither half can be omitted:\n  - 'no pattern' = match every line\n  - 'no action'  = print the matching line ({ print } is the default action)\n\nTwo special patterns:\n  BEGIN { ... }   runs ONCE before any input is read\n  END   { ... }   runs ONCE after all input is consumed\n\n=== AUTO-VARIABLES ===\n\nAwk pre-splits each line for you:\n  $0          the whole line\n  $1, $2, ... the 1st, 2nd, ... whitespace-separated field (use -F to change separator)\n  NF          number of fields on this line\n  NR          line number (current input record number, 1-based)\n  FILENAME    name of current input file\n  FS, OFS     input / output field separator\n\n=== TEN ESSENTIAL ONE-LINERS ===\n\n  {print}                       print every line (cat clone)\n  {print $1}                    print 1st whitespace field of every line\n  {print NR, $0}                number every line\n  /error/ {print}               print lines containing 'error'\n  NF > 0                        print only non-blank lines (note: pattern only)\n  NR == 5                       print only line 5\n  NR >= 10 && NR <= 20          print lines 10-20\n  {sum += $1} END {print sum}   sum the first column\n  END {print NR}                count input lines\n  {print $NF}                   print the LAST field of each line\n\n(Lots more reference: 'man awk', or https://www.gnu.org/software/gawk/manual/)\n\n=== CONFIGURING THE FORM ===\n\nWrite your program in 'Program' (or load from a file via 'Program file'). Drop one or more input files in 'Input files', or leave blank to read from stdin. Set the field separator if your input is comma-separated, tab-separated, etc.\n\nSource: https://www.gnu.org/software/gawk/manual/",
+  "executable": "awk",
+  "working_directory": null,
+  "argument_template": [
+    ["-F", "{field_separator}"],
+    ["-v", "{var_assignment}"],
+    "{posix?--posix}",
+    "{traditional?--traditional}",
+    "{characters_as_bytes?-b}",
+    ["-f", "{program_file}"],
+    "{program}",
+    "{input_files}"
+  ],
+  "params": [
+    {
+      "id": "program",
+      "label": "Program",
+      "description": "The awk program — pattern { action } pairs. Examples to copy:\n\n  Print 1st column of a CSV:        {print $1}\n  Sum column 3:                     {sum += $3} END {print sum}\n  Filter to lines containing 'foo': /foo/ {print}\n  Number each line:                 {print NR, $0}\n  Print blank-line-separated:       /^$/ {print}\n  Average a column:                 {s += $1} END {print s/NR}\n\nWrap multi-statement programs in braces. Don't surround the whole thing in quotes — ScripTree passes it as a single argv token already.\n\nLeave blank if you're loading the program from 'Program file' below instead.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "",
+      "section": "Program"
+    },
+    {
+      "id": "program_file",
+      "label": "Program file (-f)",
+      "description": "Read the awk program from this file instead of typing it inline. Useful for longer programs or when you reuse the same program a lot. If you fill in BOTH this and 'Program' above, awk will treat the inline program as another input filename — almost never what you want. Pick ONE source.",
+      "type": "path",
+      "widget": "file_open",
+      "required": false,
+      "default": "",
+      "file_filter": "awk programs (*.awk);;All files (*)",
+      "section": "Program"
+    },
+    {
+      "id": "input_files",
+      "label": "Input files",
+      "description": "Files to process. Space-separated for multiple. Leave blank to read from stdin.\n\nawk will run the program against each file in turn (with FILENAME tracking the source). NR keeps counting across files; FNR resets per file.\n\nExamples:\n  /etc/passwd\n  data/*.csv\n  log1.txt log2.txt log3.txt",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Program"
+    },
+    {
+      "id": "field_separator",
+      "label": "Field separator (-F)",
+      "description": "Character (or regex) that splits each input line into fields ($1, $2, ...). Default is whitespace (any run of spaces/tabs).\n\nCommon picks:\n  ,            comma — for CSV\n  \\t           literal tab — for TSV\n  :            colon — for /etc/passwd-style files\n  |            pipe — for pipe-separated data\n  [[:space:]]+ default-ish — any run of whitespace\n  ;,           multi-char regex — split on either ';' or ','\n\nLeave blank to keep the default whitespace behaviour. The value you type goes through awk's regex engine, so backslashes have to be escaped in some cases.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Input"
+    },
+    {
+      "id": "var_assignment",
+      "label": "Variable (-v)",
+      "description": "Set a variable before BEGIN runs, in the form NAME=VALUE. Useful when you want a parameter you can change without editing the program.\n\nExamples:\n  threshold=100         use as: $1 > threshold {print}\n  fmt=\"%-20s %d\\n\"      use in printf statements\n  IGNORECASE=1          gawk-only: case-insensitive matching\n\nFor multiple variables, set them inside a BEGIN block in the program instead — saves the form fight.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Variables"
+    },
+    {
+      "id": "posix",
+      "label": "Strict POSIX mode (--posix)",
+      "description": "(gawk-only) Disable all gawk-specific extensions. The program runs against the strict POSIX awk spec — no gensub(), no length(array), no @namespace, no FIELDWIDTHS, etc. Tick this when you're writing a script you want to ship to non-GNU environments (BSD awk, mawk, BusyBox awk).\n\nSafe to leave off if you're just hacking on data locally.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Compatibility"
+    },
+    {
+      "id": "traditional",
+      "label": "Traditional / UNIX awk (--traditional)",
+      "description": "(gawk-only) Even more strict than --posix — emulates original UNIX awk (V7) behaviour. POSIX features added later (gsub, sub, etc.) are still allowed but gawk extensions are off. Rarely needed; --posix covers most compat use.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Compatibility"
+    },
+    {
+      "id": "characters_as_bytes",
+      "label": "Treat bytes, not characters (-b / --characters-as-bytes)",
+      "description": "(gawk-only) Treat all input as raw bytes (single-byte locale) instead of multi-byte / UTF-8 characters. Use when the input is binary or in a non-UTF-8 encoding and gawk is mis-counting characters. Otherwise leave off — gawk handles UTF-8 correctly by default.",
+      "type": "bool",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Compatibility"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "url": "https://www.gnu.org/software/gawk/manual/",
+    "help_text_cached": "awk [-F fs] [-v var=value] [-f program-file] [--posix] [--traditional] ['program'] [file ...]\n\nA programming language for pattern-directed scanning and processing.\n\n  -F FS              Field separator (default whitespace)\n  -v VAR=VALUE       Set variable before BEGIN\n  -f PROGFILE        Read program from file\n  -b                 Treat input as bytes, not characters (gawk)\n  --posix            Strict POSIX (gawk)\n  --traditional      UNIX awk compat (gawk)\n\nProgram structure: pattern { action } [pattern { action }]...\n  - BEGIN/END are special patterns run once before/after input.\n  - Each input line is split into $1, $2, ... by FS.\n  - Default action is { print }.\n\nMan: man awk\nGNU awk manual: https://www.gnu.org/software/gawk/manual/"
+  }
+}
