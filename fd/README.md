@@ -14,13 +14,15 @@ fd is a fast, user-friendly alternative to `find`. Pattern is regex by default (
 
 The `.scriptree` expects `fd.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field.
 
-## Repeatable flag caveat
+## Repeatable flags
 
-Several fd flags are repeatable (`-e`/`--extension`, `-E`/`--exclude`, `-x`/`--exec`, `-X`/`--exec-batch`). ScripTree's current schema has no first-class repeatable-flag widget, so the first instance is a typed field and additional entries go in a paired raw-text field where you write the full flag for each. Example for excludes:
+Several fd flags are repeatable (`-e`/`--extension`, `-E`/`--exclude`, `-x`/`--exec`, `-X`/`--exec-batch`). The first instance is a dedicated field and additional entries go in a paired text field where you write the full repeated flag — ScripTree splits it into multiple argv tokens at run time:
 
 ```
 --exclude '*.lock' --exclude 'node_modules' --exclude 'target/**'
 ```
+
+(See `help/LLM/argument_template.md`'s string-passthrough auto-split rule. v0.1.3+.)
 
 ## Why a GUI for a CLI tool?
 

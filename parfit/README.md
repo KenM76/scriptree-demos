@@ -19,15 +19,17 @@ It recognises comment syntax for: rust, python, shell, elixir, go, javascript, j
 
 The `.scriptree` expects `parfit.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field to point wherever you've installed it.
 
-## Repeatable flags caveat
+## Repeatable flags
 
-ScripTree's current schema has no first-class repeatable-flag widget, so `--include`, `--exclude`, and `--skip` are exposed as raw text fields where you write the full flag for each entry, e.g.:
+`--include`, `--exclude`, and `--skip` are exposed as single text fields where you write the full repeated flag for each entry. ScripTree's argv emitter shlex-tokenizes string-typed fields whose placeholder fills the whole template token, so:
 
 ```
 --include src/**/*.rs --include build.rs
 ```
 
-If/when ScripTree grows a list widget, those three fields are the candidates to upgrade.
+becomes the four argv tokens you'd expect at run time. Quote rules are honored — `--include "path with spaces"` stays as two tokens, not three.
+
+See `help/LLM/argument_template.md` (string-passthrough auto-split) for the full rule. ScripTree v0.1.3+ ships this behavior; earlier versions emitted the multi-flag string as one giant argument.
 
 ## Installing parfit
 

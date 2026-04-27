@@ -14,13 +14,15 @@ dust is a more intuitive `du`. It walks a directory and prints a sorted, percent
 
 The `.scriptree` expects `dust.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field.
 
-## Repeatable flag caveat
+## Repeatable flags
 
-`-X`/`--ignore-directory` is repeatable upstream. ScripTree's current schema has no first-class repeatable-flag widget, so it's exposed as a raw text field where you write the full flag for each entry, e.g.:
+`-X`/`--ignore-directory` is repeatable upstream. It's exposed as a single text field where you write the full repeated flag and ScripTree splits it into multiple argv tokens at run time:
 
 ```
 -X node_modules -X target -X .git
 ```
+
+(See `help/LLM/argument_template.md`'s string-passthrough auto-split rule. v0.1.3+.)
 
 ## Why a GUI for a CLI tool?
 

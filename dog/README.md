@@ -14,13 +14,15 @@ dog is a friendly DNS lookup CLI. Like `dig`, but with colour, sensible defaults
 
 The `.scriptree` expects `dog.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field.
 
-## Repeatable flag caveat
+## Repeatable flags
 
-`-q`, `-t`, `-n`, and `-Z` are all repeatable upstream. ScripTree's current schema has no first-class repeatable-flag widget, so the first instance of each is a typed field; additional entries go in a paired raw-text field where you write the full flag for each. Example:
+`-q`, `-t`, `-n`, and `-Z` are all repeatable upstream. The first instance of each is a dedicated field; additional entries go in a paired text field where you write the full repeated flag and ScripTree splits it into multiple argv tokens at run time:
 
 ```
 -q example.com -q apple.com -t MX -t TXT -n 1.1.1.1 -n 8.8.8.8
 ```
+
+(See `help/LLM/argument_template.md`'s string-passthrough auto-split rule. v0.1.3+.)
 
 ## Why a GUI for a CLI tool?
 

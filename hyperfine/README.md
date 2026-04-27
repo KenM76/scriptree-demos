@@ -14,15 +14,15 @@ hyperfine benchmarks one or more shell commands. It runs each command N times, c
 
 The `.scriptree` expects `hyperfine.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field.
 
-## Repeatable flag caveat
+## Repeatable flags
 
-Several hyperfine flags are repeatable (`-p`/`--prepare`, `-C`/`--conclude`, `-L`/`--parameter-list`, `-n`/`--command-name`, `--output`). ScripTree's current schema has no first-class repeatable-flag widget, so these are exposed as raw text fields where you write the full flag for each entry, e.g.:
+Several hyperfine flags are repeatable (`-p`/`--prepare`, `-C`/`--conclude`, `-L`/`--parameter-list`, `-n`/`--command-name`, `--output`). They're exposed as text fields where you write the full repeated flag for each entry; ScripTree splits the value into multiple argv tokens at run time:
 
 ```
 --parameter-list compiler gcc,clang --parameter-list opt 0,2,3
 ```
 
-If/when ScripTree grows a list widget, those fields are obvious upgrade targets.
+(See `help/LLM/argument_template.md`'s string-passthrough auto-split rule. v0.1.3+.)
 
 ## Why a GUI for a CLI tool?
 

@@ -14,13 +14,15 @@ bat is a `cat` clone with syntax highlighting, Git integration, line numbers, an
 
 The `.scriptree` expects `bat.exe` to live in the same folder. Drop it (or a symlink) next to the file, or edit the `executable` field.
 
-## Repeatable flag caveat
+## Repeatable flags
 
-`--map-syntax`, `-r`/`--line-range`, and `-H`/`--highlight-line` accept multiple values upstream. ScripTree's current schema has no first-class repeatable-flag widget, so the first instance is a typed field; for additional `--map-syntax` entries there's a paired raw-text field where you write the full flag for each. Example:
+`--map-syntax`, `-r`/`--line-range`, and `-H`/`--highlight-line` accept multiple values upstream. The first instance of `--map-syntax` is a dedicated field; for additional entries there's a paired text field where you write the full repeated flag and ScripTree splits it into multiple argv tokens at run time:
 
 ```
 --map-syntax '*.conf:INI' --map-syntax '.envrc:Bash'
 ```
+
+(See `help/LLM/argument_template.md`'s string-passthrough auto-split rule. v0.1.3+.)
 
 For multiple line-range or highlight-line entries, comma-separate inside the field or call bat directly.
 

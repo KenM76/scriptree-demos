@@ -16,7 +16,10 @@ The `.scriptree` expects `agg.exe` to live in the same folder. Drop it (or a sym
 
 ## Repeatable flag caveat
 
-`--font-dir` is repeatable upstream, but ScripTree's current schema has no first-class repeatable-flag widget — this demo exposes a single folder picker. If you need multiple font directories, edit the `.scriptree` to add additional entries or call `agg` directly.
+`--font-dir` is repeatable upstream. This demo exposes a single folder picker for the simple case; if you need multiple font directories you can either:
+
+- Add a sibling string param and write the full repeated flag (`--font-dir D:/fonts1 --font-dir D:/fonts2`) — ScripTree's argv emitter shlex-tokenizes string-typed fields whose placeholder fills the whole template token (v0.1.3+, see `help/LLM/argument_template.md`).
+- Or call `agg` directly when you need more than the form covers.
 
 ## Installing agg
 

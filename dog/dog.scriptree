@@ -1,27 +1,48 @@
 {
   "schema_version": 2,
   "name": "dog",
-  "description": "A friendly DNS lookup CLI — like dig, but with colour, sensible defaults, multiple transports (UDP/TCP/TLS/HTTPS), and JSON output. Type a host (and optionally a record type), pick a transport, hit Run. Source: https://github.com/ogham/dog",
+  "description": "A friendly DNS lookup CLI \u2014 like dig, but with colour, sensible defaults, multiple transports (UDP/TCP/TLS/HTTPS), and JSON output. Type a host (and optionally a record type), pick a transport, hit Run. Source: https://github.com/ogham/dog",
   "executable": "./dog.exe",
   "working_directory": null,
   "argument_template": [
-    ["-q", "{query}"],
+    [
+      "-q",
+      "{query}"
+    ],
     "{queries_extra}",
-    ["-t", "{type}"],
+    [
+      "-t",
+      "{type}"
+    ],
     "{type_extra}",
-    ["--class", "{class}"],
-    ["-n", "{nameserver}"],
+    [
+      "--class",
+      "{class}"
+    ],
+    [
+      "-n",
+      "{nameserver}"
+    ],
     "{nameserver_extra}",
     "{udp?-U}",
     "{tcp?-T}",
     "{tls?-S}",
     "{https?-H}",
-    ["--edns", "{edns}"],
-    ["--txid", "{txid}"],
+    [
+      "--edns",
+      "{edns}"
+    ],
+    [
+      "--txid",
+      "{txid}"
+    ],
     "{tweaks}",
     "{short?-1}",
     "{json?-J}",
-    ["--color", "{color}"],
+    [
+      "--color",
+      "{color}"
+    ],
     "{seconds?--seconds}",
     "{time?--time}"
   ],
@@ -185,8 +206,6 @@
       "widget": "number",
       "required": false,
       "default": 0,
-      "min": 0,
-      "max": 65535,
       "section": "Protocol tweaks"
     },
     {
@@ -258,7 +277,9 @@
   ],
   "source": {
     "mode": "manual",
-    "url": "https://github.com/ogham/dog",
     "help_text_cached": "dog [OPTIONS] [HOST [TYPE]...]\n\nA command-line DNS client.\n\nKey flags:\n  -q HOST                Query host (repeatable)\n  -t TYPE                Record type (repeatable)\n  --class IN|CH|HS       DNS class\n  -n ADDR                Nameserver (repeatable; ip[:port] or hostname)\n  -U / -T / -S / -H      Transport: UDP / TCP / TLS / HTTPS\n  --edns disable|hide|show\n  --txid N               Set DNS transaction ID\n  -Z TWEAK               aa, ad, cd, bufsize=NUM (repeatable)\n  -1 / --short           One value per line\n  -J / --json            JSON output\n  --color WHEN           auto|always|never\n  --seconds              Raw-seconds TTLs\n  --time                 Show response latency"
-  }
+  },
+  "path_prepend": [
+    "C:\\Users\\Ken\\Desktop"
+  ]
 }
