@@ -1,9 +1,16 @@
 {
   "schema_version": 2,
   "name": "awk — text processor",
-  "description": "A miniature programming language for text processing. You feed awk lines of text (from a file or stdin), it splits each line into fields, and runs a tiny program you write against every line. Great for one-off tabular data work — extract a column from a CSV, sum a column of numbers, reformat a log file, count word frequencies — without writing a real script.\n\n=== ANATOMY OF AN AWK PROGRAM ===\n\nThe whole program is a list of pattern { action } pairs. For each input line, awk runs every action whose pattern matches.\n\n  pattern1 { action1 }\n  pattern2 { action2 }\n\nEither half can be omitted:\n  - 'no pattern' = match every line\n  - 'no action'  = print the matching line ({ print } is the default action)\n\nTwo special patterns:\n  BEGIN { ... }   runs ONCE before any input is read\n  END   { ... }   runs ONCE after all input is consumed\n\n=== AUTO-VARIABLES ===\n\nAwk pre-splits each line for you:\n  $0          the whole line\n  $1, $2, ... the 1st, 2nd, ... whitespace-separated field (use -F to change separator)\n  NF          number of fields on this line\n  NR          line number (current input record number, 1-based)\n  FILENAME    name of current input file\n  FS, OFS     input / output field separator\n\n=== TEN ESSENTIAL ONE-LINERS ===\n\n  {print}                       print every line (cat clone)\n  {print $1}                    print 1st whitespace field of every line\n  {print NR, $0}                number every line\n  /error/ {print}               print lines containing 'error'\n  NF > 0                        print only non-blank lines (note: pattern only)\n  NR == 5                       print only line 5\n  NR >= 10 && NR <= 20          print lines 10-20\n  {sum += $1} END {print sum}   sum the first column\n  END {print NR}                count input lines\n  {print $NF}                   print the LAST field of each line\n\n(Lots more reference: 'man awk', or https://www.gnu.org/software/gawk/manual/)\n\n=== CONFIGURING THE FORM ===\n\nWrite your program in 'Program' (or load from a file via 'Program file'). Drop one or more input files in 'Input files', or leave blank to read from stdin. Set the field separator if your input is comma-separated, tab-separated, etc.\n\nSource: https://www.gnu.org/software/gawk/manual/",
+  "description": "A miniature programming language for text processing. You feed awk lines of text (from a file or stdin), it splits each line into fields, and runs a tiny program you write against every line. Great for one-off tabular data work — extract a column from a CSV, sum a column of numbers, reformat a log file, count word frequencies — without writing a real script.\n\nNew to awk? Click the 'Help & reference' tab for a crash course (anatomy, auto-variables, common one-liners). Source: https://www.gnu.org/software/gawk/manual/",
   "executable": "awk",
   "working_directory": null,
+  "sections": [
+    { "name": "Program", "layout": "tab" },
+    { "name": "Input", "layout": "tab" },
+    { "name": "Variables", "layout": "tab" },
+    { "name": "Compatibility", "layout": "tab" },
+    { "name": "Help & reference", "layout": "tab" }
+  ],
   "argument_template": [
     ["-F", "{field_separator}"],
     ["-v", "{var_assignment}"],
@@ -95,6 +102,46 @@
       "required": false,
       "default": false,
       "section": "Compatibility"
+    },
+    {
+      "id": "_help_anatomy",
+      "label": "Anatomy of an awk program",
+      "description": "Reference only — this field has no effect on what's run. Read it, copy snippets out of it, ignore it.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "An awk program is a list of pattern { action } pairs. For each input line, awk runs every action whose pattern matches.\n\n  pattern1 { action1 }\n  pattern2 { action2 }\n\nEither half can be omitted:\n  - 'no pattern'  = match every line\n  - 'no action'   = print the matching line ({ print } is the default action)\n\nTwo special patterns:\n  BEGIN { ... }   runs ONCE before any input is read\n  END   { ... }   runs ONCE after all input is consumed\n\nA tiny full example:\n\n  BEGIN { sum = 0 }\n  /^[0-9]/ { sum += $1 }\n  END { print \"Total:\", sum }\n\nThis sums the first column of every line that starts with a digit, then prints the total at the end.",
+      "section": "Help & reference"
+    },
+    {
+      "id": "_help_variables",
+      "label": "Auto-variables awk gives you for free",
+      "description": "Reference only — this field has no effect on what's run.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "Awk pre-splits each line for you and exposes these built-in variables:\n\n  $0          the whole line\n  $1, $2, ... the 1st, 2nd, ... field (separator: whitespace by default; -F changes it)\n  $NF         the LAST field on the line (NF is the number of fields)\n  NF          number of fields on this line\n  NR          record number — i.e. line number, 1-based, counting across all files\n  FNR         line number within the current file (resets per file)\n  FILENAME    name of current input file\n  FS          input field separator (default: ' ' which means 'any whitespace run')\n  OFS         output field separator (default: a single space). Used when you 'print a, b, c'.\n  ORS         output record separator (default: newline)\n  RS          input record separator (default: newline)\n\nYou can change FS, OFS, etc. inside BEGIN { } to take effect before any input is read.",
+      "section": "Help & reference"
+    },
+    {
+      "id": "_help_oneliners",
+      "label": "Common one-liners (copy/paste into 'Program')",
+      "description": "Reference only — this field has no effect on what's run. Copy any of these into the Program tab.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "PRINTING:\n  {print}                       print every line (cat clone)\n  {print $1}                    print 1st whitespace-separated field\n  {print $NF}                   print the LAST field\n  {print NR, $0}                number every line\n  {print NR\": \"$0}              number with a colon-separator\n\nFILTERING (no action = default { print }):\n  /error/                       print lines containing 'error'\n  !/DEBUG/                      print lines NOT containing 'DEBUG'\n  NF > 0                        print only non-blank lines\n  NF >= 5                       print lines with at least 5 fields\n  NR == 5                       print only line 5\n  NR >= 10 && NR <= 20          print lines 10-20\n  $1 ~ /^[0-9]+$/               print lines whose 1st field is all digits\n\nAGGREGATING:\n  {sum += $1} END {print sum}              sum the first column\n  {s += $1} END {print s/NR}                average the first column\n  END {print NR}                            count input lines\n  {count[$1]++} END {for (k in count) print k, count[k]}   count distinct values\n\nREFORMATTING:\n  BEGIN {OFS=\"\\t\"} {$1=$1; print}           re-emit fields tab-separated\n  -F, '{print $1, $3}'                      extract cols 1 & 3 from a CSV\n  {gsub(/foo/, \"bar\"); print}               sed-like substitute\n  {printf \"%-20s %d\\n\", $1, $2}             column-aligned output\n\nSee 'man awk' or https://www.gnu.org/software/gawk/manual/ for the full reference.",
+      "section": "Help & reference"
+    },
+    {
+      "id": "_help_form",
+      "label": "About this form",
+      "description": "Reference only — this field has no effect on what's run.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "How the form maps to awk's CLI:\n\n  Program tab\n    Program          → the inline program (the positional 'awk_program' argv arg).\n                       Don't wrap it in quotes — ScripTree passes it as a single argv\n                       token already.\n    Program file     → -f program.awk. Use INSTEAD of inline, not in addition to.\n    Input files      → positional file arguments AFTER the program. Space-separated.\n                       Leave blank to read from stdin.\n\n  Input tab\n    Field separator  → -F (default: whitespace). Common picks: ',' ':' '\\t' '|'.\n\n  Variables tab\n    Variable         → -v NAME=VALUE. For multiple variables, set them inside a\n                       BEGIN block in the program instead — saves the form fight.\n\n  Compatibility tab  (gawk-only flags)\n    --posix         strict POSIX, disables gawk extensions\n    --traditional   even stricter — emulates original UNIX awk\n    -b              treat input as raw bytes, not UTF-8 characters\n\nIf 'awk' on your system isn't gawk, the Compatibility tab's flags are ignored or\nrejected (mawk and BSD awk don't recognize them). Set them only if you're targeting\ngawk.",
+      "section": "Help & reference"
     }
   ],
   "source": {
