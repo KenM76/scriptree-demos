@@ -6,6 +6,7 @@ Detailed summary of every ScripTree demo in this repo. The top table is a quick 
 
 | Folder | Program | Upstream repository | Short description |
 |--------|---------|---------------------|-------------------|
+| [`feature-showcase/`](feature-showcase/) | PowerShell `Get-ChildItem` | (built into Windows) | Teaching demo — every widget and every key schema feature in one form. Start here if you're new to ScripTree. |
 | [`parfit/`](parfit/) | parfit | [caldempsey/parfit](https://github.com/caldempsey/parfit) | Reflow prose inside code comments using optimal-fit line breaking. |
 | [`jit/`](jit/) | jit | [cesarferreira/jit](https://github.com/cesarferreira/jit) | Jira CLI — ticket lookup, detail views, sprint lists, create/edit. |
 | [`agg/`](agg/) | agg | [asciinema/agg](https://github.com/asciinema/agg) | Render asciinema `.cast` recordings into animated GIFs. |
@@ -22,6 +23,22 @@ Detailed summary of every ScripTree demo in this repo. The top table is a quick 
 | [`sed/`](sed/) | sed | [GNU sed](https://www.gnu.org/software/sed/) | Stream editor — find/replace, line deletion, regex-driven line-by-line rewriting. |
 
 ## Detailed summaries
+
+### feature-showcase
+
+A teaching demo written for people who've never edited a `.scriptree` file. The form wraps PowerShell's `Get-ChildItem` (a built-in Windows tool — nothing to install) and exists purely as a vehicle for exercising the schema. Every widget is represented at least once, every important feature has its own field, and every field's `description` is written for a complete beginner.
+
+What's demonstrated:
+
+- **`radio` mode picker** that gates downstream fields via `visible_when`.
+- **Preset-bundle `dropdown`** carrying multi-token filter expressions (the highest-leverage `enum` pattern).
+- **`dropdown` with `choices_provider`** + `depends_on` — the choices come from a tiny sibling Python script (`list_files.py`) run when the form opens, and re-run when the upstream "Target directory" field changes.
+- **`checkbox_list` `multiselect`** with `select_all` master, plus a textarea, file/folder pickers, `save_file`, masked-text heuristic, `number` with `min`/`max`/`step`.
+- **`folder_list`** (ordered multi-folder picker with Add / Remove / Up / Down) and its **`file_list`** sibling.
+- **Token-group fan-out** in the argv template: `["-LiteralPath", "{search_folders}"]` repeats once per element when the list has multiple folders. Compare with the bare `{columns}` placeholder which comma-joins into one token.
+- **Cell cosmetics**: embedded PNG icon, custom hex `fill_color`, white `text_color`, explicit `text_label`.
+
+Read [`feature-showcase/README.md`](feature-showcase/README.md) for the cross-references to the canonical LLM docs (`param_types_widgets.md`, `argument_template.md`, `dynamic_providers.md`, `scriptree_format.md`, `icon_library.md`).
 
 ### parfit
 
@@ -42,17 +59,17 @@ Demonstrates how to wrap a multi-subcommand tool with `.scriptreetree`. Each sub
 
 Renders an asciinema `.cast` recording into an animated GIF. Single-form demo with sections for input/output, appearance (theme dropdown, font, line height), timing (speed, FPS cap, idle-time-limit), geometry (cols/rows override, renderer), and logging.
 
-The `--theme` dropdown lists the built-in themes (asciinema, dracula, monokai, nord, solarized, etc.) but accepts any custom hex string too. `--font-dir` is repeatable upstream; the form exposes one entry.
+The `--theme` dropdown lists the built-in themes (asciinema, dracula, monokai, nord, solarized, etc.) plus **three custom-palette preset bundles** — single dropdown choices that carry a full 10-colour comma-string. This is the canonical "preset bundle" pattern from the schema docs: one choice = one fully-specified theme, no free-form typing required. `--font-dir` is repeatable upstream; the form exposes one entry.
 
 ### hyperfine
 
-Statistical benchmarking for shell commands. Roughly 25 fields across nine sections — Commands, Run control, Setup/teardown, Parameterization, Naming & comparison, Shell & I/O, Failure handling, Output style, Export.
+Statistical benchmarking for shell commands. Roughly 25 fields across nine sections — Commands, Run control, Setup/teardown, Parameterization, Naming & comparison, Shell & I/O, Failure handling, Output style, Export. `-u/--time-unit` is a **radio group** (auto / microsecond / millisecond / second) — four mutually-exclusive choices is the sweet spot where radio reads better than a dropdown.
 
 The five export-format flags (markdown / JSON / CSV / AsciiDoc / org-mode) all get file pickers. `--prepare`, `--conclude`, `-L/--parameter-list`, `-n/--command-name`, and `--output` are all repeatable upstream; each has a paired raw-text field for additional entries. Drop `hyperfine.exe` next to the scriptree.
 
 ### fd
 
-User-friendly `find` replacement. Single-form demo, ~26 fields across Target, Filters, Traversal, Output, Exec. The `-t/--type` enum lists every entry type fd recognises (file, directory, link, executable, empty, socket, pipe, char/block device). `-c/--color` and `--hyperlink` are auto/always/never dropdowns. `--extension`, `--exclude`, `--exec`, `--exec-batch` are repeatable; raw-text "extra entries" fields cover those.
+User-friendly `find` replacement. Single-form demo, ~26 fields across Target, Filters, Traversal, Output, Exec. The `-t/--type` enum lists every entry type fd recognises (file, directory, link, executable, empty, socket, pipe, char/block device). `-c/--color` is a **radio group** (small mutually-exclusive enum is more readable as radio than dropdown); `--hyperlink` stays as an auto/always/never dropdown. `--extension`, `--exclude`, `--exec`, `--exec-batch` are repeatable; raw-text "extra entries" fields cover those.
 
 ### dust
 
@@ -60,11 +77,11 @@ More intuitive `du`. Single-form demo, ~25 fields across Target, Display, Filter
 
 ### bat
 
-`cat` clone with syntax highlighting. ~33 fields across Input, Highlighting, Display, Layout, Color & paging, Diff & misc. Most appearance knobs are enum dropdowns: `--italic-text` (always/never), `--nonprintable-notation` (unicode/caret), `--binary` (no-printing/as-text), `--wrap` (auto/never/character/word), `--color` (auto/always/never), `--decorations` (auto/always/never), `--strip-ansi`, `--paging`. `-m/--map-syntax` is repeatable.
+`cat` clone with syntax highlighting. ~33 fields across Input, Highlighting, Display, Layout, Color & paging, Diff & misc. `--style` is a **`checkbox_list` multiselect** with `select_all` (full / auto / plain / changes / header / header-filename / header-filesize / grid / rule / numbers / snip) — bat receives one comma-joined `--style=` token via the conditional inline placeholder form. Most other appearance knobs are enum dropdowns: `--italic-text` (always/never), `--nonprintable-notation` (unicode/caret), `--binary` (no-printing/as-text), `--wrap` (auto/never/character/word), `--color` (auto/always/never), `--decorations` (auto/always/never), `--strip-ansi`, `--paging`. `-m/--map-syntax` is repeatable.
 
 ### eza
 
-Modern, more-featureful `ls`. The biggest form in the repo — ~55 fields across Target, Layout, Filtering & sort, Symlinks, Appearance, Long format, Time, Git. Most long-format columns (header, binary/bytes sizes, group, smart-group, links, inode, numeric uid/gid, octal permissions, flags, blocksize, mounts, extended attrs, security context, total-size) only render with `--long` ticked.
+Modern, more-featureful `ls`. The biggest form in the repo — ~55 fields across Target, Layout, Filtering & sort, Symlinks, Appearance, Long format, Time, Git. `--icons` is a **radio group** (auto / always / never — the three-state pattern shared with `fd --color`). Most long-format columns (header, binary/bytes sizes, group, smart-group, links, inode, numeric uid/gid, octal permissions, flags, blocksize, mounts, extended attrs, security context, total-size) only render with `--long` ticked.
 
 ### dog
 

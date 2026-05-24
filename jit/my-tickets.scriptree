@@ -1,14 +1,23 @@
 {
-  "schema_version": 2,
-  "name": "jit — my sprint tickets",
+  "schema_version": 3,
+  "name": "jit \u2014 my sprint tickets",
   "description": "List the current-sprint tickets assigned to you. Handy first thing in the morning or when prepping for standup. Narrow the result with a row limit, pin to a specific board, or pull in linked PR context to see which items have open code review.",
   "executable": "./jit.exe",
   "working_directory": null,
   "argument_template": [
-    ["--config-file", "{config_file}"],
+    [
+      "--config-file",
+      "{config_file}"
+    ],
     "--my-tickets",
-    ["--limit", "{limit}"],
-    ["--board", "{board}"],
+    [
+      "--limit",
+      "{limit}"
+    ],
+    [
+      "--board",
+      "{board}"
+    ],
     "{include_prs?--include-prs}",
     "{json?--json}"
   ],
@@ -41,7 +50,7 @@
       "id": "include_prs",
       "label": "Linked PRs (--include-prs)",
       "description": "Show linked pull requests next to each ticket. Slower (one extra API call per ticket) but great for triaging what's blocked in review.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -51,7 +60,7 @@
       "id": "json",
       "label": "JSON (--json)",
       "description": "Emit the list as JSON instead of a formatted table.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -62,7 +71,7 @@
       "label": "Config file (--config-file)",
       "description": "Override the default jit config file. Useful for switching between multiple Jira instances.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "file_filter": "TOML config (*.toml);;All files (*)",

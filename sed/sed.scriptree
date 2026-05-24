@@ -1,13 +1,22 @@
 {
-  "schema_version": 2,
-  "name": "sed — stream editor",
+  "schema_version": 3,
+  "name": "sed \u2014 stream editor",
   "description": "Line-oriented text editor. Reads input one line at a time, applies a script of substitution / deletion / insertion / print commands to each line, and writes the result. Great for find-and-replace across files, deleting matching lines, reformatting line by line, and other one-off rewriting tasks.\n\nNew to sed? Click the 'Help & reference' tab for a crash course (anatomy, addresses, common one-liners). Source: https://www.gnu.org/software/sed/manual/",
   "executable": "sed",
   "working_directory": null,
   "sections": [
-    { "name": "Script", "layout": "tab" },
-    { "name": "Mode", "layout": "tab" },
-    { "name": "Help & reference", "layout": "tab" }
+    {
+      "name": "Script",
+      "layout": "tab"
+    },
+    {
+      "name": "Mode",
+      "layout": "tab"
+    },
+    {
+      "name": "Help & reference",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "{suppress_print?-n}",
@@ -15,16 +24,25 @@
     "{in_place?-i}",
     "{nul_separated?-z}",
     "{separate_streams?-s}",
-    ["-l", "{line_wrap}"],
-    ["-f", "{script_file}"],
-    ["-e", "{script}"],
+    [
+      "-l",
+      "{line_wrap}"
+    ],
+    [
+      "-f",
+      "{script_file}"
+    ],
+    [
+      "-e",
+      "{script}"
+    ],
     "{input_files}"
   ],
   "params": [
     {
       "id": "script",
       "label": "Script (-e)",
-      "description": "The sed script — one or more sed commands separated by semicolons or newlines.\n\nExamples to copy:\n  Find/replace first match per line:    s/old/new/\n  Find/replace ALL matches per line:    s/old/new/g\n  Delete lines matching regex:          /pattern/d\n  Print only matching lines (with -n):  /pattern/p\n  Strip Windows line endings:           s/\\r$//\n  Two commands, semicolon-separated:    s/foo/bar/g; s/baz/qux/g\n\nDon't surround the whole script in quotes — ScripTree passes it as a single argv token already.\n\nLeave blank if you're loading the script from 'Script file' instead.",
+      "description": "The sed script \u2014 one or more sed commands separated by semicolons or newlines.\n\nExamples to copy:\n  Find/replace first match per line:    s/old/new/\n  Find/replace ALL matches per line:    s/old/new/g\n  Delete lines matching regex:          /pattern/d\n  Print only matching lines (with -n):  /pattern/p\n  Strip Windows line endings:           s/\\r$//\n  Two commands, semicolon-separated:    s/foo/bar/g; s/baz/qux/g\n\nDon't surround the whole script in quotes \u2014 ScripTree passes it as a single argv token already.\n\nLeave blank if you're loading the script from 'Script file' instead.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -36,7 +54,7 @@
       "label": "Script file (-f)",
       "description": "Read the script from this file instead of typing it inline. Useful for longer multi-command scripts you reuse. If you fill BOTH this and 'Script' inline, sed runs both (concatenated). Picking one is usually clearer.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "file_filter": "sed scripts (*.sed);;All files (*)",
@@ -45,7 +63,7 @@
     {
       "id": "input_files",
       "label": "Input files",
-      "description": "Files to process. Space-separated for multiple. Leave blank to read from stdin.\n\nBy default sed treats all input files as one big stream — addresses like '1' or '$' apply to the whole concatenation. Tick 'Separate streams' below to make each file independent.",
+      "description": "Files to process. Space-separated for multiple. Leave blank to read from stdin.\n\nBy default sed treats all input files as one big stream \u2014 addresses like '1' or '$' apply to the whole concatenation. Tick 'Separate streams' below to make each file independent.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -55,8 +73,8 @@
     {
       "id": "suppress_print",
       "label": "Suppress auto-print (-n / --quiet)",
-      "description": "By default sed prints every line after running the script. -n turns that off — sed only outputs lines you explicitly print with the 'p' command. Essential for grep-style behaviour: `-n '/error/p'` prints only lines matching 'error'.\n\nLeave off for substitute-and-print workflows; tick on for filter / extract workflows.",
-      "type": "bool",
+      "description": "By default sed prints every line after running the script. -n turns that off \u2014 sed only outputs lines you explicitly print with the 'p' command. Essential for grep-style behaviour: `-n '/error/p'` prints only lines matching 'error'.\n\nLeave off for substitute-and-print workflows; tick on for filter / extract workflows.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -65,8 +83,8 @@
     {
       "id": "extended_regex",
       "label": "Extended regex (-E / -r)",
-      "description": "Use POSIX extended regular expressions instead of basic ones. Without this, you have to backslash-escape +, ?, (, ), and | to make them special. With it, you escape them to make them LITERAL — same convention as grep -E and most modern regex engines.\n\nLeave off for traditional sed scripts; tick on for cleaner-looking modern regex.",
-      "type": "bool",
+      "description": "Use POSIX extended regular expressions instead of basic ones. Without this, you have to backslash-escape +, ?, (, ), and | to make them special. With it, you escape them to make them LITERAL \u2014 same convention as grep -E and most modern regex engines.\n\nLeave off for traditional sed scripts; tick on for cleaner-looking modern regex.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -75,8 +93,8 @@
     {
       "id": "in_place",
       "label": "In-place edit (-i)",
-      "description": "OVERWRITE the input files with the result, instead of printing to stdout. Useful for batch find-and-replace across a file tree.\n\n⚠ DESTRUCTIVE — there's no undo. Test the script first WITHOUT -i (it'll print the would-be output) before running with -i.\n\nNote: BSD sed (macOS default) requires `-i ''` (an empty backup-suffix arg). GNU sed accepts bare `-i`. The form emits bare `-i` — works on Linux / Git Bash gawk-sed / WSL. On stock macOS, run `brew install gnu-sed` and adjust 'executable' to gsed for cross-platform consistency.",
-      "type": "bool",
+      "description": "OVERWRITE the input files with the result, instead of printing to stdout. Useful for batch find-and-replace across a file tree.\n\n\u26a0 DESTRUCTIVE \u2014 there's no undo. Test the script first WITHOUT -i (it'll print the would-be output) before running with -i.\n\nNote: BSD sed (macOS default) requires `-i ''` (an empty backup-suffix arg). GNU sed accepts bare `-i`. The form emits bare `-i` \u2014 works on Linux / Git Bash gawk-sed / WSL. On stock macOS, run `brew install gnu-sed` and adjust 'executable' to gsed for cross-platform consistency.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -86,7 +104,7 @@
       "id": "separate_streams",
       "label": "Treat files separately (-s / --separate)",
       "description": "(GNU sed only) Process each input file as its own independent stream rather than concatenating them. Affects line numbers (each file restarts from 1) and addresses like '$' (each file's last line, not just the overall last). Off = old default behaviour.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -96,7 +114,7 @@
       "id": "nul_separated",
       "label": "NUL-separated lines (-z / --null-data)",
       "description": "(GNU sed only) Treat input as NUL-separated rather than newline-separated. Pair with `find -print0` or `xargs -0` when filenames contain newlines or other troublesome characters.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -105,7 +123,7 @@
     {
       "id": "line_wrap",
       "label": "Wrap output at column (-l)",
-      "description": "(GNU sed only) Specifies the line-wrap length used by the 'l' (list) command — when sed prints lines unambiguously with control characters escaped, this is where it wraps. Default 70. Rarely needs changing.",
+      "description": "(GNU sed only) Specifies the line-wrap length used by the 'l' (list) command \u2014 when sed prints lines unambiguously with control characters escaped, this is where it wraps. Default 70. Rarely needs changing.",
       "type": "integer",
       "widget": "number",
       "required": false,
@@ -117,17 +135,17 @@
     {
       "id": "_help_anatomy",
       "label": "Anatomy of a sed script",
-      "description": "Reference only — this field has no effect on what's run. Read it, copy snippets out of it, ignore it.",
+      "description": "Reference only \u2014 this field has no effect on what's run. Read it, copy snippets out of it, ignore it.",
       "type": "string",
       "widget": "textarea",
       "required": false,
-      "default": "A sed script is a list of commands. Each command has the shape:\n\n  [address] command [arguments]\n\nThe most useful commands:\n\n  s/regex/replacement/[flags]   substitute matching text\n  d                             delete the line (don't print it)\n  p                             print the line — use with -n to print only matches\n  N                             append the next line to pattern space (for multi-line work)\n  i\\text                        insert 'text' as a new line BEFORE the current line\n  a\\text                        append 'text' as a new line AFTER the current line\n  c\\text                        replace the current line with 'text'\n  q                             quit immediately\n  =                             print the current line number\n  y/abc/xyz/                    transliterate (single-char swap, like tr)\n\nMultiple commands can be separated by semicolons or newlines:\n\n  s/foo/bar/g; s/baz/qux/g\n\nFor the 's' (substitute) command, the most common flags are:\n\n  g            global — replace ALL matches on the line, not just the first\n  i            (GNU) case-insensitive matching\n  p            print the line if a substitution was made\n  N            replace only the Nth match (e.g. s/foo/bar/2 replaces the 2nd 'foo')",
+      "default": "A sed script is a list of commands. Each command has the shape:\n\n  [address] command [arguments]\n\nThe most useful commands:\n\n  s/regex/replacement/[flags]   substitute matching text\n  d                             delete the line (don't print it)\n  p                             print the line \u2014 use with -n to print only matches\n  N                             append the next line to pattern space (for multi-line work)\n  i\\text                        insert 'text' as a new line BEFORE the current line\n  a\\text                        append 'text' as a new line AFTER the current line\n  c\\text                        replace the current line with 'text'\n  q                             quit immediately\n  =                             print the current line number\n  y/abc/xyz/                    transliterate (single-char swap, like tr)\n\nMultiple commands can be separated by semicolons or newlines:\n\n  s/foo/bar/g; s/baz/qux/g\n\nFor the 's' (substitute) command, the most common flags are:\n\n  g            global \u2014 replace ALL matches on the line, not just the first\n  i            (GNU) case-insensitive matching\n  p            print the line if a substitution was made\n  N            replace only the Nth match (e.g. s/foo/bar/2 replaces the 2nd 'foo')",
       "section": "Help & reference"
     },
     {
       "id": "_help_addresses",
       "label": "Addresses (limit a command to certain lines)",
-      "description": "Reference only — this field has no effect on what's run.",
+      "description": "Reference only \u2014 this field has no effect on what's run.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -137,21 +155,21 @@
     {
       "id": "_help_oneliners",
       "label": "Common one-liners (copy/paste into 'Script')",
-      "description": "Reference only — this field has no effect on what's run. Copy any of these into the Script tab.",
+      "description": "Reference only \u2014 this field has no effect on what's run. Copy any of these into the Script tab.",
       "type": "string",
       "widget": "textarea",
       "required": false,
-      "default": "SUBSTITUTE:\n  s/foo/bar/                    replace first 'foo' on each line\n  s/foo/bar/g                   replace ALL 'foo' on each line\n  s/foo/bar/gi                  global, case-insensitive (GNU)\n  s|/path/old|/path/new|g       use | as delimiter when '/' is in the pattern\n  s/^/  /                       indent every line with 2 spaces\n  s/[[:space:]]*$//             strip trailing whitespace\n  s/^[[:space:]]*//             strip leading whitespace\n  s/\\r$//                       strip Windows line endings\n\nDELETE:\n  /pattern/d                    delete lines matching pattern\n  /^$/d                         delete blank lines\n  /^#/d                         delete comment lines\n  5d                            delete line 5\n  1,10d                         delete first 10 lines\n  $d                            delete the last line\n\nPRINT (use with -n / 'Suppress auto-print'):\n  /pattern/p                    print matching lines (grep clone)\n  5p                            print line 5\n  1,10p                         print first 10 lines\n  $p                            print the last line (tail -1 clone)\n  /BEGIN/,/END/p                print everything between two markers\n\nMULTI-COMMAND (semicolon-separated):\n  s/foo/bar/g; s/baz/qux/g      two substitutes in one pass\n  /^$/d; s/\\r$//                strip blank lines AND Windows line endings\n\nIN-PLACE (DESTRUCTIVE — test first!):\n  -i 's/foo/bar/g' file.txt     overwrite file.txt\n\nSee 'man sed' or https://www.gnu.org/software/sed/manual/ for the full reference.",
+      "default": "SUBSTITUTE:\n  s/foo/bar/                    replace first 'foo' on each line\n  s/foo/bar/g                   replace ALL 'foo' on each line\n  s/foo/bar/gi                  global, case-insensitive (GNU)\n  s|/path/old|/path/new|g       use | as delimiter when '/' is in the pattern\n  s/^/  /                       indent every line with 2 spaces\n  s/[[:space:]]*$//             strip trailing whitespace\n  s/^[[:space:]]*//             strip leading whitespace\n  s/\\r$//                       strip Windows line endings\n\nDELETE:\n  /pattern/d                    delete lines matching pattern\n  /^$/d                         delete blank lines\n  /^#/d                         delete comment lines\n  5d                            delete line 5\n  1,10d                         delete first 10 lines\n  $d                            delete the last line\n\nPRINT (use with -n / 'Suppress auto-print'):\n  /pattern/p                    print matching lines (grep clone)\n  5p                            print line 5\n  1,10p                         print first 10 lines\n  $p                            print the last line (tail -1 clone)\n  /BEGIN/,/END/p                print everything between two markers\n\nMULTI-COMMAND (semicolon-separated):\n  s/foo/bar/g; s/baz/qux/g      two substitutes in one pass\n  /^$/d; s/\\r$//                strip blank lines AND Windows line endings\n\nIN-PLACE (DESTRUCTIVE \u2014 test first!):\n  -i 's/foo/bar/g' file.txt     overwrite file.txt\n\nSee 'man sed' or https://www.gnu.org/software/sed/manual/ for the full reference.",
       "section": "Help & reference"
     },
     {
       "id": "_help_form",
       "label": "About this form",
-      "description": "Reference only — this field has no effect on what's run.",
+      "description": "Reference only \u2014 this field has no effect on what's run.",
       "type": "string",
       "widget": "textarea",
       "required": false,
-      "default": "How the form maps to sed's CLI:\n\n  Script tab\n    Script           → -e SCRIPT (the inline script). Don't wrap it in quotes —\n                       ScripTree passes it as a single argv token already.\n    Script file      → -f FILE. Use INSTEAD of inline, or alongside (sed will\n                       run both, concatenated).\n    Input files      → positional file arguments. Space-separated. Leave blank\n                       to read from stdin.\n\n  Mode tab\n    Suppress auto-print (-n)   sed only prints lines you explicitly 'p' — essential\n                                for grep-style filtering. Off = sed prints every line.\n    Extended regex (-E)        +, ?, (, ), | are special without escaping. Standard\n                                modern regex feel.\n    In-place edit (-i)         OVERWRITE the input files instead of printing to\n                                stdout. DESTRUCTIVE; test first.\n    Treat files separately(-s) (GNU) each file is its own stream — line numbers\n                                and '$' addresses reset per file.\n    NUL-separated (-z)         (GNU) input is split by NUL bytes, not newlines.\n                                Use with find -print0 / xargs -0.\n    Wrap output at column (-l) (GNU) line-wrap length for the 'l' (list) command.\n\nIN-PLACE GOTCHA: GNU sed accepts bare '-i', BSD sed (macOS) requires '-i \"\"' (an\nexplicit empty backup-suffix). The form emits bare -i, which works on Linux,\nGit Bash, WSL, and macOS via 'brew install gnu-sed' (then change the form's\nexecutable to 'gsed').",
+      "default": "How the form maps to sed's CLI:\n\n  Script tab\n    Script           \u2192 -e SCRIPT (the inline script). Don't wrap it in quotes \u2014\n                       ScripTree passes it as a single argv token already.\n    Script file      \u2192 -f FILE. Use INSTEAD of inline, or alongside (sed will\n                       run both, concatenated).\n    Input files      \u2192 positional file arguments. Space-separated. Leave blank\n                       to read from stdin.\n\n  Mode tab\n    Suppress auto-print (-n)   sed only prints lines you explicitly 'p' \u2014 essential\n                                for grep-style filtering. Off = sed prints every line.\n    Extended regex (-E)        +, ?, (, ), | are special without escaping. Standard\n                                modern regex feel.\n    In-place edit (-i)         OVERWRITE the input files instead of printing to\n                                stdout. DESTRUCTIVE; test first.\n    Treat files separately(-s) (GNU) each file is its own stream \u2014 line numbers\n                                and '$' addresses reset per file.\n    NUL-separated (-z)         (GNU) input is split by NUL bytes, not newlines.\n                                Use with find -print0 / xargs -0.\n    Wrap output at column (-l) (GNU) line-wrap length for the 'l' (list) command.\n\nIN-PLACE GOTCHA: GNU sed accepts bare '-i', BSD sed (macOS) requires '-i \"\"' (an\nexplicit empty backup-suffix). The form emits bare -i, which works on Linux,\nGit Bash, WSL, and macOS via 'brew install gnu-sed' (then change the form's\nexecutable to 'gsed').",
       "section": "Help & reference"
     }
   ],

@@ -1,62 +1,116 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "All ScripTree demos",
-  "description": "Aggregator that loads every demo in this repo as a single tree. The leaves under 'Multi-command workflows' are themselves trees and expand into their own sub-folders.",
+  "description": "Aggregator that loads every demo in this repo as a single tree. The leaves under 'Multi-command workflows' are themselves trees and expand into their own sub-folders.\n\nIf you're new to ScripTree, open the 'Feature reference' folder first — its single leaf 'feature-showcase' is a teaching demo that exercises every widget and every important schema feature in one form.",
   "nodes": [
+    {
+      "type": "folder",
+      "name": "Feature reference",
+      "icon": "settings",
+      "children": [
+        {
+          "type": "leaf",
+          "path": "./feature-showcase/feature-showcase.scriptree",
+          "display_name": "feature-showcase (every widget, every feature)"
+        }
+      ]
+    },
     {
       "type": "folder",
       "name": "File search & list",
       "children": [
-        { "type": "leaf", "path": "./fd/fd.scriptree" },
-        { "type": "leaf", "path": "./dust/dust.scriptree" },
-        { "type": "leaf", "path": "./eza/eza.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./fd/fd.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./dust/dust.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./eza/eza.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "File viewing",
       "children": [
-        { "type": "leaf", "path": "./bat/bat.scriptree" },
-        { "type": "leaf", "path": "./parfit/parfit.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./bat/bat.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./parfit/parfit.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Text processing",
       "children": [
-        { "type": "leaf", "path": "./awk/awk.scriptree" },
-        { "type": "leaf", "path": "./sed/sed.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./awk/awk.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./sed/sed.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Networking",
       "children": [
-        { "type": "leaf", "path": "./dog/dog.scriptree" },
-        { "type": "leaf", "path": "./bifrost/bifrost.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./dog/dog.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./bifrost/bifrost.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Performance",
       "children": [
-        { "type": "leaf", "path": "./hyperfine/hyperfine.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./hyperfine/hyperfine.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Media rendering",
       "children": [
-        { "type": "leaf", "path": "./agg/agg.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./agg/agg.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Multi-command workflows",
       "children": [
-        { "type": "leaf", "path": "./cvforge/cvforge.scriptreetree" },
-        { "type": "leaf", "path": "./jit/jit.scriptreetree" },
-        { "type": "leaf", "path": "./gh/gh.scriptreetree" }
+        {
+          "type": "leaf",
+          "path": "./cvforge/cvforge.scriptreetree"
+        },
+        {
+          "type": "leaf",
+          "path": "./jit/jit.scriptreetree"
+        },
+        {
+          "type": "leaf",
+          "path": "./gh/gh.scriptreetree"
+        }
       ]
     }
   ]

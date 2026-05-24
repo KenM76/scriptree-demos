@@ -1,22 +1,43 @@
 {
-  "schema_version": 2,
-  "name": "gh — PR merge",
-  "description": "Merge an approved pull request — fold the proposed changes into the main branch.\n\nThis is what happens at the END of a PR's life: review and discussion are done, automated checks pass, and now you incorporate the work. Choose ONE merge strategy in the 'Strategy' tab — see that tab's tooltips for what each style does to the project's history.\n\nThis form is for people with permission to merge into the target branch (project maintainers, repo admins). If you're a contributor proposing a change, you don't run this — you wait for a maintainer to do it. Source: https://cli.github.com/manual/gh_pr_merge",
+  "schema_version": 3,
+  "name": "gh \u2014 PR merge",
+  "description": "Merge an approved pull request \u2014 fold the proposed changes into the main branch.\n\nThis is what happens at the END of a PR's life: review and discussion are done, automated checks pass, and now you incorporate the work. Choose ONE merge strategy in the 'Strategy' tab \u2014 see that tab's tooltips for what each style does to the project's history.\n\nThis form is for people with permission to merge into the target branch (project maintainers, repo admins). If you're a contributor proposing a change, you don't run this \u2014 you wait for a maintainer to do it. Source: https://cli.github.com/manual/gh_pr_merge",
   "executable": "gh",
   "working_directory": null,
   "sections": [
-    { "name": "Target", "layout": "tab" },
-    { "name": "Strategy (one of three)", "layout": "tab" },
-    { "name": "Cleanup", "layout": "tab" },
-    { "name": "Auto-merge", "layout": "tab" },
-    { "name": "Commit message", "layout": "tab" },
-    { "name": "Safety", "layout": "tab" }
+    {
+      "name": "Target",
+      "layout": "tab"
+    },
+    {
+      "name": "Strategy (one of three)",
+      "layout": "tab"
+    },
+    {
+      "name": "Cleanup",
+      "layout": "tab"
+    },
+    {
+      "name": "Auto-merge",
+      "layout": "tab"
+    },
+    {
+      "name": "Commit message",
+      "layout": "tab"
+    },
+    {
+      "name": "Safety",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "pr",
     "merge",
     "{pr}",
-    ["-R", "{repo}"],
+    [
+      "-R",
+      "{repo}"
+    ],
     "{merge?-m}",
     "{squash?-s}",
     "{rebase?-r}",
@@ -24,11 +45,26 @@
     "{disable_auto?--disable-auto}",
     "{admin?--admin}",
     "{delete_branch?-d}",
-    ["-t", "{subject}"],
-    ["-b", "{body}"],
-    ["-F", "{body_file}"],
-    ["-A", "{author_email}"],
-    ["--match-head-commit", "{match_head_commit}"]
+    [
+      "-t",
+      "{subject}"
+    ],
+    [
+      "-b",
+      "{body}"
+    ],
+    [
+      "-F",
+      "{body_file}"
+    ],
+    [
+      "-A",
+      "{author_email}"
+    ],
+    [
+      "--match-head-commit",
+      "{match_head_commit}"
+    ]
   ],
   "params": [
     {
@@ -54,8 +90,8 @@
     {
       "id": "merge",
       "label": "Merge commit (-m / --merge)",
-      "description": "Keep all the PR's individual commits AND add a special 'merge commit' on top of main showing where they came in. The history shows clearly that these commits arrived together as a single PR.\n\nGood when:  the individual commits each tell a useful story.\nLess good when:  the commits are noisy ('fix typo', 'fix typo again') — squash is cleaner.\n\nPICK EXACTLY ONE: merge / squash / rebase.",
-      "type": "bool",
+      "description": "Keep all the PR's individual commits AND add a special 'merge commit' on top of main showing where they came in. The history shows clearly that these commits arrived together as a single PR.\n\nGood when:  the individual commits each tell a useful story.\nLess good when:  the commits are noisy ('fix typo', 'fix typo again') \u2014 squash is cleaner.\n\nPICK EXACTLY ONE: merge / squash / rebase.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -65,7 +101,7 @@
       "id": "squash",
       "label": "Squash (-s / --squash)",
       "description": "Smash all the PR's commits into a SINGLE commit on main. The intermediate commits disappear from the official history; only one neat 'feature added' commit remains.\n\nGood when:  PRs are small (1 logical change per PR) and you want a clean linear history. Most projects pick this as their default.\nLess good when:  the individual commits really do represent distinct, useful steps.\n\nPICK EXACTLY ONE: merge / squash / rebase.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -74,8 +110,8 @@
     {
       "id": "rebase",
       "label": "Rebase (-r / --rebase)",
-      "description": "Replay each of the PR's commits on top of main, ONE AT A TIME — no merge commit. The history looks like the work was done linearly with no branching ever happening.\n\nGood when:  you like a perfectly linear history and the individual commits are well-crafted.\nLess good when:  there's any chance reviewers cared about WHEN something was branched (you lose that signal).\n\nPICK EXACTLY ONE: merge / squash / rebase.",
-      "type": "bool",
+      "description": "Replay each of the PR's commits on top of main, ONE AT A TIME \u2014 no merge commit. The history looks like the work was done linearly with no branching ever happening.\n\nGood when:  you like a perfectly linear history and the individual commits are well-crafted.\nLess good when:  there's any chance reviewers cared about WHEN something was branched (you lose that signal).\n\nPICK EXACTLY ONE: merge / squash / rebase.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -84,8 +120,8 @@
     {
       "id": "delete_branch",
       "label": "Delete branch (-d / --delete-branch)",
-      "description": "After the merge succeeds, delete the side branch — both your local copy and the one on GitHub. Standard hygiene: once a PR is merged its branch has no further purpose. Most projects expect this.",
-      "type": "bool",
+      "description": "After the merge succeeds, delete the side branch \u2014 both your local copy and the one on GitHub. Standard hygiene: once a PR is merged its branch has no further purpose. Most projects expect this.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -94,8 +130,8 @@
     {
       "id": "auto",
       "label": "Auto-merge (--auto)",
-      "description": "Don't merge right now — instead queue the PR to merge automatically as soon as all the required automated checks (tests, builds, etc.) pass and any required reviews are approved. Useful when you've approved a PR but checks are still running and you don't want to come back to manually merge it later.\n\n(The repo must have auto-merge enabled in its settings; not all projects do.)",
-      "type": "bool",
+      "description": "Don't merge right now \u2014 instead queue the PR to merge automatically as soon as all the required automated checks (tests, builds, etc.) pass and any required reviews are approved. Useful when you've approved a PR but checks are still running and you don't want to come back to manually merge it later.\n\n(The repo must have auto-merge enabled in its settings; not all projects do.)",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -105,7 +141,7 @@
       "id": "disable_auto",
       "label": "Disable auto-merge (--disable-auto)",
       "description": "Cancel a previously-queued auto-merge for this PR.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -114,8 +150,8 @@
     {
       "id": "admin",
       "label": "Admin override (--admin)",
-      "description": "If the repo has 'branch protection' rules (requiring reviews, passing checks, etc.), tick this to BYPASS them and merge anyway. Only repository admins can use this. USE SPARINGLY — the protections exist for a reason; bypassing them is for emergencies (urgent hotfix while CI is broken, etc.).",
-      "type": "bool",
+      "description": "If the repo has 'branch protection' rules (requiring reviews, passing checks, etc.), tick this to BYPASS them and merge anyway. Only repository admins can use this. USE SPARINGLY \u2014 the protections exist for a reason; bypassing them is for emergencies (urgent hotfix while CI is broken, etc.).",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -146,7 +182,7 @@
       "label": "Body file (-F / --body-file)",
       "description": "Read the merge-commit body from this file. Use '-' for stdin.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "section": "Commit message"

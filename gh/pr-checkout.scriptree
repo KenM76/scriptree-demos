@@ -1,15 +1,21 @@
 {
-  "schema_version": 2,
-  "name": "gh — PR checkout",
-  "description": "Pull someone else's pull request down onto your computer so you can run, test, or read the code locally.\n\n'Check out' is Git terminology for 'switch the working directory to this branch'. After running this form, the files in your project folder will reflect the PR's proposed changes — so you can compile and run them, run the tests, browse the diff in your editor, etc. When you're done inspecting, switch back to your normal branch with `git checkout main` (or whatever).\n\nIdentify the PR by its number, URL, or branch name. Source: https://cli.github.com/manual/gh_pr_checkout",
+  "schema_version": 3,
+  "name": "gh \u2014 PR checkout",
+  "description": "Pull someone else's pull request down onto your computer so you can run, test, or read the code locally.\n\n'Check out' is Git terminology for 'switch the working directory to this branch'. After running this form, the files in your project folder will reflect the PR's proposed changes \u2014 so you can compile and run them, run the tests, browse the diff in your editor, etc. When you're done inspecting, switch back to your normal branch with `git checkout main` (or whatever).\n\nIdentify the PR by its number, URL, or branch name. Source: https://cli.github.com/manual/gh_pr_checkout",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
     "pr",
     "checkout",
     "{pr}",
-    ["-R", "{repo}"],
-    ["-b", "{branch}"],
+    [
+      "-R",
+      "{repo}"
+    ],
+    [
+      "-b",
+      "{branch}"
+    ],
     "{detach?--detach}",
     "{force?-f}",
     "{recurse_submodules?--recurse-submodules}"
@@ -18,7 +24,7 @@
     {
       "id": "pr",
       "label": "PR (number, URL, or branch)",
-      "description": "Which pull request to pull down. Identify it by:\n  - Number:  1234\n  - URL:     https://github.com/owner/repo/pull/1234\n  - Branch:  feature/topic\nThis field is required — there's no 'checkout the current PR' default like there is for 'view'.",
+      "description": "Which pull request to pull down. Identify it by:\n  - Number:  1234\n  - URL:     https://github.com/owner/repo/pull/1234\n  - Branch:  feature/topic\nThis field is required \u2014 there's no 'checkout the current PR' default like there is for 'view'.",
       "type": "string",
       "widget": "text",
       "required": true,
@@ -48,8 +54,8 @@
     {
       "id": "detach",
       "label": "Detached HEAD (--detach)",
-      "description": "Read-only inspection mode. Switches to the PR's code without creating a local branch — so you can browse and test, but any commits you make would be lost when you switch back. Useful for 'I just want to look, not work on it'.\n\n('Detached HEAD' is Git's term for 'on no branch'. The HEAD pointer points directly at a commit, not at a branch name.)",
-      "type": "bool",
+      "description": "Read-only inspection mode. Switches to the PR's code without creating a local branch \u2014 so you can browse and test, but any commits you make would be lost when you switch back. Useful for 'I just want to look, not work on it'.\n\n('Detached HEAD' is Git's term for 'on no branch'. The HEAD pointer points directly at a commit, not at a branch name.)",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -58,8 +64,8 @@
     {
       "id": "force",
       "label": "Force reset (-f / --force)",
-      "description": "If the local branch already exists and has commits the PR doesn't have, OVERWRITE it with the PR's current state — your local-only work on that branch will be discarded. DESTRUCTIVE: use only when you're sure your local copy can be thrown away (e.g. you've already pushed your work to a different branch).",
-      "type": "bool",
+      "description": "If the local branch already exists and has commits the PR doesn't have, OVERWRITE it with the PR's current state \u2014 your local-only work on that branch will be discarded. DESTRUCTIVE: use only when you're sure your local copy can be thrown away (e.g. you've already pushed your work to a different branch).",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -68,8 +74,8 @@
     {
       "id": "recurse_submodules",
       "label": "Recurse submodules (--recurse-submodules)",
-      "description": "Some Git projects embed other Git projects inside them ('submodules'). If the PR changes which version of a submodule is used, tick this so gh updates the submodule contents to match. If the project doesn't use submodules (most don't), this does nothing — safe to leave off.",
-      "type": "bool",
+      "description": "Some Git projects embed other Git projects inside them ('submodules'). If the PR changes which version of a submodule is used, tick this so gh updates the submodule contents to match. If the project doesn't use submodules (most don't), this does nothing \u2014 safe to leave off.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

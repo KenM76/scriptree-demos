@@ -16,8 +16,11 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 
 ## Index
 
+> **New to ScripTree?** Start with [`feature-showcase/`](feature-showcase/) — a guided demo that exercises every widget and every important feature of the schema in one form. Then look at the wrapper demos below to see those features in real-world use.
+
 | Tool | What it does | Folder | Upstream |
 |------|--------------|--------|----------|
+| **feature-showcase** | Teaching demo — every widget (`radio`, `checkbox_list`, `folder_list`, `file_list`, `dropdown` with `choices_provider`, preset bundles, ...), every important feature (`visible_when`, `depends_on`, `min`/`max`/`step`, cell cosmetics) in one PowerShell-backed form. Read the in-form descriptions to learn how it's wired. | [`feature-showcase/`](feature-showcase/) | (uses built-in PowerShell — no install) |
 | **parfit** | Reflows prose inside code comments using optimal-fit line breaking, leaving machine-readable directives untouched. | [`parfit/`](parfit/) | [caldempsey/parfit](https://github.com/caldempsey/parfit) |
 | **jit** | Jira CLI — ticket lookup, detail views, sprint lists, and create/edit from the terminal. | [`jit/`](jit/) | [cesarferreira/jit](https://github.com/cesarferreira/jit) |
 | **agg** | Renders an asciinema `.cast` recording into an animated GIF. | [`agg/`](agg/) | [asciinema/agg](https://github.com/asciinema/agg) |

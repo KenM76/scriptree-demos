@@ -1,15 +1,30 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "fd",
-  "description": "A user-friendly, fast alternative to find. Pattern is a regex by default; tick 'Glob' to use shell-glob patterns instead. Smart-case is the default — overridden by the case-sensitive / ignore-case checkboxes. Source: https://github.com/sharkdp/fd",
+  "description": "A user-friendly, fast alternative to find. Pattern is a regex by default; tick 'Glob' to use shell-glob patterns instead. Smart-case is the default \u2014 overridden by the case-sensitive / ignore-case checkboxes. Source: https://github.com/sharkdp/fd",
   "executable": "./fd.exe",
   "working_directory": null,
   "sections": [
-    { "name": "Target", "layout": "tab" },
-    { "name": "Filters", "layout": "tab" },
-    { "name": "Traversal", "layout": "tab" },
-    { "name": "Output", "layout": "tab" },
-    { "name": "Exec", "layout": "tab" }
+    {
+      "name": "Target",
+      "layout": "tab"
+    },
+    {
+      "name": "Filters",
+      "layout": "tab"
+    },
+    {
+      "name": "Traversal",
+      "layout": "tab"
+    },
+    {
+      "name": "Output",
+      "layout": "tab"
+    },
+    {
+      "name": "Exec",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "{hidden?-H}",
@@ -22,20 +37,56 @@
     "{follow?-L}",
     "{full_path?-p}",
     "{print0?-0}",
-    ["-d", "{max_depth}"],
-    ["--min-depth", "{min_depth}"],
-    ["-t", "{type}"],
-    ["-e", "{extension}"],
+    [
+      "-d",
+      "{max_depth}"
+    ],
+    [
+      "--min-depth",
+      "{min_depth}"
+    ],
+    [
+      "-t",
+      "{type}"
+    ],
+    [
+      "-e",
+      "{extension}"
+    ],
     "{exclude}",
     "{extension_extra}",
-    ["-S", "{size}"],
-    ["--changed-within", "{changed_within}"],
-    ["--changed-before", "{changed_before}"],
-    ["-o", "{owner}"],
-    ["--format", "{format}"],
-    ["--color", "{color}"],
-    ["--hyperlink", "{hyperlink}"],
-    ["-j", "{threads}"],
+    [
+      "-S",
+      "{size}"
+    ],
+    [
+      "--changed-within",
+      "{changed_within}"
+    ],
+    [
+      "--changed-before",
+      "{changed_before}"
+    ],
+    [
+      "-o",
+      "{owner}"
+    ],
+    [
+      "--format",
+      "{format}"
+    ],
+    [
+      "--color",
+      "{color}"
+    ],
+    [
+      "--hyperlink",
+      "{hyperlink}"
+    ],
+    [
+      "-j",
+      "{threads}"
+    ],
     "{exec}",
     "{exec_batch}",
     "{pattern}",
@@ -66,7 +117,7 @@
       "id": "hidden",
       "label": "Include hidden (-H / --hidden)",
       "description": "Include dotfiles and dot-directories. Off by default.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -76,7 +127,7 @@
       "id": "no_ignore",
       "label": "Ignore .gitignore / .fdignore (-I / --no-ignore)",
       "description": "Don't respect .gitignore, .fdignore, or .ignore files. Use this when searching inside a vendored or ignored tree.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -86,7 +137,7 @@
       "id": "case_sensitive",
       "label": "Case-sensitive (-s)",
       "description": "Force case-sensitive matching, overriding smart-case.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -96,7 +147,7 @@
       "id": "ignore_case",
       "label": "Ignore case (-i)",
       "description": "Force case-insensitive matching, overriding smart-case.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -106,7 +157,7 @@
       "id": "glob",
       "label": "Glob mode (-g / --glob)",
       "description": "Treat the pattern as a shell glob (e.g. '*.rs') instead of a regex.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -116,7 +167,7 @@
       "id": "full_path",
       "label": "Match against full path (-p / --full-path)",
       "description": "Match the pattern against each entry's full absolute path, not just the filename.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -147,7 +198,7 @@
     {
       "id": "extension",
       "label": "Extension (-e / --extension)",
-      "description": "Filter by file extension (no leading dot). Repeatable upstream — write further entries in the field below.",
+      "description": "Filter by file extension (no leading dot). Repeatable upstream \u2014 write further entries in the field below.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -167,7 +218,7 @@
     {
       "id": "exclude",
       "label": "Exclude globs (-E / --exclude, repeatable)",
-      "description": "Skip entries matching the given glob(s). Repeatable — write the full flag for each entry. Example:\n    --exclude '*.lock' --exclude 'node_modules'",
+      "description": "Skip entries matching the given glob(s). Repeatable \u2014 write the full flag for each entry. Example:\n    --exclude '*.lock' --exclude 'node_modules'",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -242,7 +293,7 @@
       "id": "follow",
       "label": "Follow symlinks (-L / --follow)",
       "description": "Traverse into directories pointed to by symlinks. Off by default to avoid loops.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -252,7 +303,7 @@
       "id": "absolute_path",
       "label": "Absolute paths (-a / --absolute-path)",
       "description": "Print absolute paths instead of paths relative to the search root.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -262,7 +313,7 @@
       "id": "list_details",
       "label": "Long listing (-l / --list-details)",
       "description": "ls -l-style output: permissions, size, mtime alongside each path.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -272,7 +323,7 @@
       "id": "print0",
       "label": "NUL-terminate (-0 / --print0)",
       "description": "Separate paths with NUL (\\0) instead of newlines. Use with downstream tools that expect xargs -0 input.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -291,9 +342,9 @@
     {
       "id": "color",
       "label": "Color (-c / --color)",
-      "description": "When to colorize output.",
+      "description": "When to colorize output. Rendered as a radio group: small enum, three mutually-exclusive choices, no upstream fields depend on it — the canonical 'pick one mode' shape.",
       "type": "enum",
-      "widget": "dropdown",
+      "widget": "radio",
       "required": false,
       "default": "",
       "choices": [
@@ -301,6 +352,12 @@
         "auto",
         "always",
         "never"
+      ],
+      "choice_labels": [
+        "(default) — fd's own auto-detect",
+        "auto — colorize when stdout is a terminal",
+        "always — force ANSI colour even when piped",
+        "never — plain output"
       ],
       "section": "Output"
     },

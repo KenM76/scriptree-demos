@@ -1,51 +1,147 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "hyperfine",
   "description": "Statistical benchmarking for shell commands. Type one or more commands to compare; hyperfine runs them N times, controls for warm-up and prepare/cleanup steps, and reports mean/stddev plus a relative speed comparison. Source: https://github.com/sharkdp/hyperfine",
   "executable": "./hyperfine.exe",
   "working_directory": null,
   "sections": [
-    { "name": "Commands", "layout": "tab" },
-    { "name": "Run control", "layout": "tab" },
-    { "name": "Setup / teardown", "layout": "tab" },
-    { "name": "Parameterization", "layout": "tab" },
-    { "name": "Naming & comparison", "layout": "tab" },
-    { "name": "Shell & I/O", "layout": "tab" },
-    { "name": "Failure handling", "layout": "tab" },
-    { "name": "Output style", "layout": "tab" },
-    { "name": "Export", "layout": "tab" }
+    {
+      "name": "Commands",
+      "layout": "tab"
+    },
+    {
+      "name": "Run control",
+      "layout": "tab"
+    },
+    {
+      "name": "Setup / teardown",
+      "layout": "tab"
+    },
+    {
+      "name": "Parameterization",
+      "layout": "tab"
+    },
+    {
+      "name": "Naming & comparison",
+      "layout": "tab"
+    },
+    {
+      "name": "Shell & I/O",
+      "layout": "tab"
+    },
+    {
+      "name": "Failure handling",
+      "layout": "tab"
+    },
+    {
+      "name": "Output style",
+      "layout": "tab"
+    },
+    {
+      "name": "Export",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
-    ["--warmup", "{warmup}"],
-    ["--min-runs", "{min_runs}"],
-    ["--max-runs", "{max_runs}"],
-    ["--runs", "{runs}"],
-    ["--setup", "{setup}"],
-    ["--prepare", "{prepare}"],
-    ["--conclude", "{conclude}"],
-    ["--cleanup", "{cleanup}"],
+    [
+      "--warmup",
+      "{warmup}"
+    ],
+    [
+      "--min-runs",
+      "{min_runs}"
+    ],
+    [
+      "--max-runs",
+      "{max_runs}"
+    ],
+    [
+      "--runs",
+      "{runs}"
+    ],
+    [
+      "--setup",
+      "{setup}"
+    ],
+    [
+      "--prepare",
+      "{prepare}"
+    ],
+    [
+      "--conclude",
+      "{conclude}"
+    ],
+    [
+      "--cleanup",
+      "{cleanup}"
+    ],
     "{prepare_extra}",
     "{conclude_extra}",
-    ["--parameter-scan", "{parameter_scan}"],
-    ["--parameter-step-size", "{parameter_step_size}"],
+    [
+      "--parameter-scan",
+      "{parameter_scan}"
+    ],
+    [
+      "--parameter-step-size",
+      "{parameter_step_size}"
+    ],
     "{parameter_list}",
-    ["--shell", "{shell}"],
+    [
+      "--shell",
+      "{shell}"
+    ],
     "{no_shell?-N}",
     "{ignore_failure?-i}",
-    ["--style", "{style}"],
-    ["--sort", "{sort}"],
-    ["--time-unit", "{time_unit}"],
+    [
+      "--style",
+      "{style}"
+    ],
+    [
+      "--sort",
+      "{sort}"
+    ],
+    [
+      "--time-unit",
+      "{time_unit}"
+    ],
     "{show_output?--show-output}",
-    ["--output", "{output_redirect}"],
-    ["--input", "{input_source}"],
+    [
+      "--output",
+      "{output_redirect}"
+    ],
+    [
+      "--input",
+      "{input_source}"
+    ],
     "{command_name}",
-    ["--export-markdown", "{export_markdown}"],
-    ["--export-json", "{export_json}"],
-    ["--export-csv", "{export_csv}"],
-    ["--export-asciidoc", "{export_asciidoc}"],
-    ["--export-orgmode", "{export_orgmode}"],
-    ["--reference", "{reference}"],
-    ["--reference-name", "{reference_name}"],
+    [
+      "--export-markdown",
+      "{export_markdown}"
+    ],
+    [
+      "--export-json",
+      "{export_json}"
+    ],
+    [
+      "--export-csv",
+      "{export_csv}"
+    ],
+    [
+      "--export-asciidoc",
+      "{export_asciidoc}"
+    ],
+    [
+      "--export-orgmode",
+      "{export_orgmode}"
+    ],
+    [
+      "--reference",
+      "{reference}"
+    ],
+    [
+      "--reference-name",
+      "{reference_name}"
+    ],
     "{commands}"
   ],
   "params": [
@@ -181,7 +277,7 @@
       "id": "parameter_step_size",
       "label": "Step size (-D / --parameter-step-size)",
       "description": "Step value for --parameter-scan. Default 1. Use a decimal for floating-point sweeps.",
-      "type": "float",
+      "type": "number",
       "widget": "number",
       "required": false,
       "default": 0,
@@ -190,7 +286,7 @@
     {
       "id": "parameter_list",
       "label": "Parameter list (-L / --parameter-list, repeatable)",
-      "description": "Sweep one variable across discrete values. Repeatable — write the full flag for each entry. Example:\n    --parameter-list compiler gcc,clang --parameter-list opt 0,2,3",
+      "description": "Sweep one variable across discrete values. Repeatable \u2014 write the full flag for each entry. Example:\n    --parameter-list compiler gcc,clang --parameter-list opt 0,2,3",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -200,7 +296,7 @@
     {
       "id": "command_name",
       "label": "Command name(s) (-n / --command-name, repeatable)",
-      "description": "Friendly label(s) for the positional commands, in order. Repeatable — write the full flag per entry. Example:\n    -n \"current\" -n \"refactor\"",
+      "description": "Friendly label(s) for the positional commands, in order. Repeatable \u2014 write the full flag per entry. Example:\n    -n \"current\" -n \"refactor\"",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -241,7 +337,7 @@
       "id": "no_shell",
       "label": "No shell (-N)",
       "description": "Run commands directly with no shell wrapper. Removes ~1ms of shell-startup overhead. Equivalent to --shell=none.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -250,8 +346,8 @@
     {
       "id": "show_output",
       "label": "Show command output (--show-output)",
-      "description": "Print the benchmarked command's stdout/stderr instead of suppressing it. Useful for debugging — but adds I/O overhead, so don't leave on for fine-grained timing.",
-      "type": "bool",
+      "description": "Print the benchmarked command's stdout/stderr instead of suppressing it. Useful for debugging \u2014 but adds I/O overhead, so don't leave on for fine-grained timing.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -260,7 +356,7 @@
     {
       "id": "output_redirect",
       "label": "Output redirection (--output, repeatable)",
-      "description": "Where to send the benchmarked command's stdout/stderr. Values: 'null' (discard), 'pipe' (capture), 'inherit' (passthrough), or a file path. Repeatable — order matches positional commands.",
+      "description": "Where to send the benchmarked command's stdout/stderr. Values: 'null' (discard), 'pipe' (capture), 'inherit' (passthrough), or a file path. Repeatable \u2014 order matches positional commands.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -281,7 +377,7 @@
       "id": "ignore_failure",
       "label": "Ignore failures (-i / --ignore-failure)",
       "description": "Tolerate non-zero exit codes from the benchmarked command instead of aborting the run.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -290,9 +386,9 @@
     {
       "id": "time_unit",
       "label": "Time unit (-u / --time-unit)",
-      "description": "Force the time unit shown in tables. Auto-picked from data if blank.",
+      "description": "Force the time unit shown in tables. Rendered as a radio group — four mutually-exclusive choices is the sweet spot where radio reads better than a dropdown.",
       "type": "enum",
-      "widget": "dropdown",
+      "widget": "radio",
       "required": false,
       "default": "",
       "choices": [
@@ -300,6 +396,12 @@
         "microsecond",
         "millisecond",
         "second"
+      ],
+      "choice_labels": [
+        "(auto) — pick from data",
+        "microsecond (us)",
+        "millisecond (ms)",
+        "second (s)"
       ],
       "section": "Output style"
     },
@@ -343,7 +445,7 @@
       "label": "Export Markdown (--export-markdown)",
       "description": "Write a Markdown comparison table to this file path.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": false,
       "default": "",
       "section": "Export"
@@ -353,7 +455,7 @@
       "label": "Export JSON (--export-json)",
       "description": "Write the full timing dataset as JSON to this file path.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": false,
       "default": "",
       "section": "Export"
@@ -363,7 +465,7 @@
       "label": "Export CSV (--export-csv)",
       "description": "Write timings as CSV to this file path.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": false,
       "default": "",
       "section": "Export"
@@ -373,7 +475,7 @@
       "label": "Export AsciiDoc (--export-asciidoc)",
       "description": "Write the comparison table as AsciiDoc to this file path.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": false,
       "default": "",
       "section": "Export"
@@ -383,7 +485,7 @@
       "label": "Export org-mode (--export-orgmode)",
       "description": "Write the comparison table as an org-mode table to this file path.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": false,
       "default": "",
       "section": "Export"

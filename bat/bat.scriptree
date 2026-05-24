@@ -1,51 +1,135 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "bat",
   "description": "A cat clone with syntax highlighting, line numbers, Git integration, and an automatic pager. Point at one or more files (or leave blank to read stdin) and tune highlighting, paging, and decoration knobs. Source: https://github.com/sharkdp/bat",
   "executable": "./bat.exe",
   "working_directory": null,
   "sections": [
-    { "name": "Input", "layout": "tab" },
-    { "name": "Highlighting", "layout": "tab" },
-    { "name": "Display", "layout": "tab" },
-    { "name": "Layout", "layout": "tab" },
-    { "name": "Color & paging", "layout": "tab" },
-    { "name": "Diff & misc", "layout": "tab" }
+    {
+      "name": "Input",
+      "layout": "tab"
+    },
+    {
+      "name": "Highlighting",
+      "layout": "tab"
+    },
+    {
+      "name": "Display",
+      "layout": "tab"
+    },
+    {
+      "name": "Layout",
+      "layout": "tab"
+    },
+    {
+      "name": "Color & paging",
+      "layout": "tab"
+    },
+    {
+      "name": "Diff & misc",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
-    ["-l", "{language}"],
-    ["--fallback-syntax", "{fallback_syntax}"],
-    ["--theme", "{theme}"],
-    ["--theme-light", "{theme_light}"],
-    ["--theme-dark", "{theme_dark}"],
-    ["--style", "{style}"],
-    ["--color", "{color}"],
-    ["--decorations", "{decorations}"],
-    ["--italic-text", "{italic_text}"],
-    ["--paging", "{paging}"],
-    ["--pager", "{pager}"],
-    ["--wrap", "{wrap}"],
-    ["--terminal-width", "{terminal_width}"],
-    ["--tabs", "{tabs}"],
-    ["-r", "{line_range}"],
-    ["-H", "{highlight_line}"],
-    ["--map-syntax", "{map_syntax}"],
+    [
+      "-l",
+      "{language}"
+    ],
+    [
+      "--fallback-syntax",
+      "{fallback_syntax}"
+    ],
+    [
+      "--theme",
+      "{theme}"
+    ],
+    [
+      "--theme-light",
+      "{theme_light}"
+    ],
+    [
+      "--theme-dark",
+      "{theme_dark}"
+    ],
+    "{style?--style=}",
+    [
+      "--color",
+      "{color}"
+    ],
+    [
+      "--decorations",
+      "{decorations}"
+    ],
+    [
+      "--italic-text",
+      "{italic_text}"
+    ],
+    [
+      "--paging",
+      "{paging}"
+    ],
+    [
+      "--pager",
+      "{pager}"
+    ],
+    [
+      "--wrap",
+      "{wrap}"
+    ],
+    [
+      "--terminal-width",
+      "{terminal_width}"
+    ],
+    [
+      "--tabs",
+      "{tabs}"
+    ],
+    [
+      "-r",
+      "{line_range}"
+    ],
+    [
+      "-H",
+      "{highlight_line}"
+    ],
+    [
+      "--map-syntax",
+      "{map_syntax}"
+    ],
     "{map_syntax_extra}",
-    ["--file-name", "{file_name}"],
+    [
+      "--file-name",
+      "{file_name}"
+    ],
     "{show_all?-A}",
-    ["--nonprintable-notation", "{nonprintable_notation}"],
-    ["--binary", "{binary}"],
+    [
+      "--nonprintable-notation",
+      "{nonprintable_notation}"
+    ],
+    [
+      "--binary",
+      "{binary}"
+    ],
     "{plain?-p}",
     "{number?-n}",
     "{chop_long_lines?-S}",
     "{squeeze_blank?-s}",
-    ["--squeeze-limit", "{squeeze_limit}"],
+    [
+      "--squeeze-limit",
+      "{squeeze_limit}"
+    ],
     "{diff?-d}",
-    ["--diff-context", "{diff_context}"],
+    [
+      "--diff-context",
+      "{diff_context}"
+    ],
     "{force_colorization?-f}",
     "{quiet_empty?-E}",
     "{set_terminal_title?--set-terminal-title}",
-    ["--strip-ansi", "{strip_ansi}"],
+    [
+      "--strip-ansi",
+      "{strip_ansi}"
+    ],
     "{files}"
   ],
   "params": [
@@ -157,18 +241,45 @@
     {
       "id": "style",
       "label": "Style components (--style)",
-      "description": "Comma-separated list of decorations to show. Common values: full, auto, plain, changes, header, header-filename, header-filesize, grid, rule, numbers, snip. Example: 'numbers,changes,header'.",
-      "type": "string",
-      "widget": "text",
+      "description": "Pick which decorations bat should render. This is a multiselect rendered as a checkbox_list with a select-all/none master at the top — tick the boxes you want; bat receives the names as a single comma-joined --style= argument. Leave nothing ticked to fall back to bat's built-in default.\n\n(Schema note: the placeholder in the argument_template is the conditional inline form `{style?--style=}` so the whole token drops cleanly when no boxes are ticked. See argument_template.md §5 for why multiselects comma-join with that placeholder shape but fan out inside a token group.)",
+      "type": "multiselect",
+      "widget": "checkbox_list",
+      "select_all": true,
       "required": false,
-      "default": "",
+      "default": [],
+      "choices": [
+        "full",
+        "auto",
+        "plain",
+        "changes",
+        "header",
+        "header-filename",
+        "header-filesize",
+        "grid",
+        "rule",
+        "numbers",
+        "snip"
+      ],
+      "choice_labels": [
+        "full — everything bat can show",
+        "auto — bat decides per-file",
+        "plain — no decorations",
+        "changes — Git diff bars in the gutter",
+        "header — file-name header at the top",
+        "header-filename — file-name only (no size)",
+        "header-filesize — file-size only (no name)",
+        "grid — vertical bar between gutter and code",
+        "rule — horizontal rule between files",
+        "numbers — line numbers",
+        "snip — '... snip ...' marker between line ranges"
+      ],
       "section": "Display"
     },
     {
       "id": "plain",
       "label": "Plain (-p / --plain)",
       "description": "No decorations: no line numbers, header, or grid. Pass twice (use -pp at the CLI) to also disable paging.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -178,7 +289,7 @@
       "id": "number",
       "label": "Line numbers only (-n / --number)",
       "description": "Show line numbers but no other decorations. Equivalent to --style=numbers.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -188,7 +299,7 @@
       "id": "show_all",
       "label": "Show non-printables (-A / --show-all)",
       "description": "Render normally invisible characters (NUL, control chars, etc.). Use the dropdown below to pick the notation.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -257,7 +368,7 @@
       "id": "chop_long_lines",
       "label": "Chop long lines (-S / --chop-long-lines)",
       "description": "Truncate lines longer than the terminal width instead of wrapping. Equivalent to --wrap=never.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -276,7 +387,7 @@
     {
       "id": "line_range",
       "label": "Line range (-r / --line-range)",
-      "description": "Print only lines in this range. Format: 'N:M', 'N:', ':M', or 'N:+K'. Repeatable upstream — comma-separate or write multiple flags via the highlighting field.",
+      "description": "Print only lines in this range. Format: 'N:M', 'N:', ':M', or 'N:+K'. Repeatable upstream \u2014 comma-separate or write multiple flags via the highlighting field.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -297,7 +408,7 @@
       "id": "squeeze_blank",
       "label": "Squeeze blank lines (-s / --squeeze-blank)",
       "description": "Collapse runs of blank lines into one. Mirrors `cat -s`.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -351,7 +462,7 @@
       "id": "force_colorization",
       "label": "Force colorization (-f)",
       "description": "Shortcut for --color=always --decorations=always. Useful when piping to less -R or to a logging system that you know handles ANSI.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -403,7 +514,7 @@
       "id": "diff",
       "label": "Diff mode (-d / --diff)",
       "description": "Show only added/removed/modified lines (relative to the Git index, like `git diff`).",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -425,7 +536,7 @@
       "id": "set_terminal_title",
       "label": "Set terminal title (--set-terminal-title)",
       "description": "Set the terminal window title to the file name(s) being viewed.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -435,7 +546,7 @@
       "id": "quiet_empty",
       "label": "Quiet on empty (-E / --quiet-empty)",
       "description": "Produce no output when input is empty.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

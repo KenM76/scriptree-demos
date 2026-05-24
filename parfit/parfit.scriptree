@@ -1,15 +1,24 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "parfit",
-  "description": "Reflow prose inside code comments to a target column width using optimal-fit line breaking, while passing machine-readable directives (//#, /*!, doctest, rustdoc attributes, etc.) through unchanged. Point at a file, folder, or glob; tick 'Recursive' to expand positional globs across subtrees. Use 'Print to stdout' for a dry run — files are not modified. Source: https://github.com/caldempsey/parfit",
+  "description": "Reflow prose inside code comments to a target column width using optimal-fit line breaking, while passing machine-readable directives (//#, /*!, doctest, rustdoc attributes, etc.) through unchanged. Point at a file, folder, or glob; tick 'Recursive' to expand positional globs across subtrees. Use 'Print to stdout' for a dry run \u2014 files are not modified. Source: https://github.com/caldempsey/parfit",
   "executable": "./parfit.exe",
   "working_directory": null,
   "argument_template": [
-    ["-w", "{width}"],
+    [
+      "-w",
+      "{width}"
+    ],
     "{recursive?-r}",
     "{stdout?--stdout}",
-    ["-l", "{lang}"],
-    ["-p", "{prefix}"],
+    [
+      "-l",
+      "{lang}"
+    ],
+    [
+      "-p",
+      "{prefix}"
+    ],
     "{no_default_skips?--no-default-skips}",
     "{include}",
     "{exclude}",
@@ -23,7 +32,7 @@
       "label": "Path / file / glob",
       "description": "Primary positional argument. A file path, a folder path, or a glob pattern. Globs are expanded by parfit (not the shell). With 'Recursive' ticked, patterns like src/**/*.rs match across subdirectories. Leave blank to read from stdin (in which case parfit prints to stdout).",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "section": "Target"
@@ -42,7 +51,7 @@
       "id": "recursive",
       "label": "Recursive (-r)",
       "description": "Match positional arguments recursively. Without this flag, 'src/*.rs' only matches files directly under src/. With it, 'src/**/*.rs' walks the whole subtree.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -51,8 +60,8 @@
     {
       "id": "stdout",
       "label": "Print to stdout (--stdout)",
-      "description": "Write reformatted output to stdout instead of rewriting files in place. Safe default for first-time runs — diff the output before committing to an in-place rewrite. Always on when input comes from stdin.",
-      "type": "bool",
+      "description": "Write reformatted output to stdout instead of rewriting files in place. Safe default for first-time runs \u2014 diff the output before committing to an in-place rewrite. Always on when input comes from stdin.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": true,
@@ -61,7 +70,7 @@
     {
       "id": "width",
       "label": "Target width (-w)",
-      "description": "Column width parfit reflows comment prose toward, using Knuth-Plass-style optimal-fit line breaking. Does not hard-wrap — short paragraphs stay short. Code inside comments, machine directives, and skip-matched paragraphs are left alone.",
+      "description": "Column width parfit reflows comment prose toward, using Knuth-Plass-style optimal-fit line breaking. Does not hard-wrap \u2014 short paragraphs stay short. Code inside comments, machine directives, and skip-matched paragraphs are left alone.",
       "type": "integer",
       "widget": "number",
       "required": false,
@@ -83,7 +92,7 @@
     {
       "id": "lang",
       "label": "Language (-l)",
-      "description": "Override auto-detection of comment syntax. Leave blank to detect by file extension. 'text' forces plain-text reflow regardless of extension — handy for Markdown, plain READMEs, or piped stdin.",
+      "description": "Override auto-detection of comment syntax. Leave blank to detect by file extension. 'text' forces plain-text reflow regardless of extension \u2014 handy for Markdown, plain READMEs, or piped stdin.",
       "type": "enum",
       "widget": "dropdown",
       "required": false,
@@ -129,7 +138,7 @@
     {
       "id": "skip",
       "label": "Skip-paragraph regexes (-s / --skip, repeatable)",
-      "description": "Regex patterns matched against each comment paragraph. Matching paragraphs are emitted verbatim — no reflow — which lets you protect ASCII art, tables, or project-specific directives. Stacks on top of the built-in directive patterns unless 'No default skips' is ticked. Example:\n    --skip \"^\\\\s*\\\\|.*\\\\|$\" --skip \"^\\\\s*@?SAFETY:\"",
+      "description": "Regex patterns matched against each comment paragraph. Matching paragraphs are emitted verbatim \u2014 no reflow \u2014 which lets you protect ASCII art, tables, or project-specific directives. Stacks on top of the built-in directive patterns unless 'No default skips' is ticked. Example:\n    --skip \"^\\\\s*\\\\|.*\\\\|$\" --skip \"^\\\\s*@?SAFETY:\"",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -140,7 +149,7 @@
       "id": "no_default_skips",
       "label": "Disable built-in directive skips (--no-default-skips)",
       "description": "Turn off parfit's built-in skip patterns (rustdoc attributes, doctest fences, //#/#!-style directives, shebangs, etc.). Only tick this if you want full control via --skip; otherwise the defaults handle almost everything machine-readable.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

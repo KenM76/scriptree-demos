@@ -1,29 +1,80 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "agg",
   "description": "Render an asciinema cast (.cast) into an animated GIF. Pick the input cast and an output .gif path, then tune theme, font, speed, and idle-time-limit to taste. Source: https://github.com/asciinema/agg",
   "executable": "./agg.exe",
   "working_directory": null,
   "sections": [
-    { "name": "Input / output", "layout": "tab" },
-    { "name": "Appearance", "layout": "tab" },
-    { "name": "Timing", "layout": "tab" },
-    { "name": "Geometry", "layout": "tab" },
-    { "name": "Logging", "layout": "tab" }
+    {
+      "name": "Input / output",
+      "layout": "tab"
+    },
+    {
+      "name": "Appearance",
+      "layout": "tab"
+    },
+    {
+      "name": "Timing",
+      "layout": "tab"
+    },
+    {
+      "name": "Geometry",
+      "layout": "tab"
+    },
+    {
+      "name": "Logging",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
-    ["--theme", "{theme}"],
-    ["--font-family", "{font_family}"],
-    ["--font-size", "{font_size}"],
-    ["--line-height", "{line_height}"],
-    ["--font-dir", "{font_dir}"],
-    ["--speed", "{speed}"],
-    ["--fps-cap", "{fps_cap}"],
-    ["--idle-time-limit", "{idle_time_limit}"],
-    ["--last-frame-duration", "{last_frame_duration}"],
-    ["--cols", "{cols}"],
-    ["--rows", "{rows}"],
-    ["--renderer", "{renderer}"],
+    [
+      "--theme",
+      "{theme}"
+    ],
+    [
+      "--font-family",
+      "{font_family}"
+    ],
+    [
+      "--font-size",
+      "{font_size}"
+    ],
+    [
+      "--line-height",
+      "{line_height}"
+    ],
+    [
+      "--font-dir",
+      "{font_dir}"
+    ],
+    [
+      "--speed",
+      "{speed}"
+    ],
+    [
+      "--fps-cap",
+      "{fps_cap}"
+    ],
+    [
+      "--idle-time-limit",
+      "{idle_time_limit}"
+    ],
+    [
+      "--last-frame-duration",
+      "{last_frame_duration}"
+    ],
+    [
+      "--cols",
+      "{cols}"
+    ],
+    [
+      "--rows",
+      "{rows}"
+    ],
+    [
+      "--renderer",
+      "{renderer}"
+    ],
     "{no_loop?--no-loop}",
     "{quiet?-q}",
     "{verbose?-v}",
@@ -36,7 +87,7 @@
       "label": "Input cast (.cast or asciinema.org URL)",
       "description": "Path to a local asciicast v2 file or an asciinema.org URL. Required.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": true,
       "default": "",
       "section": "Input / output"
@@ -46,7 +97,7 @@
       "label": "Output GIF",
       "description": "Path to write the animated GIF. Will be overwritten if it exists.",
       "type": "path",
-      "widget": "file_save",
+      "widget": "save_file",
       "required": true,
       "default": "",
       "section": "Input / output"
@@ -54,7 +105,7 @@
     {
       "id": "theme",
       "label": "Theme (--theme)",
-      "description": "Color theme. Pick a built-in or paste a custom 8/16-color hex string (foreground,background,black,red,...). Leave blank for the default (dracula).",
+      "description": "Color theme. Pick a built-in by name (top group of choices) or one of the three CUSTOM PALETTE PRESETS at the bottom — those are example 'preset bundles': a single dropdown choice carrying a 10-colour comma-string that agg parses as a fully-specified theme. The same pattern works for ffmpeg filter chains, ImageMagick command strings, anywhere the upstream CLI accepts one token that encodes many.\n\nLeave blank for agg's default (dracula). See param_types_widgets.md § 'Preset bundles — the highest-leverage enum pattern'.",
       "type": "enum",
       "widget": "dropdown",
       "required": false,
@@ -68,7 +119,24 @@
         "monokai",
         "nord",
         "solarized-dark",
-        "solarized-light"
+        "solarized-light",
+        "ebebeb,1c1c1c,4f4f4f,d54040,4e9a06,c4a000,3465a4,75507b,06989a,d3d7cf",
+        "1d1f21,c5c8c6,373b41,cc6666,b5bd68,f0c674,81a2be,b294bb,8abeb7,c5c8c6",
+        "f8f8f2,282a36,44475a,ff5555,50fa7b,f1fa8c,bd93f9,ff79c6,8be9fd,ffffff"
+      ],
+      "choice_labels": [
+        "(default — dracula)",
+        "asciinema (canonical green-on-black)",
+        "dracula",
+        "github-dark",
+        "github-light",
+        "monokai",
+        "nord",
+        "solarized-dark",
+        "solarized-light",
+        "Custom preset — Light slate (warm whites, muted accents)",
+        "Custom preset — Tomorrow-night-ish (cool greys, soft accents)",
+        "Custom preset — Dracula-but-brighter (high-contrast night)"
       ],
       "section": "Appearance"
     },
@@ -98,7 +166,7 @@
       "id": "line_height",
       "label": "Line height (--line-height)",
       "description": "Line-height multiplier (e.g. 1.4). Leave blank for agg's default.",
-      "type": "float",
+      "type": "number",
       "widget": "number",
       "required": false,
       "default": 0,
@@ -118,7 +186,7 @@
       "id": "speed",
       "label": "Playback speed (--speed)",
       "description": "Multiplier applied to the recording's timing. 1.0 = real time. 2.0 = double speed. Default 1.0.",
-      "type": "float",
+      "type": "number",
       "widget": "number",
       "required": false,
       "default": 1,
@@ -130,7 +198,7 @@
       "id": "idle_time_limit",
       "label": "Idle time limit, seconds (--idle-time-limit)",
       "description": "Cap long pauses between keystrokes. Pauses longer than this are shrunk to this value. Leave blank for the cast's own setting (or agg's default of 5s).",
-      "type": "float",
+      "type": "number",
       "widget": "number",
       "required": false,
       "default": 0,
@@ -152,7 +220,7 @@
       "id": "last_frame_duration",
       "label": "Last frame duration, seconds (--last-frame-duration)",
       "description": "How long to hold the final frame before the GIF loops. Useful when the cast ends mid-keystroke and you want a beat to read the result.",
-      "type": "float",
+      "type": "number",
       "widget": "number",
       "required": false,
       "default": 0,
@@ -162,7 +230,7 @@
       "id": "no_loop",
       "label": "Disable loop (--no-loop)",
       "description": "Render a one-shot GIF that stops on the last frame. By default the GIF loops forever.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -211,7 +279,7 @@
       "id": "quiet",
       "label": "Quiet (-q)",
       "description": "Suppress diagnostic messages and the progress bar.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -221,7 +289,7 @@
       "id": "verbose",
       "label": "Verbose (-v)",
       "description": "Enable verbose logging. Useful when debugging font lookup or theme parsing.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

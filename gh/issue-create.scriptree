@@ -1,32 +1,74 @@
 {
-  "schema_version": 2,
-  "name": "gh — issue create",
-  "description": "File a new issue against a GitHub project — typically a bug report or a feature request, but it can be any conversation you want to start with the maintainers.\n\nThe issue is public: anyone visiting the repo can read it, and maintainers will respond by closing it (resolved/dismissed), tagging it with labels for triage, or asking follow-up questions.\n\nTitle and a short description are usually all you need. For longer prose use 'Body file' (read from a file) or tick 'Use editor' (in the Submission tab) to compose in your text editor. Source: https://cli.github.com/manual/gh_issue_create",
+  "schema_version": 3,
+  "name": "gh \u2014 issue create",
+  "description": "File a new issue against a GitHub project \u2014 typically a bug report or a feature request, but it can be any conversation you want to start with the maintainers.\n\nThe issue is public: anyone visiting the repo can read it, and maintainers will respond by closing it (resolved/dismissed), tagging it with labels for triage, or asking follow-up questions.\n\nTitle and a short description are usually all you need. For longer prose use 'Body file' (read from a file) or tick 'Use editor' (in the Submission tab) to compose in your text editor. Source: https://cli.github.com/manual/gh_issue_create",
   "executable": "gh",
   "working_directory": null,
   "sections": [
-    { "name": "Repo", "layout": "tab" },
-    { "name": "Body", "layout": "tab" },
-    { "name": "Metadata", "layout": "tab" },
-    { "name": "Submission", "layout": "tab" }
+    {
+      "name": "Repo",
+      "layout": "tab"
+    },
+    {
+      "name": "Body",
+      "layout": "tab"
+    },
+    {
+      "name": "Metadata",
+      "layout": "tab"
+    },
+    {
+      "name": "Submission",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "issue",
     "create",
-    ["-R", "{repo}"],
-    ["-t", "{title}"],
-    ["-b", "{body}"],
-    ["-F", "{body_file}"],
-    ["-a", "{assignee}"],
+    [
+      "-R",
+      "{repo}"
+    ],
+    [
+      "-t",
+      "{title}"
+    ],
+    [
+      "-b",
+      "{body}"
+    ],
+    [
+      "-F",
+      "{body_file}"
+    ],
+    [
+      "-a",
+      "{assignee}"
+    ],
     "{assignee_extra}",
-    ["-l", "{label}"],
+    [
+      "-l",
+      "{label}"
+    ],
     "{label_extra}",
-    ["-m", "{milestone}"],
-    ["-p", "{project}"],
-    ["-T", "{template_name}"],
+    [
+      "-m",
+      "{milestone}"
+    ],
+    [
+      "-p",
+      "{project}"
+    ],
+    [
+      "-T",
+      "{template_name}"
+    ],
     "{editor?-e}",
     "{web?-w}",
-    ["--recover", "{recover}"]
+    [
+      "--recover",
+      "{recover}"
+    ]
   ],
   "params": [
     {
@@ -42,7 +84,7 @@
     {
       "id": "title",
       "label": "Title (-t / --title)",
-      "description": "A short, one-line summary of the issue. Shown at the top of the issue page and in the issue list. Be specific — 'Login button does nothing on Safari 17' is far more useful than 'Login broken'. Aim for under 70 characters.\n\nRequired UNLESS you tick 'Use editor' (compose in your editor) or 'Open in browser' (compose on github.com).",
+      "description": "A short, one-line summary of the issue. Shown at the top of the issue page and in the issue list. Be specific \u2014 'Login button does nothing on Safari 17' is far more useful than 'Login broken'. Aim for under 70 characters.\n\nRequired UNLESS you tick 'Use editor' (compose in your editor) or 'Open in browser' (compose on github.com).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -64,7 +106,7 @@
       "label": "Body file (-F / --body-file)",
       "description": "Read the issue description from this file. Use '-' to read from stdin.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "section": "Body"
@@ -102,7 +144,7 @@
     {
       "id": "label",
       "label": "Label (-l / --label)",
-      "description": "Attach a coloured tag for sorting and triage. Each repo defines its own labels — common ones are 'bug', 'enhancement', 'question', 'documentation'. Use the field below to add more.\n\nNote: most projects expect maintainers (not reporters) to apply labels — check the project's contributing guide.",
+      "description": "Attach a coloured tag for sorting and triage. Each repo defines its own labels \u2014 common ones are 'bug', 'enhancement', 'question', 'documentation'. Use the field below to add more.\n\nNote: most projects expect maintainers (not reporters) to apply labels \u2014 check the project's contributing guide.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -143,7 +185,7 @@
       "id": "editor",
       "label": "Use editor (-e / --editor)",
       "description": "Drop into $EDITOR to compose title/body interactively.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -153,7 +195,7 @@
       "id": "web",
       "label": "Open in browser (-w / --web)",
       "description": "Skip submitting from the CLI and open GitHub's web 'create issue' page in your browser instead. Use this when the project has a structured issue template (the GitHub web form will guide you through it), or when you want to paste in a screenshot.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

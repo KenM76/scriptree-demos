@@ -1,11 +1,14 @@
 {
-  "schema_version": 2,
-  "name": "jit — quick lookup",
+  "schema_version": 3,
+  "name": "jit \u2014 quick lookup",
   "description": "Fetch a Jira ticket by key or Atlassian URL and print a one-screen summary. Use the Output toggles to switch to a single-line form (handy for scripts) or machine-readable JSON. For a richer breakdown (description, comments, linked PRs, metadata) use the 'Show detail' scriptree instead. Source: https://github.com/cesarferreira/jit",
   "executable": "./jit.exe",
   "working_directory": null,
   "argument_template": [
-    ["--config-file", "{config_file}"],
+    [
+      "--config-file",
+      "{config_file}"
+    ],
     "{text?--text}",
     "{json?--json}",
     "{key}"
@@ -24,8 +27,8 @@
     {
       "id": "text",
       "label": "One-line text (--text)",
-      "description": "Print a single line of the form 'KEY: Summary'. Great for piping into scripts or shell prompts. Mutually exclusive with JSON — pick one.",
-      "type": "bool",
+      "description": "Print a single line of the form 'KEY: Summary'. Great for piping into scripts or shell prompts. Mutually exclusive with JSON \u2014 pick one.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -34,8 +37,8 @@
     {
       "id": "json",
       "label": "JSON (--json)",
-      "description": "Emit the ticket as JSON. Mutually exclusive with --text. If both are set, jit will error — leave at most one ticked.",
-      "type": "bool",
+      "description": "Emit the ticket as JSON. Mutually exclusive with --text. If both are set, jit will error \u2014 leave at most one ticked.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -46,7 +49,7 @@
       "label": "Config file (--config-file)",
       "description": "Override the default jit config file. Useful for juggling multiple Jira instances (e.g. a work account and a personal account).",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "file_filter": "TOML config (*.toml);;All files (*)",

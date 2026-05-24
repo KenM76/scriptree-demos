@@ -1,30 +1,60 @@
 {
-  "schema_version": 2,
-  "name": "gh — release create",
-  "description": "Publish a tagged version of the project as an official 'release'.\n\nA 'release' on GitHub is a polished, downloadable version of the code — typically what users would install. It has a name (e.g. 'v1.2.3'), release notes describing what changed since the last version, and optionally binary attachments (compiled installers, .zip files, etc.) for users to download. It shows up on the repo's 'Releases' page.\n\nReleases are tied to Git TAGS — a tag is a named pointer to a specific commit, marking 'this is what version 1.2.3 looked like'. If the tag doesn't already exist, gh will create it pointing at the branch/commit you specify in 'Target'.\n\nThe 'Body' tab is for the release notes (write them yourself, read from a file, or auto-generate from commits since the last release). The 'Visibility' tab controls draft / pre-release / latest flags. Asset uploads aren't in this form — run `gh release upload <tag> file...` from the terminal afterward. Source: https://cli.github.com/manual/gh_release_create",
+  "schema_version": 3,
+  "name": "gh \u2014 release create",
+  "description": "Publish a tagged version of the project as an official 'release'.\n\nA 'release' on GitHub is a polished, downloadable version of the code \u2014 typically what users would install. It has a name (e.g. 'v1.2.3'), release notes describing what changed since the last version, and optionally binary attachments (compiled installers, .zip files, etc.) for users to download. It shows up on the repo's 'Releases' page.\n\nReleases are tied to Git TAGS \u2014 a tag is a named pointer to a specific commit, marking 'this is what version 1.2.3 looked like'. If the tag doesn't already exist, gh will create it pointing at the branch/commit you specify in 'Target'.\n\nThe 'Body' tab is for the release notes (write them yourself, read from a file, or auto-generate from commits since the last release). The 'Visibility' tab controls draft / pre-release / latest flags. Asset uploads aren't in this form \u2014 run `gh release upload <tag> file...` from the terminal afterward. Source: https://cli.github.com/manual/gh_release_create",
   "executable": "gh",
   "working_directory": null,
   "sections": [
-    { "name": "Tag", "layout": "tab" },
-    { "name": "Body", "layout": "tab" },
-    { "name": "Visibility", "layout": "tab" }
+    {
+      "name": "Tag",
+      "layout": "tab"
+    },
+    {
+      "name": "Body",
+      "layout": "tab"
+    },
+    {
+      "name": "Visibility",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "release",
     "create",
     "{tag}",
-    ["-R", "{repo}"],
-    ["-t", "{title}"],
-    ["-n", "{notes}"],
-    ["-F", "{notes_file}"],
+    [
+      "-R",
+      "{repo}"
+    ],
+    [
+      "-t",
+      "{title}"
+    ],
+    [
+      "-n",
+      "{notes}"
+    ],
+    [
+      "-F",
+      "{notes_file}"
+    ],
     "{notes_from_tag?--notes-from-tag}",
-    ["--notes-start-tag", "{notes_start_tag}"],
+    [
+      "--notes-start-tag",
+      "{notes_start_tag}"
+    ],
     "{generate_notes?--generate-notes}",
-    ["--target", "{target}"],
+    [
+      "--target",
+      "{target}"
+    ],
     "{draft?-d}",
     "{prerelease?-p}",
     "{latest?--latest}",
-    ["--discussion-category", "{discussion_category}"],
+    [
+      "--discussion-category",
+      "{discussion_category}"
+    ],
     "{verify_tag?--verify-tag}",
     "{fail_on_no_commits?--fail-on-no-commits}"
   ],
@@ -52,7 +82,7 @@
     {
       "id": "target",
       "label": "Target branch or commit (--target)",
-      "description": "WHICH commit this release should mark. Used only when gh has to create the tag for you (i.e. the tag didn't exist yet). Specify either a branch name (release will mark the latest commit on that branch — usually 'main') or a specific commit SHA.\n\nLeave blank to default to the latest commit on the repo's default branch.",
+      "description": "WHICH commit this release should mark. Used only when gh has to create the tag for you (i.e. the tag didn't exist yet). Specify either a branch name (release will mark the latest commit on that branch \u2014 usually 'main') or a specific commit SHA.\n\nLeave blank to default to the latest commit on the repo's default branch.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -63,7 +93,7 @@
       "id": "verify_tag",
       "label": "Verify tag exists remotely (--verify-tag)",
       "description": "Abort if the tag does not already exist on the remote. Use to prevent gh from creating a new tag.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -82,7 +112,7 @@
     {
       "id": "notes",
       "label": "Notes (-n / --notes)",
-      "description": "What changed in this release — a description for users. Typically mentions new features, bug fixes, breaking changes, and an upgrade notice if needed. Markdown is supported. For longer notes, use 'Notes file' below or tick 'Auto-generate notes' to have GitHub build them from the merged PRs since the last release.",
+      "description": "What changed in this release \u2014 a description for users. Typically mentions new features, bug fixes, breaking changes, and an upgrade notice if needed. Markdown is supported. For longer notes, use 'Notes file' below or tick 'Auto-generate notes' to have GitHub build them from the merged PRs since the last release.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -94,7 +124,7 @@
       "label": "Notes file (-F / --notes-file)",
       "description": "Read notes from this file. Use '-' to read from stdin.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "section": "Body"
@@ -102,8 +132,8 @@
     {
       "id": "generate_notes",
       "label": "Auto-generate notes (--generate-notes)",
-      "description": "Let GitHub write the release notes for you, automatically — it scans every PR merged since the previous release and builds a 'What's Changed' list with PR titles, contributors, and links. Saves a lot of writing for projects that already have descriptive PR titles. You can still tweak the result by editing the release on github.com afterward.",
-      "type": "bool",
+      "description": "Let GitHub write the release notes for you, automatically \u2014 it scans every PR merged since the previous release and builds a 'What's Changed' list with PR titles, contributors, and links. Saves a lot of writing for projects that already have descriptive PR titles. You can still tweak the result by editing the release on github.com afterward.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -113,7 +143,7 @@
       "id": "notes_from_tag",
       "label": "Notes from tag annotation (--notes-from-tag)",
       "description": "Use the tag's annotation/commit message as the release notes. Useful when you sign annotated tags with the changelog.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -133,7 +163,7 @@
       "id": "fail_on_no_commits",
       "label": "Fail on no commits (--fail-on-no-commits)",
       "description": "Error out if there are no commits since the previous release. Catches accidental empty releases in CI.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -142,8 +172,8 @@
     {
       "id": "draft",
       "label": "Draft (-d / --draft)",
-      "description": "Save as a draft instead of publishing immediately. Drafts are only visible to people with write access to the repo — your users won't see it. Useful when you want to prepare release notes ahead of time and review them before going live. Publish later via the GitHub web UI or `gh release edit`.",
-      "type": "bool",
+      "description": "Save as a draft instead of publishing immediately. Drafts are only visible to people with write access to the repo \u2014 your users won't see it. Useful when you want to prepare release notes ahead of time and review them before going live. Publish later via the GitHub web UI or `gh release edit`.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -152,8 +182,8 @@
     {
       "id": "prerelease",
       "label": "Pre-release (-p / --prerelease)",
-      "description": "Flag this as a 'pre-release' (alpha, beta, release candidate — not the recommended stable version). It shows up on the Releases page with a 'Pre-release' badge, and GitHub won't auto-suggest it as 'latest' to users. Use for early-test versions you want testers to try without scaring off the stability-conscious.",
-      "type": "bool",
+      "description": "Flag this as a 'pre-release' (alpha, beta, release candidate \u2014 not the recommended stable version). It shows up on the Releases page with a 'Pre-release' badge, and GitHub won't auto-suggest it as 'latest' to users. Use for early-test versions you want testers to try without scaring off the stability-conscious.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -163,7 +193,7 @@
       "id": "latest",
       "label": "Force latest (--latest)",
       "description": "Mark this release as the latest, overriding GitHub's automatic semver-based pick.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

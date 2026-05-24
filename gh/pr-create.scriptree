@@ -1,50 +1,107 @@
 {
-  "schema_version": 2,
-  "name": "gh — PR create",
-  "description": "Propose your changes by opening a pull request (PR).\n\nThe usual workflow this fits into:\n  1. You clone a repository.\n  2. You make a side branch and commit your changes there.\n  3. You push the side branch up to GitHub.\n  4. You run THIS form to ask the project to merge your side branch into their main branch.\n\nThe PR is a formal request — it includes a title, a description, and a discussion thread where reviewers can ask questions and request changes before it's merged.\n\nThis form needs to be run from inside a clone of the repo, on the branch you want to propose. The 'Body' tab lets you write the PR description; the 'People & metadata' tab lets you request reviews and apply labels. Use 'Draft' (in the State tab) if it's not ready for review yet, or 'Dry run' (Submission tab) to preview without actually opening the PR. Source: https://cli.github.com/manual/gh_pr_create",
+  "schema_version": 3,
+  "name": "gh \u2014 PR create",
+  "description": "Propose your changes by opening a pull request (PR).\n\nThe usual workflow this fits into:\n  1. You clone a repository.\n  2. You make a side branch and commit your changes there.\n  3. You push the side branch up to GitHub.\n  4. You run THIS form to ask the project to merge your side branch into their main branch.\n\nThe PR is a formal request \u2014 it includes a title, a description, and a discussion thread where reviewers can ask questions and request changes before it's merged.\n\nThis form needs to be run from inside a clone of the repo, on the branch you want to propose. The 'Body' tab lets you write the PR description; the 'People & metadata' tab lets you request reviews and apply labels. Use 'Draft' (in the State tab) if it's not ready for review yet, or 'Dry run' (Submission tab) to preview without actually opening the PR. Source: https://cli.github.com/manual/gh_pr_create",
   "executable": "gh",
   "working_directory": null,
   "sections": [
-    { "name": "Repo", "layout": "tab" },
-    { "name": "Branches", "layout": "tab" },
-    { "name": "Body", "layout": "tab" },
-    { "name": "State", "layout": "tab" },
-    { "name": "People & metadata", "layout": "tab" },
-    { "name": "Submission", "layout": "tab" }
+    {
+      "name": "Repo",
+      "layout": "tab"
+    },
+    {
+      "name": "Branches",
+      "layout": "tab"
+    },
+    {
+      "name": "Body",
+      "layout": "tab"
+    },
+    {
+      "name": "State",
+      "layout": "tab"
+    },
+    {
+      "name": "People & metadata",
+      "layout": "tab"
+    },
+    {
+      "name": "Submission",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
     "pr",
     "create",
-    ["-R", "{repo}"],
-    ["-t", "{title}"],
-    ["-b", "{body}"],
-    ["-F", "{body_file}"],
+    [
+      "-R",
+      "{repo}"
+    ],
+    [
+      "-t",
+      "{title}"
+    ],
+    [
+      "-b",
+      "{body}"
+    ],
+    [
+      "-F",
+      "{body_file}"
+    ],
     "{draft?-d}",
     "{fill?-f}",
     "{fill_first?--fill-first}",
     "{fill_verbose?--fill-verbose}",
-    ["-B", "{base}"],
-    ["-H", "{head}"],
-    ["-a", "{assignee}"],
+    [
+      "-B",
+      "{base}"
+    ],
+    [
+      "-H",
+      "{head}"
+    ],
+    [
+      "-a",
+      "{assignee}"
+    ],
     "{assignee_extra}",
-    ["-r", "{reviewer}"],
+    [
+      "-r",
+      "{reviewer}"
+    ],
     "{reviewer_extra}",
-    ["-l", "{label}"],
+    [
+      "-l",
+      "{label}"
+    ],
     "{label_extra}",
-    ["-m", "{milestone}"],
-    ["-p", "{project}"],
-    ["-T", "{template_file}"],
+    [
+      "-m",
+      "{milestone}"
+    ],
+    [
+      "-p",
+      "{project}"
+    ],
+    [
+      "-T",
+      "{template_file}"
+    ],
     "{no_maintainer_edit?--no-maintainer-edit}",
     "{editor?-e}",
     "{web?-w}",
     "{dry_run?--dry-run}",
-    ["--recover", "{recover}"]
+    [
+      "--recover",
+      "{recover}"
+    ]
   ],
   "params": [
     {
       "id": "repo",
       "label": "Repository (-R / --repo)",
-      "description": "Which GitHub project the PR is being filed against. Format is 'OWNER/REPO' (e.g. 'cli/cli'). Leave blank if you're running this from inside a local clone of the repo — gh figures it out from the folder.",
+      "description": "Which GitHub project the PR is being filed against. Format is 'OWNER/REPO' (e.g. 'cli/cli'). Leave blank if you're running this from inside a local clone of the repo \u2014 gh figures it out from the folder.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -54,7 +111,7 @@
     {
       "id": "base",
       "label": "Base branch (-B / --base)",
-      "description": "The branch your changes should be merged INTO — usually 'main'. This is the official version of the code that you want your changes added to. Leave blank to use the repo's default branch (almost always 'main' or 'master').",
+      "description": "The branch your changes should be merged INTO \u2014 usually 'main'. This is the official version of the code that you want your changes added to. Leave blank to use the repo's default branch (almost always 'main' or 'master').",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -64,7 +121,7 @@
     {
       "id": "head",
       "label": "Head branch (-H / --head)",
-      "description": "The branch that HAS your changes — the one you want merged. Defaults to whichever branch you currently have checked out, which is what you usually want.\n\nIf you're proposing changes from your fork of someone else's repo, use the format 'OWNER:branch' (e.g. 'octocat:my-fix') so GitHub knows it's coming from a different account.",
+      "description": "The branch that HAS your changes \u2014 the one you want merged. Defaults to whichever branch you currently have checked out, which is what you usually want.\n\nIf you're proposing changes from your fork of someone else's repo, use the format 'OWNER:branch' (e.g. 'octocat:my-fix') so GitHub knows it's coming from a different account.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -84,7 +141,7 @@
     {
       "id": "body",
       "label": "Body (-b / --body)",
-      "description": "The longer description of what the PR does and why. This is where you explain context — what problem you're solving, how you tested it, anything reviewers should know. Markdown is supported.\n\nFor anything more than a sentence or two, use 'Body file' below or tick 'Use editor' (in the Submission tab) to compose in your text editor.",
+      "description": "The longer description of what the PR does and why. This is where you explain context \u2014 what problem you're solving, how you tested it, anything reviewers should know. Markdown is supported.\n\nFor anything more than a sentence or two, use 'Body file' below or tick 'Use editor' (in the Submission tab) to compose in your text editor.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -96,7 +153,7 @@
       "label": "Body file (-F / --body-file)",
       "description": "Read the PR description from this file. Use '-' to read from stdin.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "section": "Body"
@@ -115,7 +172,7 @@
       "id": "fill",
       "label": "Auto-fill from commits (-f / --fill)",
       "description": "Skip writing a title/body manually and use the commit messages from the branch instead. The first commit's one-line summary becomes the PR title; the remaining commit messages become the body. Tick this when your commits are already well-written and you don't want to repeat yourself.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -125,7 +182,7 @@
       "id": "fill_first",
       "label": "Fill from first commit only (--fill-first)",
       "description": "Use only the first commit's message for both title and body. Handy when subsequent commits are noisy fixups.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -135,7 +192,7 @@
       "id": "fill_verbose",
       "label": "Fill verbose (--fill-verbose)",
       "description": "Include the full commit body (not just the subject) when filling.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -145,7 +202,7 @@
       "id": "draft",
       "label": "Draft (-d / --draft)",
       "description": "Open the PR with a 'Draft' marker meaning 'not ready to be reviewed yet'. You can keep pushing commits to the branch; reviewers will (politely) wait for you to mark it ready before they look. Useful when you want feedback on a work-in-progress, or to share early so others don't duplicate your effort.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -155,7 +212,7 @@
       "id": "no_maintainer_edit",
       "label": "Disable maintainer edits (--no-maintainer-edit)",
       "description": "Block upstream maintainers from editing the PR head branch. Only relevant for cross-fork PRs.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -204,7 +261,7 @@
     {
       "id": "label",
       "label": "Label (-l / --label)",
-      "description": "Attach a coloured tag to the PR for sorting and triage. Each repo defines its own labels — common ones are 'bug', 'enhancement', 'documentation'. Use the field below to add more labels (multiple labels are fine).",
+      "description": "Attach a coloured tag to the PR for sorting and triage. Each repo defines its own labels \u2014 common ones are 'bug', 'enhancement', 'documentation'. Use the field below to add more labels (multiple labels are fine).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -245,7 +302,7 @@
       "id": "editor",
       "label": "Use editor (-e / --editor)",
       "description": "Drop into $EDITOR to compose title/body interactively.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -255,7 +312,7 @@
       "id": "web",
       "label": "Open in browser (-w / --web)",
       "description": "Skip submitting from the CLI and open GitHub's web 'create PR' page in your browser instead. The branch info is pre-filled; you finish the title/body in the browser. Use this when you want GitHub's rich web editor (image paste, drag-drop attachments, live Markdown preview).",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -264,8 +321,8 @@
     {
       "id": "dry_run",
       "label": "Dry run (--dry-run)",
-      "description": "Show what gh WOULD send to GitHub without actually creating the PR. Safe way to verify the title, body, branches, reviewers, and labels are right before committing — nothing is published. Useful when scripting or when you're unsure about the form.",
-      "type": "bool",
+      "description": "Show what gh WOULD send to GitHub without actually creating the PR. Safe way to verify the title, body, branches, reviewers, and labels are right before committing \u2014 nothing is published. Useful when scripting or when you're unsure about the form.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

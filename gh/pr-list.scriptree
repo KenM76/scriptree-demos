@@ -1,35 +1,77 @@
 {
-  "schema_version": 2,
-  "name": "gh — PR list",
-  "description": "List pull requests in a GitHub repository.\n\nA pull request (PR) is a proposed change someone has made on a side branch and wants merged into the main code. This form shows them — open ones, closed ones, drafts, whatever you filter for. Useful when you want to see 'what's everyone working on right now' or 'what's waiting on me to review'.\n\nDefaults to OPEN pull requests in the repository of the current working directory. Fill in 'Repository' to look at a different repo. Use the Filter section to narrow down by state, author, branch, labels, or a free-form GitHub search query. Source: https://cli.github.com/manual/gh_pr_list",
+  "schema_version": 3,
+  "name": "gh \u2014 PR list",
+  "description": "List pull requests in a GitHub repository.\n\nA pull request (PR) is a proposed change someone has made on a side branch and wants merged into the main code. This form shows them \u2014 open ones, closed ones, drafts, whatever you filter for. Useful when you want to see 'what's everyone working on right now' or 'what's waiting on me to review'.\n\nDefaults to OPEN pull requests in the repository of the current working directory. Fill in 'Repository' to look at a different repo. Use the Filter section to narrow down by state, author, branch, labels, or a free-form GitHub search query. Source: https://cli.github.com/manual/gh_pr_list",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
     "pr",
     "list",
-    ["-R", "{repo}"],
-    ["-s", "{state}"],
+    [
+      "-R",
+      "{repo}"
+    ],
+    [
+      "-s",
+      "{state}"
+    ],
     "{draft?-d}",
-    ["-A", "{author}"],
-    ["-a", "{assignee}"],
-    ["-B", "{base}"],
-    ["-H", "{head}"],
-    ["-l", "{label}"],
+    [
+      "-A",
+      "{author}"
+    ],
+    [
+      "-a",
+      "{assignee}"
+    ],
+    [
+      "-B",
+      "{base}"
+    ],
+    [
+      "-H",
+      "{head}"
+    ],
+    [
+      "-l",
+      "{label}"
+    ],
     "{label_extra}",
-    ["-m", "{milestone}"],
-    ["--app", "{app}"],
-    ["-S", "{search}"],
-    ["-L", "{limit}"],
-    ["--json", "{json}"],
-    ["-q", "{jq}"],
-    ["-t", "{template}"],
+    [
+      "-m",
+      "{milestone}"
+    ],
+    [
+      "--app",
+      "{app}"
+    ],
+    [
+      "-S",
+      "{search}"
+    ],
+    [
+      "-L",
+      "{limit}"
+    ],
+    [
+      "--json",
+      "{json}"
+    ],
+    [
+      "-q",
+      "{jq}"
+    ],
+    [
+      "-t",
+      "{template}"
+    ],
     "{web?-w}"
   ],
   "params": [
     {
       "id": "repo",
       "label": "Repository (-R / --repo)",
-      "description": "Which GitHub project to look at. Format is 'OWNER/REPO' (e.g. 'cli/cli' for github.com/cli/cli, or 'microsoft/vscode' for github.com/microsoft/vscode). Leave blank if you've already cd'd into a clone of the repo on your machine — gh will figure it out from the folder.",
+      "description": "Which GitHub project to look at. Format is 'OWNER/REPO' (e.g. 'cli/cli' for github.com/cli/cli, or 'microsoft/vscode' for github.com/microsoft/vscode). Leave blank if you've already cd'd into a clone of the repo on your machine \u2014 gh will figure it out from the folder.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -39,19 +81,25 @@
     {
       "id": "state",
       "label": "State (-s / --state)",
-      "description": "Which PRs to include based on their lifecycle stage:\n  open    — still being worked on / under review\n  closed  — closed without being merged (rejected, abandoned, superseded)\n  merged  — accepted and merged into the target branch\n  all     — everything regardless of state\nLeave blank to default to 'open' (the most common pick).",
+      "description": "Which PRs to include based on their lifecycle stage:\n  open    \u2014 still being worked on / under review\n  closed  \u2014 closed without being merged (rejected, abandoned, superseded)\n  merged  \u2014 accepted and merged into the target branch\n  all     \u2014 everything regardless of state\nLeave blank to default to 'open' (the most common pick).",
       "type": "enum",
       "widget": "dropdown",
       "required": false,
       "default": "",
-      "choices": ["", "open", "closed", "merged", "all"],
+      "choices": [
+        "",
+        "open",
+        "closed",
+        "merged",
+        "all"
+      ],
       "section": "Filter"
     },
     {
       "id": "draft",
       "label": "Drafts only (-d / --draft)",
       "description": "A 'draft' PR is one the author has marked as not-yet-ready-for-review (work-in-progress). Tick this to see only those, untick to see ready-for-review PRs alongside drafts.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -80,7 +128,7 @@
     {
       "id": "base",
       "label": "Base branch (-B / --base)",
-      "description": "The 'base' branch is the one a PR wants to merge INTO — usually 'main'. Set this to filter to PRs targeting a specific branch (e.g. 'main' to ignore PRs targeting old release branches, or 'develop' if the project uses a develop-then-main flow).",
+      "description": "The 'base' branch is the one a PR wants to merge INTO \u2014 usually 'main'. Set this to filter to PRs targeting a specific branch (e.g. 'main' to ignore PRs targeting old release branches, or 'develop' if the project uses a develop-then-main flow).",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -90,7 +138,7 @@
     {
       "id": "head",
       "label": "Head branch (-H / --head)",
-      "description": "The 'head' branch is the one a PR was written ON — the branch with the changes. Set this to filter to PRs whose source branch matches (e.g. 'feature/new-login'). Useful when you've made commits on a topic branch and want to find the PR for it.",
+      "description": "The 'head' branch is the one a PR was written ON \u2014 the branch with the changes. Set this to filter to PRs whose source branch matches (e.g. 'feature/new-login'). Useful when you've made commits on a topic branch and want to find the PR for it.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -100,7 +148,7 @@
     {
       "id": "label",
       "label": "Label (-l / --label)",
-      "description": "Show only PRs that have this coloured tag attached. Common labels: 'bug', 'enhancement', 'good first issue', 'priority:high'. Each repo defines its own. Repeatable — use the field below for additional labels (multiple labels means 'must have ALL of these').",
+      "description": "Show only PRs that have this coloured tag attached. Common labels: 'bug', 'enhancement', 'good first issue', 'priority:high'. Each repo defines its own. Repeatable \u2014 use the field below for additional labels (multiple labels means 'must have ALL of these').",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -140,7 +188,7 @@
     {
       "id": "search",
       "label": "Search query (-S / --search)",
-      "description": "Power-user filter using GitHub's full search syntax — the same query language you'd type in the search bar on github.com. Mix and match with the simpler filters above.\n\nExamples:\n  review:approved              — only PRs that have been approved\n  comments:>5                  — PRs with more than 5 comments\n  is:open draft:false          — open, ready-for-review PRs\n  created:>2026-01-01          — opened this year\n  involves:@me                 — anything you're involved in",
+      "description": "Power-user filter using GitHub's full search syntax \u2014 the same query language you'd type in the search bar on github.com. Mix and match with the simpler filters above.\n\nExamples:\n  review:approved              \u2014 only PRs that have been approved\n  comments:>5                  \u2014 PRs with more than 5 comments\n  is:open draft:false          \u2014 open, ready-for-review PRs\n  created:>2026-01-01          \u2014 opened this year\n  involves:@me                 \u2014 anything you're involved in",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -150,7 +198,7 @@
     {
       "id": "limit",
       "label": "Limit (-L / --limit)",
-      "description": "Maximum number of PRs to show. Default is 30 if left blank. Bump it to 100+ on busy repos where 30 isn't enough; lower it to 5–10 if you just want a quick top-of-list peek.",
+      "description": "Maximum number of PRs to show. Default is 30 if left blank. Bump it to 100+ on busy repos where 30 isn't enough; lower it to 5\u201310 if you just want a quick top-of-list peek.",
       "type": "integer",
       "widget": "number",
       "required": false,
@@ -162,7 +210,7 @@
     {
       "id": "json",
       "label": "JSON fields (--json)",
-      "description": "Switch to machine-readable JSON output for scripting. Comma-separated list of which fields to include (e.g. 'number,title,state,author'). For exploring what's available, run `gh pr list --json` with nothing after it — gh will print every field name it knows. Leave blank for human-friendly table output.",
+      "description": "Switch to machine-readable JSON output for scripting. Comma-separated list of which fields to include (e.g. 'number,title,state,author'). For exploring what's available, run `gh pr list --json` with nothing after it \u2014 gh will print every field name it knows. Leave blank for human-friendly table output.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -193,7 +241,7 @@
       "id": "web",
       "label": "Open in browser (-w / --web)",
       "description": "Skip printing the list to the terminal and open the same view in your default browser instead. Handy when you want to click through and read the actual PR pages, not just see a list.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

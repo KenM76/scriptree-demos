@@ -1,23 +1,47 @@
 {
-  "schema_version": 2,
-  "name": "awk — text processor",
-  "description": "A miniature programming language for text processing. You feed awk lines of text (from a file or stdin), it splits each line into fields, and runs a tiny program you write against every line. Great for one-off tabular data work — extract a column from a CSV, sum a column of numbers, reformat a log file, count word frequencies — without writing a real script.\n\nNew to awk? Click the 'Help & reference' tab for a crash course (anatomy, auto-variables, common one-liners). Source: https://www.gnu.org/software/gawk/manual/",
+  "schema_version": 3,
+  "name": "awk \u2014 text processor",
+  "description": "A miniature programming language for text processing. You feed awk lines of text (from a file or stdin), it splits each line into fields, and runs a tiny program you write against every line. Great for one-off tabular data work \u2014 extract a column from a CSV, sum a column of numbers, reformat a log file, count word frequencies \u2014 without writing a real script.\n\nNew to awk? Click the 'Help & reference' tab for a crash course (anatomy, auto-variables, common one-liners). Source: https://www.gnu.org/software/gawk/manual/",
   "executable": "awk",
   "working_directory": null,
   "sections": [
-    { "name": "Program", "layout": "tab" },
-    { "name": "Input", "layout": "tab" },
-    { "name": "Variables", "layout": "tab" },
-    { "name": "Compatibility", "layout": "tab" },
-    { "name": "Help & reference", "layout": "tab" }
+    {
+      "name": "Program",
+      "layout": "tab"
+    },
+    {
+      "name": "Input",
+      "layout": "tab"
+    },
+    {
+      "name": "Variables",
+      "layout": "tab"
+    },
+    {
+      "name": "Compatibility",
+      "layout": "tab"
+    },
+    {
+      "name": "Help & reference",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
-    ["-F", "{field_separator}"],
-    ["-v", "{var_assignment}"],
+    [
+      "-F",
+      "{field_separator}"
+    ],
+    [
+      "-v",
+      "{var_assignment}"
+    ],
     "{posix?--posix}",
     "{traditional?--traditional}",
     "{characters_as_bytes?-b}",
-    ["-f", "{program_file}"],
+    [
+      "-f",
+      "{program_file}"
+    ],
     "{program}",
     "{input_files}"
   ],
@@ -25,7 +49,7 @@
     {
       "id": "program",
       "label": "Program",
-      "description": "The awk program — pattern { action } pairs. Examples to copy:\n\n  Print 1st column of a CSV:        {print $1}\n  Sum column 3:                     {sum += $3} END {print sum}\n  Filter to lines containing 'foo': /foo/ {print}\n  Number each line:                 {print NR, $0}\n  Print blank-line-separated:       /^$/ {print}\n  Average a column:                 {s += $1} END {print s/NR}\n\nWrap multi-statement programs in braces. Don't surround the whole thing in quotes — ScripTree passes it as a single argv token already.\n\nLeave blank if you're loading the program from 'Program file' below instead.",
+      "description": "The awk program \u2014 pattern { action } pairs. Examples to copy:\n\n  Print 1st column of a CSV:        {print $1}\n  Sum column 3:                     {sum += $3} END {print sum}\n  Filter to lines containing 'foo': /foo/ {print}\n  Number each line:                 {print NR, $0}\n  Print blank-line-separated:       /^$/ {print}\n  Average a column:                 {s += $1} END {print s/NR}\n\nWrap multi-statement programs in braces. Don't surround the whole thing in quotes \u2014 ScripTree passes it as a single argv token already.\n\nLeave blank if you're loading the program from 'Program file' below instead.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -35,9 +59,9 @@
     {
       "id": "program_file",
       "label": "Program file (-f)",
-      "description": "Read the awk program from this file instead of typing it inline. Useful for longer programs or when you reuse the same program a lot. If you fill in BOTH this and 'Program' above, awk will treat the inline program as another input filename — almost never what you want. Pick ONE source.",
+      "description": "Read the awk program from this file instead of typing it inline. Useful for longer programs or when you reuse the same program a lot. If you fill in BOTH this and 'Program' above, awk will treat the inline program as another input filename \u2014 almost never what you want. Pick ONE source.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "file_filter": "awk programs (*.awk);;All files (*)",
@@ -56,7 +80,7 @@
     {
       "id": "field_separator",
       "label": "Field separator (-F)",
-      "description": "Character (or regex) that splits each input line into fields ($1, $2, ...). Default is whitespace (any run of spaces/tabs).\n\nCommon picks:\n  ,            comma — for CSV\n  \\t           literal tab — for TSV\n  :            colon — for /etc/passwd-style files\n  |            pipe — for pipe-separated data\n  [[:space:]]+ default-ish — any run of whitespace\n  ;,           multi-char regex — split on either ';' or ','\n\nLeave blank to keep the default whitespace behaviour. The value you type goes through awk's regex engine, so backslashes have to be escaped in some cases.",
+      "description": "Character (or regex) that splits each input line into fields ($1, $2, ...). Default is whitespace (any run of spaces/tabs).\n\nCommon picks:\n  ,            comma \u2014 for CSV\n  \\t           literal tab \u2014 for TSV\n  :            colon \u2014 for /etc/passwd-style files\n  |            pipe \u2014 for pipe-separated data\n  [[:space:]]+ default-ish \u2014 any run of whitespace\n  ;,           multi-char regex \u2014 split on either ';' or ','\n\nLeave blank to keep the default whitespace behaviour. The value you type goes through awk's regex engine, so backslashes have to be escaped in some cases.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -66,7 +90,7 @@
     {
       "id": "var_assignment",
       "label": "Variable (-v)",
-      "description": "Set a variable before BEGIN runs, in the form NAME=VALUE. Useful when you want a parameter you can change without editing the program.\n\nExamples:\n  threshold=100         use as: $1 > threshold {print}\n  fmt=\"%-20s %d\\n\"      use in printf statements\n  IGNORECASE=1          gawk-only: case-insensitive matching\n\nFor multiple variables, set them inside a BEGIN block in the program instead — saves the form fight.",
+      "description": "Set a variable before BEGIN runs, in the form NAME=VALUE. Useful when you want a parameter you can change without editing the program.\n\nExamples:\n  threshold=100         use as: $1 > threshold {print}\n  fmt=\"%-20s %d\\n\"      use in printf statements\n  IGNORECASE=1          gawk-only: case-insensitive matching\n\nFor multiple variables, set them inside a BEGIN block in the program instead \u2014 saves the form fight.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -76,8 +100,8 @@
     {
       "id": "posix",
       "label": "Strict POSIX mode (--posix)",
-      "description": "(gawk-only) Disable all gawk-specific extensions. The program runs against the strict POSIX awk spec — no gensub(), no length(array), no @namespace, no FIELDWIDTHS, etc. Tick this when you're writing a script you want to ship to non-GNU environments (BSD awk, mawk, BusyBox awk).\n\nSafe to leave off if you're just hacking on data locally.",
-      "type": "bool",
+      "description": "(gawk-only) Disable all gawk-specific extensions. The program runs against the strict POSIX awk spec \u2014 no gensub(), no length(array), no @namespace, no FIELDWIDTHS, etc. Tick this when you're writing a script you want to ship to non-GNU environments (BSD awk, mawk, BusyBox awk).\n\nSafe to leave off if you're just hacking on data locally.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -86,8 +110,8 @@
     {
       "id": "traditional",
       "label": "Traditional / UNIX awk (--traditional)",
-      "description": "(gawk-only) Even more strict than --posix — emulates original UNIX awk (V7) behaviour. POSIX features added later (gsub, sub, etc.) are still allowed but gawk extensions are off. Rarely needed; --posix covers most compat use.",
-      "type": "bool",
+      "description": "(gawk-only) Even more strict than --posix \u2014 emulates original UNIX awk (V7) behaviour. POSIX features added later (gsub, sub, etc.) are still allowed but gawk extensions are off. Rarely needed; --posix covers most compat use.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -96,8 +120,8 @@
     {
       "id": "characters_as_bytes",
       "label": "Treat bytes, not characters (-b / --characters-as-bytes)",
-      "description": "(gawk-only) Treat all input as raw bytes (single-byte locale) instead of multi-byte / UTF-8 characters. Use when the input is binary or in a non-UTF-8 encoding and gawk is mis-counting characters. Otherwise leave off — gawk handles UTF-8 correctly by default.",
-      "type": "bool",
+      "description": "(gawk-only) Treat all input as raw bytes (single-byte locale) instead of multi-byte / UTF-8 characters. Use when the input is binary or in a non-UTF-8 encoding and gawk is mis-counting characters. Otherwise leave off \u2014 gawk handles UTF-8 correctly by default.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -106,7 +130,7 @@
     {
       "id": "_help_anatomy",
       "label": "Anatomy of an awk program",
-      "description": "Reference only — this field has no effect on what's run. Read it, copy snippets out of it, ignore it.",
+      "description": "Reference only \u2014 this field has no effect on what's run. Read it, copy snippets out of it, ignore it.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -116,17 +140,17 @@
     {
       "id": "_help_variables",
       "label": "Auto-variables awk gives you for free",
-      "description": "Reference only — this field has no effect on what's run.",
+      "description": "Reference only \u2014 this field has no effect on what's run.",
       "type": "string",
       "widget": "textarea",
       "required": false,
-      "default": "Awk pre-splits each line for you and exposes these built-in variables:\n\n  $0          the whole line\n  $1, $2, ... the 1st, 2nd, ... field (separator: whitespace by default; -F changes it)\n  $NF         the LAST field on the line (NF is the number of fields)\n  NF          number of fields on this line\n  NR          record number — i.e. line number, 1-based, counting across all files\n  FNR         line number within the current file (resets per file)\n  FILENAME    name of current input file\n  FS          input field separator (default: ' ' which means 'any whitespace run')\n  OFS         output field separator (default: a single space). Used when you 'print a, b, c'.\n  ORS         output record separator (default: newline)\n  RS          input record separator (default: newline)\n\nYou can change FS, OFS, etc. inside BEGIN { } to take effect before any input is read.",
+      "default": "Awk pre-splits each line for you and exposes these built-in variables:\n\n  $0          the whole line\n  $1, $2, ... the 1st, 2nd, ... field (separator: whitespace by default; -F changes it)\n  $NF         the LAST field on the line (NF is the number of fields)\n  NF          number of fields on this line\n  NR          record number \u2014 i.e. line number, 1-based, counting across all files\n  FNR         line number within the current file (resets per file)\n  FILENAME    name of current input file\n  FS          input field separator (default: ' ' which means 'any whitespace run')\n  OFS         output field separator (default: a single space). Used when you 'print a, b, c'.\n  ORS         output record separator (default: newline)\n  RS          input record separator (default: newline)\n\nYou can change FS, OFS, etc. inside BEGIN { } to take effect before any input is read.",
       "section": "Help & reference"
     },
     {
       "id": "_help_oneliners",
       "label": "Common one-liners (copy/paste into 'Program')",
-      "description": "Reference only — this field has no effect on what's run. Copy any of these into the Program tab.",
+      "description": "Reference only \u2014 this field has no effect on what's run. Copy any of these into the Program tab.",
       "type": "string",
       "widget": "textarea",
       "required": false,
@@ -136,11 +160,11 @@
     {
       "id": "_help_form",
       "label": "About this form",
-      "description": "Reference only — this field has no effect on what's run.",
+      "description": "Reference only \u2014 this field has no effect on what's run.",
       "type": "string",
       "widget": "textarea",
       "required": false,
-      "default": "How the form maps to awk's CLI:\n\n  Program tab\n    Program          → the inline program (the positional 'awk_program' argv arg).\n                       Don't wrap it in quotes — ScripTree passes it as a single argv\n                       token already.\n    Program file     → -f program.awk. Use INSTEAD of inline, not in addition to.\n    Input files      → positional file arguments AFTER the program. Space-separated.\n                       Leave blank to read from stdin.\n\n  Input tab\n    Field separator  → -F (default: whitespace). Common picks: ',' ':' '\\t' '|'.\n\n  Variables tab\n    Variable         → -v NAME=VALUE. For multiple variables, set them inside a\n                       BEGIN block in the program instead — saves the form fight.\n\n  Compatibility tab  (gawk-only flags)\n    --posix         strict POSIX, disables gawk extensions\n    --traditional   even stricter — emulates original UNIX awk\n    -b              treat input as raw bytes, not UTF-8 characters\n\nIf 'awk' on your system isn't gawk, the Compatibility tab's flags are ignored or\nrejected (mawk and BSD awk don't recognize them). Set them only if you're targeting\ngawk.",
+      "default": "How the form maps to awk's CLI:\n\n  Program tab\n    Program          \u2192 the inline program (the positional 'awk_program' argv arg).\n                       Don't wrap it in quotes \u2014 ScripTree passes it as a single argv\n                       token already.\n    Program file     \u2192 -f program.awk. Use INSTEAD of inline, not in addition to.\n    Input files      \u2192 positional file arguments AFTER the program. Space-separated.\n                       Leave blank to read from stdin.\n\n  Input tab\n    Field separator  \u2192 -F (default: whitespace). Common picks: ',' ':' '\\t' '|'.\n\n  Variables tab\n    Variable         \u2192 -v NAME=VALUE. For multiple variables, set them inside a\n                       BEGIN block in the program instead \u2014 saves the form fight.\n\n  Compatibility tab  (gawk-only flags)\n    --posix         strict POSIX, disables gawk extensions\n    --traditional   even stricter \u2014 emulates original UNIX awk\n    -b              treat input as raw bytes, not UTF-8 characters\n\nIf 'awk' on your system isn't gawk, the Compatibility tab's flags are ignored or\nrejected (mawk and BSD awk don't recognize them). Set them only if you're targeting\ngawk.",
       "section": "Help & reference"
     }
   ],

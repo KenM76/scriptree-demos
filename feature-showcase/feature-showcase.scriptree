@@ -1,0 +1,305 @@
+{
+  "schema_version": 3,
+  "name": "Feature showcase",
+  "description": "A teaching demo that exercises every widget and the most important features of the ScripTree schema, written for people who have never touched a .scriptree file before.\n\nThe target tool is PowerShell's Get-ChildItem (the modern replacement for `dir` / `ls` on Windows). Every Windows machine already has PowerShell, so nothing needs to be installed to run this form. The form's job is to teach you how the schema works — the underlying command is just an excuse to wire up real fields.\n\nWhat to look for as you click through:\n  - 'Mode' (Browse tab) is a RADIO group. Changing it shows/hides downstream fields via visible_when.\n  - 'Preset filter' (Browse tab) is a DROPDOWN whose choices are 'preset bundles' — one choice can carry a multi-token filter expression.\n  - 'Preview file' (Browse tab) is a DROPDOWN whose choices come from an external script run when the form opens (choices_provider). Pick a target directory above it and click the Refresh button (the small circular arrow on the field) to repopulate.\n  - 'Columns to show' (Output tab) is a CHECKBOX_LIST with a select-all/none master — each tick repeats the property name as a Select-Object argument.\n  - 'Search folders' (Output tab) is a FOLDER_LIST: an ordered list with Add / Remove / Up / Down. Drop folders onto it from Explorer.\n  - 'Reference files' (Output tab) is a FILE_LIST, the file equivalent of folder_list.\n  - 'Destructive-action checkbox' (Safety tab) shows the convention real tools use for destructive operations: a clearly-named, unticked-by-default boolean. Pair with `required_when` to block Run until the user opts in.\n  - The 'Cell appearance' section of this file (open the .scriptree in a text editor) embeds a PNG icon and sets a fill colour so the launcher cell shows a coloured hex with a gear glyph.\n  - Every other field has an in-form description aimed at a beginner. Hover any field's label to see it again as a tooltip.\n\nDrag-and-drop reminder: every text / file / save_file / folder / textarea / folder_list / file_list widget accepts file or folder drops from Explorer. Try dragging the demo folder onto 'Target directory' below.\n\nCanonical docs (read these next):\n  D:\\Dev\\ScripTree\\help\\LLM\\param_types_widgets.md\n  D:\\Dev\\ScripTree\\help\\LLM\\argument_template.md\n  D:\\Dev\\ScripTree\\help\\LLM\\dynamic_providers.md",
+  "executable": "powershell",
+  "working_directory": ".",
+  "sections": [
+    {
+      "name": "Browse",
+      "layout": "tab"
+    },
+    {
+      "name": "Output",
+      "layout": "tab"
+    },
+    {
+      "name": "Safety",
+      "layout": "tab"
+    },
+    {
+      "name": "About this demo",
+      "layout": "tab"
+    }
+  ],
+  "argument_template": [
+    "-NoLogo",
+    "-NoProfile",
+    "-NonInteractive",
+    "-Command",
+    "Get-ChildItem",
+    "-Path",
+    "{target_dir}",
+    "{include_hidden?-Force}",
+    "{recursive?-Recurse}",
+    [
+      "-Depth",
+      "{max_depth}"
+    ],
+    [
+      "-Filter",
+      "{name_filter}"
+    ],
+    "{preset_filter}",
+    [
+      "-Include",
+      "{reference_files}"
+    ],
+    [
+      "-LiteralPath",
+      "{search_folders}"
+    ],
+    "|",
+    "Select-Object",
+    "{columns}",
+    "|",
+    "Format-Table",
+    "-AutoSize"
+  ],
+  "params": [
+    {
+      "id": "mode",
+      "label": "Mode",
+      "description": "Pick what kind of listing you want. This is a RADIO group: only one option can be selected at a time, and the other fields on this tab adjust to match.\n\n  - Browse one folder: list a single directory you pick.\n  - Compare folders: list ordered folders (uses the 'Search folders' list on the Output tab).\n  - Inspect single file: preview one file picked from the dynamic dropdown below.\n\nThe field types radio / checkbox_list / folder_list / file_list each render as a distinct Qt widget; see param_types_widgets.md for the full type × widget compatibility matrix.",
+      "type": "enum",
+      "widget": "radio",
+      "required": true,
+      "default": "browse",
+      "choices": [
+        "browse",
+        "compare",
+        "inspect"
+      ],
+      "choice_labels": [
+        "Browse one folder",
+        "Compare folders (uses 'Search folders' list)",
+        "Inspect single file (uses dynamic dropdown)"
+      ],
+      "section": "Browse"
+    },
+    {
+      "id": "target_dir",
+      "label": "Target directory",
+      "description": "The folder Get-ChildItem will list. You can:\n  - Click Browse and pick a folder.\n  - Type a path, e.g. C:\\Windows or %USERPROFILE%.\n  - Drag a folder from Explorer onto this field (drag-and-drop is built into every text / file / folder widget).\n\nThis path is also forwarded to the dynamic dropdown below as an upstream dependency (see depends_on).",
+      "type": "path",
+      "widget": "folder",
+      "required": true,
+      "default": ".",
+      "section": "Browse",
+      "visible_when": "mode == 'browse'"
+    },
+    {
+      "id": "name_filter",
+      "label": "Name filter (-Filter)",
+      "description": "Wildcard pattern applied by the filesystem driver. Examples:\n  *.txt     all text files\n  log-*     anything beginning with log-\n  *.{md,rst}  (PowerShell does NOT expand this — use 'Preset filter' below for that)\n\nLeave blank to list everything in the folder.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "Browse",
+      "visible_when": "mode == 'browse' OR mode == 'compare'"
+    },
+    {
+      "id": "preset_filter",
+      "label": "Preset filter (dropdown of bundled expressions)",
+      "description": "A DROPDOWN whose choices are 'preset bundles' — the canonical highest-leverage pattern in the schema. Each choice is a single string that gets passed to PowerShell verbatim, but the string can carry an entire pipeline fragment. Compare with the trivial 'auto / always / never' enums you see in fd or eza: those are one token each. These are several tokens each.\n\nPick a preset; the form's command-preview at the bottom of the runner will show how the choice expands. Pick '(none)' to emit nothing.\n\nRecipe in param_types_widgets.md § 'Preset bundles — the highest-leverage enum pattern'. When you wrap a CLI with rich filter syntax, prefer 15-25 bundled presets over a free-form text field.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "choices": [
+        "",
+        "| Where-Object { $_.Length -gt 1MB }",
+        "| Where-Object { $_.LastWriteTime -gt (Get-Date).AddDays(-7) }",
+        "| Where-Object { -not $_.PSIsContainer }",
+        "| Where-Object { $_.PSIsContainer }",
+        "| Where-Object { $_.Name -match '\\.(md|rst|txt)$' }",
+        "| Sort-Object Length -Descending | Select-Object -First 10"
+      ],
+      "choice_labels": [
+        "(none) — emit nothing",
+        "Larger than 1 MB",
+        "Modified in the last 7 days",
+        "Files only (skip subfolders)",
+        "Folders only",
+        "Markdown / RST / TXT only",
+        "Top 10 largest"
+      ],
+      "section": "Browse"
+    },
+    {
+      "id": "preview_file",
+      "label": "Preview file (dynamic dropdown, populated at form-open)",
+      "description": "This DROPDOWN's choices are NOT baked into the .scriptree. ScripTree runs the sibling script `list_files.py` at form-open time and reads a JSON document from its stdout (the contract is in dynamic_providers.md). The script lists files in the 'Target directory' above; change that field and click the small refresh button beside this dropdown to repopulate.\n\nWhen would you actually use a provider in real life? When the choices only exist at form-open time — currently-open drawings in SolidWorks, running Docker containers, git remotes, database tables, etc. For tools whose choices ARE knowable at authoring time, a plain static `choices` list is simpler and faster.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "",
+      "section": "Browse",
+      "visible_when": "mode == 'inspect'",
+      "depends_on": [
+        "target_dir"
+      ],
+      "choices_provider": {
+        "command": [
+          "python",
+          "./list_files.py"
+        ],
+        "working_directory": ".",
+        "refresh": "on_change",
+        "timeout_sec": 10,
+        "cache": "form_session"
+      }
+    },
+    {
+      "id": "recursive",
+      "label": "Recurse into subfolders (-Recurse)",
+      "description": "Walk subdirectories. Off by default. Used when 'Mode' is 'Browse one folder' or 'Compare folders'.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Browse",
+      "visible_when": "mode == 'browse' OR mode == 'compare'"
+    },
+    {
+      "id": "include_hidden",
+      "label": "Include hidden / system items (-Force)",
+      "description": "Show items whose hidden or system bit is set. Off by default.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Browse"
+    },
+    {
+      "id": "max_depth",
+      "label": "Max recursion depth (-Depth)",
+      "description": "Cap how many subfolder levels Get-ChildItem will descend when recursing. 0 = unlimited (default), 1 = current folder only, 2 = one level deep, etc. The min / max / step fields on this param are honoured by the spin-box widget — try clicking the up/down arrows or pressing Page Up / Page Down. See param_types_widgets.md § 'number' for the bounds.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 0,
+      "min": 0,
+      "max": 25,
+      "step": 1,
+      "section": "Browse",
+      "visible_when": "recursive == 'true'"
+    },
+    {
+      "id": "columns",
+      "label": "Columns to show (multiselect / checkbox_list)",
+      "description": "A CHECKBOX_LIST: a scrollable column of checkboxes with a select-all/none master at the top (the `select_all: true` field). Each ticked entry is forwarded to PowerShell's Select-Object as one property name. Run the form to see the columns assemble into the output table.\n\nUnder the hood, the placeholder for this field is embedded in the bare token '{columns}'. ScripTree comma-joins a multiselect's values when the placeholder sits alone (or is embedded in a literal); it FANS OUT (one repeat per element) when the placeholder is the only bare entry in a list-form token group. See argument_template.md §5.",
+      "type": "multiselect",
+      "widget": "checkbox_list",
+      "select_all": true,
+      "required": false,
+      "default": [
+        "Name",
+        "Length",
+        "LastWriteTime"
+      ],
+      "choices": [
+        "Name",
+        "FullName",
+        "Length",
+        "LastWriteTime",
+        "CreationTime",
+        "Attributes",
+        "Extension",
+        "Mode",
+        "PSIsContainer",
+        "DirectoryName"
+      ],
+      "choice_labels": [
+        "Name (file/folder name)",
+        "FullName (full path)",
+        "Length (size in bytes)",
+        "LastWriteTime (modified date)",
+        "CreationTime (created date)",
+        "Attributes (hidden / readonly / archive)",
+        "Extension (.txt, .md, ...)",
+        "Mode (-a---- style flags)",
+        "PSIsContainer (true for folders)",
+        "DirectoryName (parent folder)"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "search_folders",
+      "label": "Search folders (folder_list, multi-path picker)",
+      "description": "An ordered FOLDER_LIST: paths are composed by clicking Add (opens a folder picker), or by dragging folders from Explorer onto the list. Reorder with the Up / Down buttons. The min_items field below makes the form require at least one entry when 'Mode' is 'Compare folders'; the must_exist flag stops users from adding folders that aren't on disk right now.\n\nIn the argv template this field sits inside the token group [\"-LiteralPath\", \"{search_folders}\"]. Because of the token-group fan-out rule, three folders selected produce '-LiteralPath A -LiteralPath B -LiteralPath C' (NOT a single comma-joined token). See argument_template.md §5.",
+      "type": "multiselect",
+      "widget": "folder_list",
+      "required": false,
+      "default": [],
+      "must_exist": true,
+      "min_items": 0,
+      "section": "Output"
+    },
+    {
+      "id": "reference_files",
+      "label": "Reference files (file_list, multi-file picker)",
+      "description": "A FILE_LIST: same Add/Remove/Up/Down shell as folder_list but the picker is a file-open dialog. The file_filter field below restricts the Add dialog to text-like files; users can still drop other files onto the list directly.\n\nFanned out into '-Include FILE -Include FILE -Include FILE' via the token group in the argument template.",
+      "type": "multiselect",
+      "widget": "file_list",
+      "required": false,
+      "default": [],
+      "file_filter": "Text-like files (*.txt *.md *.rst *.log);;All files (*)",
+      "must_exist": false,
+      "section": "Output"
+    },
+    {
+      "id": "destructive_intent",
+      "label": "Destructive-action checkbox (just a label)",
+      "description": "Real production tools that delete files, overwrite outputs, or push to remotes should make the destructive intent explicit in the form. A common pattern is to add a checkbox like 'Yes, I want to <do the irreversible thing>' that is unticked by default and clearly named. Combine with a `required_when` expression so Run is blocked until the user opts in.\n\nThis checkbox is wired into the argv as a boolean — toggle it and watch the live command preview to see -ConfirmAction appear / disappear (the flag is fictitious for Get-ChildItem; it's here to show the wiring).",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Safety"
+    },
+    {
+      "id": "dry_run_note",
+      "label": "Verbose output (a textarea you can drag files onto)",
+      "description": "A TEXTAREA widget — the multi-line cousin of 'text'. Drop one or more files from Explorer onto it; each dropped path is inserted at the cursor on its own line. Useful when you want users to paste in a list of paths or a long regex without the field clipping.\n\nThe textarea content is currently NOT wired into the argv (this field is just a demo of the widget). Try typing or dropping anyway.",
+      "type": "string",
+      "widget": "textarea",
+      "required": false,
+      "default": "Notes / scratch space — drag files from Explorer onto this textarea to see drop-handling in action.",
+      "section": "Safety"
+    },
+    {
+      "id": "demo_url",
+      "label": "Where to learn more",
+      "description": "Paste a URL or path here. Demonstrates the masking heuristic from param_types_widgets.md § 'text with masking': labels containing 'password' / 'secret' / 'token' / 'api key' automatically render with QLineEdit.Password echo mode — try changing this field's label to 'API key' in the .scriptree to see the dots appear.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "https://github.com/KenM76/scriptree-demos",
+      "section": "About this demo"
+    },
+    {
+      "id": "demo_save_target",
+      "label": "Save the output to (save_file widget)",
+      "description": "A SAVE_FILE picker. Same as 'file' but the Browse button opens the system Save-As dialog so users pick a destination that doesn't exist yet. The field is not wired into this form's argv; redirect the runner's output to disk yourself if you want it captured.",
+      "type": "path",
+      "widget": "save_file",
+      "required": false,
+      "default": "",
+      "file_filter": "Plain text (*.txt);;Markdown (*.md);;All files (*)",
+      "section": "About this demo"
+    }
+  ],
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png",
+    "fill_color": "#4C6FBF",
+    "text_label": "FX",
+    "text_color": "#FFFFFF"
+  },
+  "source": {
+    "mode": "manual",
+    "url": "https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem"
+  }
+}

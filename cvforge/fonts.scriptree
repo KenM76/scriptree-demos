@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "cvforge fonts",
   "description": "List the font choices CVForge supports for the rendered PDF. No arguments. Source: https://github.com/SoAp9035/cvforge",
   "executable": "cvforge",

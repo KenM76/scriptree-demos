@@ -1,21 +1,48 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "name": "dust",
   "description": "A more intuitive du. Walks the given directory and prints a sorted, percentage-bar-annotated tree of the largest entries. One-shot CLI: defaults are sensible, every flag is a presentation knob. Source: https://github.com/bootandy/dust",
   "executable": "./dust.exe",
   "working_directory": null,
   "sections": [
-    { "name": "Target", "layout": "tab" },
-    { "name": "Display", "layout": "tab" },
-    { "name": "Filtering", "layout": "tab" },
-    { "name": "Counting", "layout": "tab" },
-    { "name": "Style", "layout": "tab" }
+    {
+      "name": "Target",
+      "layout": "tab"
+    },
+    {
+      "name": "Display",
+      "layout": "tab"
+    },
+    {
+      "name": "Filtering",
+      "layout": "tab"
+    },
+    {
+      "name": "Counting",
+      "layout": "tab"
+    },
+    {
+      "name": "Style",
+      "layout": "tab"
+    }
   ],
   "argument_template": [
-    ["-n", "{number}"],
-    ["-d", "{depth}"],
-    ["-z", "{min_size}"],
-    ["-o", "{output_format}"],
+    [
+      "-n",
+      "{number}"
+    ],
+    [
+      "-d",
+      "{depth}"
+    ],
+    [
+      "-z",
+      "{min_size}"
+    ],
+    [
+      "-o",
+      "{output_format}"
+    ],
     "{full_path?-p}",
     "{apparent_size?-s}",
     "{only_dir?-D}",
@@ -34,9 +61,18 @@
     "{skip_total?--skip-total}",
     "{json?-j}",
     "{ignore}",
-    ["-e", "{include_regex}"],
-    ["-v", "{exclude_regex}"],
-    ["--collapse", "{collapse}"],
+    [
+      "-e",
+      "{include_regex}"
+    ],
+    [
+      "-v",
+      "{exclude_regex}"
+    ],
+    [
+      "--collapse",
+      "{collapse}"
+    ],
     "{directories}"
   ],
   "params": [
@@ -109,7 +145,7 @@
       "id": "reverse",
       "label": "Reverse order (-r / --reverse)",
       "description": "Print smallest-first instead of the default largest-first.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -119,7 +155,7 @@
       "id": "full_path",
       "label": "Full subdirectory paths (-p / --full-paths)",
       "description": "Show full subdirectory paths instead of names relative to their parent.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -129,7 +165,7 @@
       "id": "skip_total",
       "label": "Skip total row (--skip-total)",
       "description": "Don't print the total-size summary line at the bottom.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -139,7 +175,7 @@
       "id": "only_dir",
       "label": "Directories only (-D / --only-dir)",
       "description": "Hide individual files; show only directory entries.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -149,7 +185,7 @@
       "id": "only_file",
       "label": "Files only (-F / --only-file)",
       "description": "Hide directories; show only individual file entries.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -159,7 +195,7 @@
       "id": "ignore_hidden",
       "label": "Hide hidden (-i / --ignore_hidden)",
       "description": "Skip dotfiles and dot-directories during the walk.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -168,7 +204,7 @@
     {
       "id": "ignore",
       "label": "Ignore by name (-X / --ignore-directory, repeatable)",
-      "description": "Skip entries with these exact names. Repeatable — write the full flag for each entry. Example:\n    -X node_modules -X target -X .git",
+      "description": "Skip entries with these exact names. Repeatable \u2014 write the full flag for each entry. Example:\n    -X node_modules -X target -X .git",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -209,7 +245,7 @@
       "id": "apparent_size",
       "label": "Apparent size (-s / --apparent-size)",
       "description": "Show file sizes as apparent (logical) bytes rather than actual disk usage. Sparse files report large; small files round up to a block by default.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -219,7 +255,7 @@
       "id": "file_count",
       "label": "File count (-f / --filecount)",
       "description": "Count number of files instead of summing sizes.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -229,7 +265,7 @@
       "id": "filetype",
       "label": "Group by filetype (-t / --filetype)",
       "description": "Group sizes by file extension/type rather than directory tree.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -239,7 +275,7 @@
       "id": "same_filesystem",
       "label": "Same filesystem only (-x / --limit-filesystem)",
       "description": "Don't cross filesystem boundaries during the walk. Mirrors `du -x`.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -249,7 +285,7 @@
       "id": "dereference_links",
       "label": "Dereference symlinks (-L / --dereference-links)",
       "description": "Follow symbolic links when walking. Off by default to avoid double-counting.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -259,7 +295,7 @@
       "id": "no_bars",
       "label": "No percent bars (-b / --no-percent-bars)",
       "description": "Hide the ASCII percentage bars. Just show sizes and names.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -269,7 +305,7 @@
       "id": "bars_on_right",
       "label": "Bars on right (-B / --bars-on-right)",
       "description": "Put the percent bars to the right of the entry instead of the left.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -279,7 +315,7 @@
       "id": "no_colors",
       "label": "No colors (-c / --no-colors)",
       "description": "Monochrome output. Useful for piping or screen readers.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -289,7 +325,7 @@
       "id": "force_colors",
       "label": "Force colors (-C / --force-colors)",
       "description": "Emit ANSI colors even when stdout is not a TTY.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -299,7 +335,7 @@
       "id": "no_progress",
       "label": "No progress indicator (-P / --no-progress)",
       "description": "Disable the in-flight progress indicator. Helpful for clean log output.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -309,7 +345,7 @@
       "id": "json",
       "label": "JSON output (-j / --output-json)",
       "description": "Print machine-readable JSON instead of the formatted tree.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

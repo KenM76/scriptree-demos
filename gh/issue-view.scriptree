@@ -1,18 +1,30 @@
 {
-  "schema_version": 2,
-  "name": "gh — issue view",
-  "description": "Read one issue from the terminal — its title, current state (open or closed), labels, the original description, and (optionally) the comment thread.\n\nAn 'issue' on GitHub is a public conversation about a bug, a feature request, or a question. This form is for reading one specific issue; if you don't know which one yet, use 'gh issue list' first to find it.\n\nIdentify the issue by its number ('1234') or full URL. Source: https://cli.github.com/manual/gh_issue_view",
+  "schema_version": 3,
+  "name": "gh \u2014 issue view",
+  "description": "Read one issue from the terminal \u2014 its title, current state (open or closed), labels, the original description, and (optionally) the comment thread.\n\nAn 'issue' on GitHub is a public conversation about a bug, a feature request, or a question. This form is for reading one specific issue; if you don't know which one yet, use 'gh issue list' first to find it.\n\nIdentify the issue by its number ('1234') or full URL. Source: https://cli.github.com/manual/gh_issue_view",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
     "issue",
     "view",
     "{issue}",
-    ["-R", "{repo}"],
+    [
+      "-R",
+      "{repo}"
+    ],
     "{comments?-c}",
-    ["--json", "{json}"],
-    ["-q", "{jq}"],
-    ["-t", "{template}"],
+    [
+      "--json",
+      "{json}"
+    ],
+    [
+      "-q",
+      "{jq}"
+    ],
+    [
+      "-t",
+      "{template}"
+    ],
     "{web?-w}"
   ],
   "params": [
@@ -40,7 +52,7 @@
       "id": "comments",
       "label": "Show comments (-c / --comments)",
       "description": "Also print the comment discussion thread (replies, follow-up questions, debugging notes from other users). Off by default because comment threads can be long. Tick this when you want the full back-and-forth, not just the original post.",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -80,7 +92,7 @@
       "id": "web",
       "label": "Open in browser (-w / --web)",
       "description": "Skip the terminal output and open the issue in your default browser instead. Better for reading rich content (screenshots, code blocks with syntax highlighting, formatted comments).",
-      "type": "bool",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,

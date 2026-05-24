@@ -1,24 +1,39 @@
 {
-  "schema_version": 2,
-  "name": "jit — edit issue",
-  "description": "Edit an existing Jira issue. Only the fields you fill in are sent — blank fields are left untouched. To clear a description, set it to an explicit empty string by typing a single space then deleting it (jit treats an empty --description as 'clear'). Assignee accepts 'me', 'unassigned', or a user identifier.",
+  "schema_version": 3,
+  "name": "jit \u2014 edit issue",
+  "description": "Edit an existing Jira issue. Only the fields you fill in are sent \u2014 blank fields are left untouched. To clear a description, set it to an explicit empty string by typing a single space then deleting it (jit treats an empty --description as 'clear'). Assignee accepts 'me', 'unassigned', or a user identifier.",
   "executable": "./jit.exe",
   "working_directory": null,
   "argument_template": [
-    ["--config-file", "{config_file}"],
+    [
+      "--config-file",
+      "{config_file}"
+    ],
     "edit",
     "{key}",
-    ["--summary", "{summary}"],
-    ["--description", "{description}"],
-    ["--type", "{type}"],
-    ["--assignee", "{assignee}"],
+    [
+      "--summary",
+      "{summary}"
+    ],
+    [
+      "--description",
+      "{description}"
+    ],
+    [
+      "--type",
+      "{type}"
+    ],
+    [
+      "--assignee",
+      "{assignee}"
+    ],
     "{json?--json}"
   ],
   "params": [
     {
       "id": "key",
       "label": "Issue key",
-      "description": "Key of the issue to edit (e.g. RW-123). This is the positional argument — required.",
+      "description": "Key of the issue to edit (e.g. RW-123). This is the positional argument \u2014 required.",
       "type": "string",
       "widget": "text",
       "required": true,
@@ -48,12 +63,17 @@
     {
       "id": "type",
       "label": "New issue type (--type)",
-      "description": "Change the issue type. Leave blank to keep the current type. Your Jira may expose additional types beyond the three listed — type them in manually if needed.",
+      "description": "Change the issue type. Leave blank to keep the current type. Your Jira may expose additional types beyond the three listed \u2014 type them in manually if needed.",
       "type": "enum",
       "widget": "dropdown",
       "required": false,
       "default": "",
-      "choices": ["", "Task", "Story", "Bug"],
+      "choices": [
+        "",
+        "Task",
+        "Story",
+        "Bug"
+      ],
       "section": "Changes"
     },
     {
@@ -69,8 +89,8 @@
     {
       "id": "json",
       "label": "JSON (--json)",
-      "description": "Return the edit result as JSON — the updated issue payload. Handy for chaining updates in scripts.",
-      "type": "bool",
+      "description": "Return the edit result as JSON \u2014 the updated issue payload. Handy for chaining updates in scripts.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
@@ -81,7 +101,7 @@
       "label": "Config file (--config-file)",
       "description": "Override the default jit config file. Useful for editing issues on a non-default Jira instance.",
       "type": "path",
-      "widget": "file_open",
+      "widget": "file",
       "required": false,
       "default": "",
       "file_filter": "TOML config (*.toml);;All files (*)",

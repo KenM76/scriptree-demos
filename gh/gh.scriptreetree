@@ -1,40 +1,73 @@
 {
-  "schema_version": 2,
-  "name": "gh — GitHub CLI",
+  "schema_version": 3,
+  "name": "gh \u2014 GitHub CLI",
   "nodes": [
     {
       "type": "folder",
       "name": "Pull requests",
       "children": [
-        { "type": "leaf", "path": "./pr-list.scriptree" },
-        { "type": "leaf", "path": "./pr-view.scriptree" },
-        { "type": "leaf", "path": "./pr-create.scriptree" },
-        { "type": "leaf", "path": "./pr-checkout.scriptree" },
-        { "type": "leaf", "path": "./pr-merge.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./pr-list.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./pr-view.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./pr-create.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./pr-checkout.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./pr-merge.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Issues",
       "children": [
-        { "type": "leaf", "path": "./issue-list.scriptree" },
-        { "type": "leaf", "path": "./issue-view.scriptree" },
-        { "type": "leaf", "path": "./issue-create.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./issue-list.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./issue-view.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./issue-create.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Repository",
       "children": [
-        { "type": "leaf", "path": "./repo-view.scriptree" },
-        { "type": "leaf", "path": "./repo-clone.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./repo-view.scriptree"
+        },
+        {
+          "type": "leaf",
+          "path": "./repo-clone.scriptree"
+        }
       ]
     },
     {
       "type": "folder",
       "name": "Releases",
       "children": [
-        { "type": "leaf", "path": "./release-create.scriptree" }
+        {
+          "type": "leaf",
+          "path": "./release-create.scriptree"
+        }
       ]
     }
   ]

@@ -1,24 +1,36 @@
 {
-  "schema_version": 2,
-  "name": "gh — repo view",
-  "description": "Show a repository's README and metadata in the terminal — like opening github.com/OWNER/REPO without leaving your shell.\n\nA 'repository' (or 'repo') is a single project on GitHub: its code, history, issues, PRs, and everything else. This form prints the repo's front-page info — the README, star count, default branch, description, languages used.\n\nIdentify the repo by OWNER/REPO (e.g. 'cli/cli') or full URL. Leave blank to view the repo of the current working directory. Source: https://cli.github.com/manual/gh_repo_view",
+  "schema_version": 3,
+  "name": "gh \u2014 repo view",
+  "description": "Show a repository's README and metadata in the terminal \u2014 like opening github.com/OWNER/REPO without leaving your shell.\n\nA 'repository' (or 'repo') is a single project on GitHub: its code, history, issues, PRs, and everything else. This form prints the repo's front-page info \u2014 the README, star count, default branch, description, languages used.\n\nIdentify the repo by OWNER/REPO (e.g. 'cli/cli') or full URL. Leave blank to view the repo of the current working directory. Source: https://cli.github.com/manual/gh_repo_view",
   "executable": "gh",
   "working_directory": null,
   "argument_template": [
     "repo",
     "view",
     "{repository}",
-    ["-b", "{branch}"],
-    ["--json", "{json}"],
-    ["-q", "{jq}"],
-    ["-t", "{template}"],
+    [
+      "-b",
+      "{branch}"
+    ],
+    [
+      "--json",
+      "{json}"
+    ],
+    [
+      "-q",
+      "{jq}"
+    ],
+    [
+      "-t",
+      "{template}"
+    ],
     "{web?-w}"
   ],
   "params": [
     {
       "id": "repository",
       "label": "Repository (OWNER/REPO or URL)",
-      "description": "Which GitHub project to look at. Examples:\n  cli/cli                            (means github.com/cli/cli)\n  microsoft/vscode\n  https://github.com/cli/cli         (full URL also works)\n\nLeave blank if you've already cd'd into a clone of the repo on your machine — gh figures it out from the folder.",
+      "description": "Which GitHub project to look at. Examples:\n  cli/cli                            (means github.com/cli/cli)\n  microsoft/vscode\n  https://github.com/cli/cli         (full URL also works)\n\nLeave blank if you've already cd'd into a clone of the repo on your machine \u2014 gh figures it out from the folder.",
       "type": "string",
       "widget": "text",
       "required": false,
@@ -68,8 +80,8 @@
     {
       "id": "web",
       "label": "Open in browser (-w / --web)",
-      "description": "Skip the terminal output and open the repo's front page in your default browser instead. Better for browsing — you can click into the file tree, view PRs/issues, etc.",
-      "type": "bool",
+      "description": "Skip the terminal output and open the repo's front page in your default browser instead. Better for browsing \u2014 you can click into the file tree, view PRs/issues, etc.",
+      "type": "boolean",
       "widget": "checkbox",
       "required": false,
       "default": false,
