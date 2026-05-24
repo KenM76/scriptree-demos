@@ -30,6 +30,18 @@ For multiple line-range or highlight-line entries, comma-separate inside the fie
 
 Plain `bat foo.rs` is faster typed than form-filled — that's the whole point. The GUI earns its keep when you start composing `--style numbers,changes --theme TwoDark --line-range 100:150 --highlight-line 110:115 --map-syntax '*.tf:HCL' --paging never`. Six knobs, six widgets, no man-page round-trip.
 
+## Screenshots
+
+### Form view
+
+![Form view of bat](bat_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![bat cell docked to the forest](bat_forest.png)
+
 ## Installing bat
 
 See the [upstream README](https://github.com/sharkdp/bat#installation). Common paths:

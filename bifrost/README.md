@@ -28,6 +28,18 @@ The `.scriptree` expects `bifrost.exe` to live in the same folder. Drop it (or a
 
 `bifrost -f photo.jpg` is fast at the terminal. The GUI earns its keep when you're switching between modes a lot — pick a file from a picker, switch to "browse a directory" with a folder picker, swap to receive mode and choose where uploads land. Three modes, three widgets, no remembering which short flag is which.
 
+## Screenshots
+
+### Form view
+
+![Form view of bifrost](bifrost_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![bifrost cell docked to the forest](bifrost_forest.png)
+
 ## Installing bifrost
 
 See the [upstream README](https://github.com/axiom0x0/bifrost#readme). Common paths:

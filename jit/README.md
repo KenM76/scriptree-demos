@@ -35,6 +35,48 @@ The scriptrees expect `jit.exe` to live in the same folder. Drop it (or a symlin
 
 The lookup forms (especially bare `jit KEY`) are honestly faster at the terminal than as a GUI form — but `create` and `edit` benefit a lot from a typed form: dropdowns for issue type, named fields for assignee/project, no need to remember flag names. The lookup scriptrees are included for completeness and discoverability rather than speed.
 
+## Screenshots
+
+### Tabbed standalone view
+
+Every tool on its own tab — what you get when you single-click the tree's cell:
+
+![Tabbed view of jit](jit_tabs.png)
+
+### Forest menu
+
+Double-click the cell in the workspace forest to get the merged tree as a popup menu:
+
+![Forest menu for jit](jit_menu.png)
+
+### Workspace cell
+
+Docked to the forest hub:
+
+![jit cell docked to the forest](jit_forest.png)
+
+### Per-tool forms
+
+#### create — new issue
+
+![create form](create_form.png)
+
+#### edit — modify existing
+
+![edit form](edit_form.png)
+
+#### lookup — single ticket by key/URL
+
+![lookup form](lookup_form.png)
+
+#### my-tickets — current sprint
+
+![my-tickets form](my-tickets_form.png)
+
+#### show — detailed issue view
+
+![show form](show_form.png)
+
 ## Installing jit
 
 See the [upstream README](https://github.com/cesarferreira/jit#installation) for current install instructions.

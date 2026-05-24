@@ -28,6 +28,18 @@ Several hyperfine flags are repeatable (`-p`/`--prepare`, `-C`/`--conclude`, `-L
 
 `hyperfine 'ls' 'fd'` is fine to type. But `hyperfine --warmup 3 --min-runs 50 --prepare 'sync; echo 3 > /proc/sys/vm/drop_caches' --parameter-list compiler gcc,clang --export-json out.json 'gcc -O{opt} foo.c' 'clang -O{opt} foo.c'` benefits hugely from a typed form: numeric inputs for warmup/runs, dropdown for time-unit and style, file pickers for export targets, and named slots so you don't have to remember which flag carries the parameter list vs. the parameter scan.
 
+## Screenshots
+
+### Form view
+
+![Form view of hyperfine](hyperfine_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![hyperfine cell docked to the forest](hyperfine_forest.png)
+
 ## Installing hyperfine
 
 See the [upstream README](https://github.com/sharkdp/hyperfine#installation). Common paths:

@@ -103,6 +103,18 @@ Honestly, awk one-liners are usually faster typed at the terminal. The form earn
 - You're using `-F` with a tricky separator and want a labelled field rather than counting backslashes.
 - You're flipping between programs against the same data and want to save them as named configurations.
 
+## Screenshots
+
+### Form view
+
+![Form view of awk](awk_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![awk cell docked to the forest](awk_forest.png)
+
 ## Installing awk
 
 ```bash

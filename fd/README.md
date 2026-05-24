@@ -28,6 +28,18 @@ Several fd flags are repeatable (`-e`/`--extension`, `-E`/`--exclude`, `-x`/`--e
 
 Plain `fd foo` is faster typed than form-filled. But once you start stacking filters — `--type f --extension md --extension rst --exclude target --changed-within 7d --size +1k` — the form pays off: dropdowns for type and color, named slots for size and time filters, and a checkbox row that makes the smart-case override unambiguous.
 
+## Screenshots
+
+### Form view
+
+![Form view of fd](fd_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![fd cell docked to the forest](fd_forest.png)
+
 ## Installing fd
 
 See the [upstream README](https://github.com/sharkdp/fd#installation). Common paths:

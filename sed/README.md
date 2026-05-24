@@ -94,6 +94,18 @@ Honestly, simple sed one-liners are faster typed at the terminal. The form earns
 - You're using `-i` (in-place edit) and want to be REALLY sure you haven't typo'd the regex before you overwrite the files.
 - You want to save a "this transformation against this set of files" combo as a named configuration to re-run later.
 
+## Screenshots
+
+### Form view
+
+![Form view of sed](sed_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![sed cell docked to the forest](sed_forest.png)
+
 ## Installing sed
 
 ```bash

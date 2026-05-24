@@ -89,3 +89,15 @@ Everything this demo does is documented in detail elsewhere:
    it spawns — read it to see how the template grammar produced it.
 
 No upstream tool to install: PowerShell is part of Windows.
+
+## Screenshots
+
+### Form view
+
+![Form view of feature-showcase](feature-showcase_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![feature-showcase cell docked to the forest](feature-showcase_forest.png)

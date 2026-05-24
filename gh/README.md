@@ -89,6 +89,72 @@ The two-click launch through the tree is also nice for the "look up one PR" / "l
 
 `gh` accepts repeated flags for `-l/--label`, `-a/--assignee`, `-r/--reviewer`. ScripTree's argument template emits one token per placeholder, so each repeatable flag has two fields: a typed widget for the first entry and a free-text field for "extra entries — write the full flag for each." This matches the convention used by parfit, fd, hyperfine, and dog in this repo.
 
+## Screenshots
+
+### Tabbed standalone view
+
+Every tool on its own tab — what you get when you single-click the tree's cell:
+
+![Tabbed view of gh](gh_tabs.png)
+
+### Forest menu
+
+Double-click the cell in the workspace forest to get the merged tree as a popup menu:
+
+![Forest menu for gh](gh_menu.png)
+
+### Workspace cell
+
+Docked to the forest hub:
+
+![gh cell docked to the forest](gh_forest.png)
+
+### Per-tool forms
+
+#### gh issue create
+
+![issue-create form](issue-create_form.png)
+
+#### gh issue list
+
+![issue-list form](issue-list_form.png)
+
+#### gh issue view
+
+![issue-view form](issue-view_form.png)
+
+#### gh pr checkout
+
+![pr-checkout form](pr-checkout_form.png)
+
+#### gh pr create
+
+![pr-create form](pr-create_form.png)
+
+#### gh pr list
+
+![pr-list form](pr-list_form.png)
+
+#### gh pr merge
+
+![pr-merge form](pr-merge_form.png)
+
+#### gh pr view
+
+![pr-view form](pr-view_form.png)
+
+#### gh release create
+
+![release-create form](release-create_form.png)
+
+#### gh repo clone
+
+![repo-clone form](repo-clone_form.png)
+
+#### gh repo view
+
+![repo-view form](repo-view_form.png)
+
 ## Installing gh
 
 See the [official installation instructions](https://github.com/cli/cli#installation). Common paths:

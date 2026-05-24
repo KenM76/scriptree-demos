@@ -4,6 +4,16 @@ A growing catalogue of GUI wrappers for popular command-line tools, built with [
 
 Each folder is a ready-to-use demo: drop the upstream tool's executable next to the `.scriptree` files (or edit the `executable` field), point ScripTree at the folder, and you get a labeled form with dropdowns, file pickers, and checkboxes wrapped around the CLI.
 
+## What it looks like
+
+![ScripTree form — feature-showcase demo](feature-showcase/feature-showcase_form.png)
+
+*Every demo wraps a CLI in a labeled form. Parameters get the right widgets (text fields, file pickers, dropdowns, checkbox lists, ordered folder/file lists, radio groups), and the form streams stdout/stderr live while showing the exact argv preview before it runs.*
+
+Multi-subcommand tools (like `gh` below) group their forms under a `.scriptreetree` and surface as either a tabbed standalone window or a forest popup menu:
+
+![gh tabbed standalone view](gh/gh_tabs.png)
+
 ## How to use a demo
 
 1. **Install [ScripTree](https://github.com/KenM76/scriptree)** if you haven't already.

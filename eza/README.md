@@ -18,6 +18,18 @@ The `.scriptree` expects `eza.exe` to live in the same folder. Drop it (or a sym
 
 `eza` and `eza -l` are faster typed than form-filled. The form earns its keep when you're chasing a specific view: long format, sorted by size descending, only directories, with Git status, header, binary sizes, and a relative time-style. That's a six-flag invocation that's easy to fumble at the prompt and trivial in a typed form.
 
+## Screenshots
+
+### Form view
+
+![Form view of eza](eza_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![eza cell docked to the forest](eza_forest.png)
+
 ## Installing eza
 
 See the [upstream README](https://github.com/eza-community/eza#installation). Common paths:

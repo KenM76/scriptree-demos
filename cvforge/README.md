@@ -30,6 +30,44 @@ The scriptrees expect `cvforge` to be on `PATH` (i.e. installed via `pip install
 
 `cvforge build` and `cvforge init` are honestly faster typed than form-filled. The GUI's value is the four-button launcher — `init` to scaffold, `build` to render, `ats-check` to validate, `fonts` to browse. One click each, no remembering the subcommand names.
 
+## Screenshots
+
+### Tabbed standalone view
+
+Every tool on its own tab — what you get when you single-click the tree's cell:
+
+![Tabbed view of cvforge](cvforge_tabs.png)
+
+### Forest menu
+
+Double-click the cell in the workspace forest to get the merged tree as a popup menu:
+
+![Forest menu for cvforge](cvforge_menu.png)
+
+### Workspace cell
+
+Docked to the forest hub:
+
+![cvforge cell docked to the forest](cvforge_forest.png)
+
+### Per-tool forms
+
+#### ats-check — verify PDF ATS-parseability
+
+![ats-check form](ats-check_form.png)
+
+#### build — render YAML → PDF
+
+![build form](build_form.png)
+
+#### fonts — list available fonts
+
+![fonts form](fonts_form.png)
+
+#### init — scaffold a starter cv.yaml
+
+![init form](init_form.png)
+
 ## Installing cvforge
 
 See the [upstream README](https://github.com/SoAp9035/cvforge#readme). Common paths:

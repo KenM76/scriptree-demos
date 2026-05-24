@@ -21,6 +21,18 @@ The `.scriptree` expects `agg.exe` to live in the same folder. Drop it (or a sym
 - Add a sibling string param and write the full repeated flag (`--font-dir D:/fonts1 --font-dir D:/fonts2`) — ScripTree's argv emitter shlex-tokenizes string-typed fields whose placeholder fills the whole template token (v0.1.3+, see `help/LLM/argument_template.md`).
 - Or call `agg` directly when you need more than the form covers.
 
+## Screenshots
+
+### Form view
+
+![Form view of agg](agg_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![agg cell docked to the forest](agg_forest.png)
+
 ## Installing agg
 
 See the [upstream README](https://github.com/asciinema/agg#installation) for current install instructions. Common paths:

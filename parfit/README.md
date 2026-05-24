@@ -31,6 +31,32 @@ becomes the four argv tokens you'd expect at run time. Quote rules are honored �
 
 See `help/LLM/argument_template.md` (string-passthrough auto-split) for the full rule. ScripTree v0.1.3+ ships this behavior; earlier versions emitted the multi-flag string as one giant argument.
 
+## Screenshots
+
+### Tabbed standalone view
+
+Every tool on its own tab — what you get when you single-click the tree's cell:
+
+![Tabbed view of parfit](parfit_tabs.png)
+
+### Forest menu
+
+Double-click the cell in the workspace forest to get the merged tree as a popup menu:
+
+![Forest menu for parfit](parfit_menu.png)
+
+### Workspace cell
+
+Docked to the forest hub:
+
+![parfit cell docked to the forest](parfit_forest.png)
+
+### Per-tool forms
+
+#### parfit — reflow code comments
+
+![parfit form](parfit_form.png)
+
 ## Installing parfit
 
 From the upstream README:

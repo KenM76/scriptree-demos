@@ -28,6 +28,18 @@ The `.scriptree` expects `dust.exe` to live in the same folder. Drop it (or a sy
 
 `dust` with no args is honestly perfect — that's the whole point of the tool. The GUI earns its keep when you start tuning: hide files under 10M (`-z 10M`), show only the top 50 (`-n 50`), max depth 3 (`-d 3`), files-only (`-F`), and force GiB output (`-o gib`). Five flags, five widgets, no man-page round-trip.
 
+## Screenshots
+
+### Form view
+
+![Form view of dust](dust_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![dust cell docked to the forest](dust_forest.png)
+
 ## Installing dust
 
 See the [upstream README](https://github.com/bootandy/dust#install). Common paths:

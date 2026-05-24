@@ -28,6 +28,18 @@ The `.scriptree` expects `dog.exe` to live in the same folder. Drop it (or a sym
 
 `dog example.com` is faster typed than form-filled. The GUI earns its keep when comparing resolvers — `-n 1.1.1.1 -n 8.8.8.8 -n 9.9.9.9 --tls --time -t MX example.com` is a lot of flags to remember and easy to fumble with the wrong shorthand. Type/class dropdowns and a checkbox row for the four transports make the form much faster than scanning the man page.
 
+## Screenshots
+
+### Form view
+
+![Form view of dog](dog_form.png)
+
+### As it appears in the workspace forest
+
+The cell on the right is this demo, docked to the workspace forest hub:
+
+![dog cell docked to the forest](dog_forest.png)
+
 ## Installing dog
 
 See the [upstream README](https://github.com/ogham/dog#installation). Common paths:
