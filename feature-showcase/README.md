@@ -57,18 +57,18 @@ Everything this demo does is documented in detail elsewhere:
 
 - Widget × type matrix, `radio` vs `checkbox`, masking heuristic, the
   preset-bundle pattern, `folder_list` / `file_list` field shape →
-  `D:/Dev/ScripTree/help/LLM/param_types_widgets.md`
+  `D:/Dev/ScripTree/docs/LLM/param_types_widgets.md`
 - Argument template grammar, token groups, fan-out vs comma-join,
   conditional flags, repeatable-flag pattern →
-  `D:/Dev/ScripTree/help/LLM/argument_template.md`
+  `D:/Dev/ScripTree/docs/LLM/argument_template.md`
 - `choices_provider`, `depends_on`, the JSON contract a provider
   script has to honour, refresh modes →
-  `D:/Dev/ScripTree/help/LLM/dynamic_providers.md`
+  `D:/Dev/ScripTree/docs/LLM/dynamic_providers.md`
 - `visible_when` / `required_when` grammar, section layouts, cell
   cosmetics, `confirmation` field →
-  `D:/Dev/ScripTree/help/LLM/scriptree_format.md`
+  `D:/Dev/ScripTree/docs/LLM/scriptree_format.md`
 - Icon set, picking rules, embed workflow →
-  `D:/Dev/ScripTree/help/LLM/icon_library.md`
+  `D:/Dev/ScripTree/docs/LLM/icon_library.md`
 
 ## Files
 
