@@ -1,0 +1,97 @@
+{
+  "schema_version": 3,
+  "name": "Hidden Assets & Notes Purger (PowerPoint)",
+  "description": "Produces a sanitized copy of the open PowerPoint deck with speaker notes, comments, author/document metadata, and (optionally) hidden slides stripped out. Use it before sending a deck outside your organisation so private notes, reviewer comments, and the author's name don't leak.\n\nYour open deck is NEVER modified. The tool saves a sibling file named '<name>_Sanitized.pptx' in the same folder and does all of its stripping on that copy, then leaves your original exactly as it was.\n\nWhich assets are removed is controlled by the checkboxes below (notes, comments, and metadata are removed by default; deleting hidden slides is opt-in because it is permanent on the copy). Requires combridge (bundled with ScripTree at lib/combridge) and the target deck already open in a running PowerPoint instance, saved at least once.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "ppt_purger.py",
+    "{strip_notes?--strip-notes}",
+    "{strip_comments?--strip-comments}",
+    "{strip_metadata?--strip-metadata}",
+    "{delete_hidden_slides?--delete-hidden-slides}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "strip_notes",
+      "label": "Remove speaker notes",
+      "description": "Clear the speaker-notes text from every slide in the sanitized copy. Notes often contain private talking points, internal figures, or reminders you don't want to share.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "What to strip"
+    },
+    {
+      "id": "strip_comments",
+      "label": "Remove comments",
+      "description": "Delete reviewer comments from every slide in the sanitized copy. Reaches PowerPoint's classic comment collection; very recent 'modern threaded' comments may not all be exposed to automation and could survive \u2014 spot-check the copy if your deck uses them heavily.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "What to strip"
+    },
+    {
+      "id": "strip_metadata",
+      "label": "Strip author & document metadata",
+      "description": "Remove author name, company, last-saved-by, revision history, and other document properties from the sanitized copy (PowerPoint's 'Remove All Document Information'). Recommended before any external send.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "What to strip"
+    },
+    {
+      "id": "delete_hidden_slides",
+      "label": "Permanently delete hidden slides",
+      "description": "OPT-IN. Delete every slide marked hidden from the sanitized copy. Hidden slides frequently hold backup numbers, draft content, or appendix material you didn't intend to circulate. Off by default because deletion on the copy is permanent; your original is still untouched.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Slides & output"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Slides & output"
+    }
+  ],
+  "sections": [
+    {
+      "name": "What to strip",
+      "layout": "collapse"
+    },
+    {
+      "name": "Slides & output",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/PowerPoint"
+}

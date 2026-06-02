@@ -1,0 +1,295 @@
+// Slide Deck Slimmer (PowerPoint) — generated from this template by
+// slim_deck.py (Strategy A).  Globals: pptApp (Pp._Application, non-null),
+// pptPres (Pp.Presentation?, = ActivePresentation).  combridge swallows the
+// return value, so the first stdout line is a sentinel the shim parses; the
+// shim owns the exit code.  ScriptUsings imports
+// Microsoft.Office.Interop.PowerPoint and Microsoft.Office.Core.
+//
+// WHAT IT DOES (and what it explicitly does NOT do)
+//   Template-heavy decks accumulate many UNUSED custom slide layouts. Each
+//   layout can carry its own background images, logos, and placeholder art, so
+//   a deck that uses only 2 of 11 layouts still ships the bitmap payload of the
+//   other 9. Deleting the unused layouts (and, opt-in, any design/master left
+//   with no layouts) drops that dead weight and shrinks the saved file.
+//
+//   THIS TOOL DOES NOT RECOMPRESS IMAGES OR MEDIA. PowerPoint exposes picture
+//   recompression ("Compress Pictures") only through an interactive dialog that
+//   cannot be driven fire-and-forget over COM, so we make no such claim. The
+//   only size reduction here comes from removing unused layout/master parts.
+//
+// CONSERVATIVE-BY-DESIGN
+//   A layout is deleted ONLY when no slide demonstrably uses it. Because COM RCW
+//   object identity is unreliable (two reads of "the same" layout can be
+//   different RCWs that compare unequal), we DO NOT compare layout objects.
+//   Instead we build a stable string KEY for each layout — (master name | layout
+//   Name | layout Index) — record the key of every slide's CustomLayout as
+//   "used", and delete only layouts whose key is NOT in that set. On any
+//   uncertainty (a throw reading a slide's layout, a key collision) we treat the
+//   layout as USED and keep it. We also never delete the last remaining layout
+//   of a master.
+//
+// SAFETY MODEL — by default the open deck is NEVER mutated:
+//   With work_on_copy ON (default), SaveCopyAs writes a sibling
+//   <name>_Slimmed.pptx (SaveCopyAs, unlike Word's SaveAs2, does NOT repoint the
+//   active presentation), then we Open that copy headless (WithWindow=msoFalse),
+//   purge layouts there, Save and Close it. The deck the user is looking at is
+//   untouched. With work_on_copy OFF, we edit pptPres in place and leave it
+//   OPEN and UNSAVED for the user to review/save (we never Save the original).
+
+// --- baked-in form values -------------------------------------------------
+bool   removeUnusedLayouts = __REMOVE_UNUSED_LAYOUTS__;
+bool   removeEmptyMasters  = __REMOVE_EMPTY_MASTERS__;
+bool   workOnCopy          = __WORK_ON_COPY__;
+string outputFormat        = "__OUTPUT_FORMAT__";
+
+// --- precondition guard ----------------------------------------------------
+if (pptPres is null)
+{
+    Console.WriteLine("__PPTSLIM__ STATUS=NODECK");
+    Console.WriteLine("No presentation is open in PowerPoint. Open the deck you want to slim, then run again.");
+    return 0;
+}
+
+string originalName = pptPres.Name;
+string dir = pptPres.Path; // "" for a never-saved presentation
+
+// Build a stable, identity-free key for a custom layout.
+//   master name | layout Name | layout 1-based index within the master
+// RCW identity is unreliable, so we key by these stable attributes instead.
+string LayoutKey(string masterName, string layoutName, int layoutIndex)
+    => (masterName ?? "") + "" + (layoutName ?? "") + "" + layoutIndex.ToString();
+
+// Counters reported at the end.
+int beforeLayouts  = 0;   // total custom layouts across all designs (pre-purge)
+int removedLayouts = 0;   // layouts actually deleted
+int mastersRemoved = 0;   // designs/masters deleted (remove_empty_masters)
+int oleObjects     = 0;   // embedded/linked OLE objects detected (FYI only)
+string note = "";
+
+// Hidden/headless COM instances hang on modal prompts (overwrite, etc.).
+var prevAlerts = pptApp.DisplayAlerts;
+pptApp.DisplayAlerts = PpAlertLevel.ppAlertsNone;
+
+Presentation work = null;
+bool openedCopy = false;
+int copyFlag = 0;
+string copyPath = "";
+
+try
+{
+    if (workOnCopy)
+    {
+        // Copy mode needs a folder to write the copy into.
+        if (string.IsNullOrEmpty(dir))
+        {
+            pptApp.DisplayAlerts = prevAlerts;
+            Console.WriteLine("__PPTSLIM__ STATUS=UNSAVED");
+            Console.WriteLine("This presentation has never been saved, so there is no folder to put the slimmed copy in. Save the deck once (Ctrl+S), or untick 'Work on a copy' to slim the open deck in place, then run again.");
+            return 0;
+        }
+
+        string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+        copyPath = System.IO.Path.Combine(dir, baseName + "_Slimmed.pptx");
+
+        // (1) Write the slimmed copy next to the original. SaveCopyAs leaves the
+        //     active presentation (pptPres) open and pointed at the original.
+        pptPres.SaveCopyAs(copyPath, PpSaveAsFileType.ppSaveAsOpenXMLPresentation);
+
+        // (2) Open the copy headless so every edit below lands ONLY on the copy.
+        work = pptApp.Presentations.Open(
+            copyPath,
+            MsoTriState.msoFalse,   // ReadOnly  = no
+            MsoTriState.msoFalse,   // Untitled  = no (keep the saved path)
+            MsoTriState.msoFalse);  // WithWindow = no (headless)
+        openedCopy = true;
+        copyFlag = 1;
+    }
+    else
+    {
+        // In-place mode: edit the open deck. We never Save() it — the user
+        // reviews and saves in PowerPoint themselves.
+        work = pptPres;
+        copyFlag = 0;
+    }
+
+    // (A) Build the set of USED layout keys from the slides. For each slide,
+    //     read its CustomLayout and the layout's parent master, then key it.
+    //     Any throw -> we simply can't record that slide's layout; we are still
+    //     safe because a layout we never key as "used" is the only deletion
+    //     candidate, and the per-layout deletion loop independently re-derives
+    //     the same key, so an unrecorded-but-real usage just means we under-
+    //     delete (keep), never over-delete.
+    var usedKeys = new HashSet<string>(StringComparer.Ordinal);
+    foreach (Slide s in work.Slides)
+    {
+        try
+        {
+            CustomLayout cl = s.CustomLayout;
+            if (cl == null) continue;
+            string mName = "";
+            try { mName = cl.Parent is SlideMaster sm ? sm.Name : ""; }
+            catch { mName = ""; }
+            // cl.Index is the 1-based position of this layout within its master.
+            usedKeys.Add(LayoutKey(mName, cl.Name, cl.Index));
+        }
+        catch { /* can't read this slide's layout — leave it out (safe: under-delete) */ }
+    }
+
+    // (B) Count OLE objects across the slides — reported as an FYI only. These
+    //     often bloat a deck (embedded spreadsheets, etc.) but we do NOT touch
+    //     them; layout purge is independent of this count.
+    foreach (Slide s in work.Slides)
+    {
+        try
+        {
+            foreach (Shape sh in s.Shapes)
+            {
+                try
+                {
+                    if (sh.Type == MsoShapeType.msoEmbeddedOLEObject ||
+                        sh.Type == MsoShapeType.msoLinkedOLEObject)
+                        oleObjects++;
+                }
+                catch { /* a shape that throws on .Type — skip */ }
+            }
+        }
+        catch { /* a slide that throws on .Shapes — skip */ }
+    }
+
+    // (C) Count layouts before, and (if asked) delete the unused ones. We
+    //     iterate every Design's SlideMaster.CustomLayouts BACKWARD because
+    //     Delete() reindexes the collection forward — going backward keeps the
+    //     indices of not-yet-visited layouts stable.
+    foreach (Design d in work.Designs)
+    {
+        try
+        {
+            SlideMaster master = d.SlideMaster;
+            int count = master.CustomLayouts.Count;
+            beforeLayouts += count;
+
+            if (!removeUnusedLayouts) continue;
+
+            string masterName = "";
+            try { masterName = master.Name; } catch { masterName = ""; }
+
+            for (int i = master.CustomLayouts.Count; i >= 1; i--)
+            {
+                // GUARD: never delete the last remaining layout of a master.
+                if (master.CustomLayouts.Count <= 1) break;
+                try
+                {
+                    CustomLayout cl = master.CustomLayouts[i];
+                    string key = LayoutKey(masterName, cl.Name, cl.Index);
+                    if (!usedKeys.Contains(key))
+                    {
+                        cl.Delete();
+                        removedLayouts++;
+                    }
+                }
+                catch { /* a layout that won't delete — skip it, keep going */ }
+            }
+        }
+        catch { /* a design/master that throws — skip it */ }
+    }
+
+    // (D) Optionally delete designs/masters left with zero layouts AND no slide
+    //     using that master. Iterate designs BACKWARD; never delete the last
+    //     design. This is the more aggressive opt-in path.
+    if (removeEmptyMasters)
+    {
+        // Build the set of master names actually used by a slide.
+        var usedMasters = new HashSet<string>(StringComparer.Ordinal);
+        foreach (Slide s in work.Slides)
+        {
+            try
+            {
+                CustomLayout cl = s.CustomLayout;
+                if (cl?.Parent is SlideMaster sm) usedMasters.Add(sm.Name ?? "");
+            }
+            catch { /* skip */ }
+        }
+
+        for (int i = work.Designs.Count; i >= 1; i--)
+        {
+            // GUARD: never delete the last remaining design.
+            if (work.Designs.Count <= 1) break;
+            try
+            {
+                Design d = work.Designs[i];
+                SlideMaster master = d.SlideMaster;
+                string mName = "";
+                try { mName = master.Name; } catch { mName = ""; }
+                if (master.CustomLayouts.Count == 0 && !usedMasters.Contains(mName))
+                {
+                    d.Delete();
+                    mastersRemoved++;
+                }
+            }
+            catch { /* a design that won't delete — skip it */ }
+        }
+    }
+
+    // (E) Persist. Copy mode -> Save the copy. In-place mode -> leave the open
+    //     deck UNSAVED for the user (never Save the original).
+    if (openedCopy)
+        work.Save();
+}
+finally
+{
+    try { if (openedCopy && work != null) work.Close(); } catch { }
+    pptApp.DisplayAlerts = prevAlerts;
+}
+
+int afterLayouts = beforeLayouts - removedLayouts;
+
+// --- report ----------------------------------------------------------------
+Console.WriteLine($"__PPTSLIM__ STATUS=OK removed={removedLayouts} mastersRemoved={mastersRemoved} before={beforeLayouts} after={afterLayouts} copy={copyFlag}");
+
+string targetDesc = openedCopy
+    ? $"slimmed copy `{copyPath}` (original untouched)"
+    : "the open deck, IN PLACE — left open and UNSAVED for you to review and save";
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Deck slimmed");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source:** `{originalName}`");
+    if (openedCopy)
+        Console.WriteLine($"- **Slimmed copy (untouched original):** `{copyPath}`");
+    else
+        Console.WriteLine($"- **Edited:** the open deck, IN PLACE — left open and UNSAVED for you to review and save (Ctrl+S to keep, or close without saving to discard).");
+    Console.WriteLine($"- **Custom layouts before:** {beforeLayouts}");
+    Console.WriteLine($"- **Unused layouts removed:** {(removeUnusedLayouts ? removedLayouts.ToString() : "(skipped)")}");
+    Console.WriteLine($"- **Custom layouts after:** {afterLayouts}");
+    Console.WriteLine($"- **Empty designs/masters removed:** {(removeEmptyMasters ? mastersRemoved.ToString() : "(skipped)")}");
+    Console.WriteLine($"- **Embedded/linked OLE objects detected (NOT modified):** {oleObjects}");
+    Console.WriteLine();
+    Console.WriteLine("> **Image/media recompression is NOT performed.** PowerPoint exposes picture recompression only through an interactive Compress Pictures dialog, which cannot be driven fire-and-forget over automation. The size reduction here comes solely from removing unused slide layouts" + (removeEmptyMasters ? " and empty designs/masters." : "."));
+    if (!string.IsNullOrEmpty(note))
+    {
+        Console.WriteLine();
+        Console.WriteLine($"> {note}");
+    }
+}
+else
+{
+    Console.WriteLine("Deck slimmed");
+    Console.WriteLine($"  Source:                 {originalName}");
+    if (openedCopy)
+        Console.WriteLine($"  Slimmed copy:           {copyPath}  (original untouched)");
+    else
+        Console.WriteLine($"  Edited:                 the open deck IN PLACE (left open + UNSAVED for you to review/save)");
+    Console.WriteLine($"  Custom layouts before:  {beforeLayouts}");
+    Console.WriteLine($"  Unused layouts removed: {(removeUnusedLayouts ? removedLayouts.ToString() : "(skipped)")}");
+    Console.WriteLine($"  Custom layouts after:   {afterLayouts}");
+    Console.WriteLine($"  Empty masters removed:  {(removeEmptyMasters ? mastersRemoved.ToString() : "(skipped)")}");
+    Console.WriteLine($"  OLE objects detected:   {oleObjects}  (NOT modified)");
+    Console.WriteLine("  NOTE: image/media recompression is NOT performed — PowerPoint exposes it only via an interactive dialog. Size reduction here is solely from removing unused layouts" + (removeEmptyMasters ? " and empty designs/masters." : "."));
+    if (!string.IsNullOrEmpty(note))
+    {
+        Console.WriteLine($"  Note: {note}");
+    }
+}
+
+return 0;

@@ -1,0 +1,143 @@
+{
+  "schema_version": 3,
+  "name": "Column-Based Sheet Segregator (Excel)",
+  "description": "Splits the flat table on the active Excel worksheet into separate sheets \u2014 one sheet per distinct value found in a chosen 'key' column. Classic use: a sales export with a 'Region' column becomes one sheet per region, each holding only that region's rows plus a copy of the header.\n\nThe operation never changes your source data. In 'New workbook' mode (the default, safest) the per-value sheets are written into a brand-new workbook and your original is left completely untouched. In 'Add sheets to current workbook' mode the new sheets are appended after the active sheet; the source sheet is only read, and you can tick 'Backup first' to save a '<name>_backup' copy before any sheet is added.\n\nIn both modes the result is left OPEN and UNSAVED in Excel so you can review it and save (or discard) it yourself. A safety cap ('Max distinct values') refuses to run if the key column has more distinct values than the limit \u2014 this guards against accidentally picking a near-unique column (like an ID) and spawning thousands of sheets.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and the target workbook already open in a running Excel instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "sheet_segregator.py",
+    [
+      "--key-column",
+      "{key_column}"
+    ],
+    "{has_header?--has-header}",
+    [
+      "--output-mode",
+      "{output_mode}"
+    ],
+    [
+      "--sheet-name-prefix",
+      "{sheet_name_prefix}"
+    ],
+    "{backup_first?--backup-first}",
+    [
+      "--max-groups",
+      "{max_groups}"
+    ],
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "key_column",
+      "label": "Key column",
+      "description": "Which column to split on. You can give the HEADER NAME (e.g. 'Region' \u2014 only when 'First row is a header' is ticked), a COLUMN LETTER (e.g. 'C'), or a 1-based POSITION within the used range (e.g. '3' for the third column of the table). Required.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "no_split": true,
+      "section": "Key column"
+    },
+    {
+      "id": "has_header",
+      "label": "First row is a header",
+      "description": "When ticked (the default), the first row of the table is treated as column headings \u2014 it is copied to the top of every output sheet, and you may name the key column by its heading. Untick if the data starts on row 1 with no header.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Key column"
+    },
+    {
+      "id": "output_mode",
+      "label": "Where to put the sheets",
+      "description": "'New workbook' (recommended) writes the per-value sheets into a fresh workbook and never touches your original. 'Add sheets to current workbook' appends the new sheets after the active sheet in the workbook you already have open.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "new_workbook",
+      "choices": [
+        "new_workbook",
+        "new_sheets"
+      ],
+      "choice_labels": [
+        "New workbook (recommended)",
+        "Add sheets to current workbook"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "sheet_name_prefix",
+      "label": "Sheet name prefix",
+      "description": "Optional text prepended to every created sheet name (e.g. a prefix of 'R-' turns the value 'East' into a sheet named 'R-East'). Leave blank to name each sheet after its key value alone. Illegal characters and over-length names are sanitised automatically.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "section": "Output"
+    },
+    {
+      "id": "backup_first",
+      "label": "Backup workbook first (Add-sheets mode only)",
+      "description": "Only used in 'Add sheets to current workbook' mode. When ticked (the default), a '<name>_backup' copy of the workbook is saved to disk before any sheet is added. Ignored in 'New workbook' mode (where your original is never touched anyway). If the workbook has never been saved, the run is refused so there is something to back up.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Output"
+    },
+    {
+      "id": "max_groups",
+      "label": "Max distinct values",
+      "description": "Safety cap. If the key column has more distinct values than this, the tool refuses to run rather than create a huge number of sheets \u2014 a guard against accidentally choosing a near-unique column such as an ID or timestamp. Raise it if you genuinely need more sheets.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 50,
+      "min": 1,
+      "max": 1000,
+      "section": "Output"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Output"
+    }
+  ],
+  "sections": [
+    {
+      "name": "Key column",
+      "layout": "collapse"
+    },
+    {
+      "name": "Output",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Excel"
+}

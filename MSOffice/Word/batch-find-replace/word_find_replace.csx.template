@@ -1,0 +1,153 @@
+// Batch Find & Replace (Word) — generated from this template by
+// word_find_replace.py (Strategy A).  Globals: wdApp (Wd._Application),
+// wdDoc (Wd.Document?).  combridge swallows the return value, so the
+// first stdout line is a sentinel the shim parses; the shim owns the
+// exit code.  ScriptUsings already imports Microsoft.Office.Interop.Word.
+
+// combridge auto-imports Microsoft.Office.Interop.Word, so a bare `Range`
+// collides with System.Range (CS0104). Alias to `Wd` and qualify Office types
+// as Wd.* (see combridge LLM/scripting.md). `Word` would shadow the plugin ns.
+using Wd = global::Microsoft.Office.Interop.Word;
+
+// --- baked-in form values -------------------------------------------------
+string findText     = "__FIND_TEXT__";
+string replaceText  = "__REPLACE_TEXT__";
+bool   matchCase    = __MATCH_CASE__;
+bool   wholeWord    = __WHOLE_WORD__;
+bool   useWildcards = __USE_WILDCARDS__;
+bool   workOnCopy   = __WORK_ON_COPY__;
+string outputFormat = "__OUTPUT_FORMAT__";
+
+if (wdDoc is null)
+{
+    Console.WriteLine("__WORDREP__ STATUS=NODOC");
+    Console.WriteLine("No document is open in Word. Open the document you want to edit, then run again.");
+    return 0;
+}
+
+if (string.IsNullOrEmpty(findText))
+{
+    Console.WriteLine("__WORDREP__ STATUS=EMPTY_FIND");
+    Console.WriteLine("The 'Find' field was empty — nothing to search for.");
+    return 0;
+}
+
+string originalName = wdDoc.Name;
+string copyPath = "";
+
+// --- safety guard: clone to <name>_Replacements.docx before editing -------
+if (workOnCopy)
+{
+    string dir = wdDoc.Path; // "" for a never-saved document
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__WORDREP__ STATUS=UNSAVED");
+        Console.WriteLine("\"Work on a copy\" is enabled but this document has never been saved, so there is no folder to put the copy in. Save the document once (Ctrl+S), then run again — or untick \"Work on a copy\" to edit the open document directly.");
+        return 0;
+    }
+
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+    copyPath = System.IO.Path.Combine(dir, baseName + "_Replacements.docx");
+
+    // Hidden COM instances hang on modal prompts (overwrite / compat dialog).
+    var prevAlerts = wdApp.DisplayAlerts;
+    wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+    try
+    {
+        // SaveAs2 repoints the active document at the copy, so every edit
+        // below lands on the copy and the original file is left untouched.
+        wdDoc.SaveAs2(copyPath, WdSaveFormat.wdFormatXMLDocument);
+    }
+    finally
+    {
+        wdApp.DisplayAlerts = prevAlerts;
+    }
+}
+
+// --- the replace loop -----------------------------------------------------
+// We replace one match at a time and collapse past each replacement so that
+// (a) we get an exact count and (b) a replacement that itself contains the
+// search text can never cause an infinite loop.
+int replaced = 0;
+const int SAFETY_CAP = 1000000;
+
+Wd.Range rng = wdDoc.Content;
+while (true)
+{
+    Find find = rng.Find;
+    find.ClearFormatting();
+    find.Text = findText;
+    find.Forward = true;
+    find.Wrap = WdFindWrap.wdFindStop;
+    find.MatchCase = matchCase;
+    find.MatchWholeWord = wholeWord;
+    find.MatchWildcards = useWildcards;
+
+    if (!find.Execute()) break;
+
+    rng.Text = replaceText;                       // rng now spans the match
+    rng.Collapse(WdCollapseDirection.wdCollapseEnd);
+    rng.End = wdDoc.Content.End;                   // search the remainder
+    replaced++;
+    if (replaced >= SAFETY_CAP) break;
+}
+
+// Persist the result only in copy-mode; in-place mode leaves the edits in
+// the open document for the user to review and save themselves.
+if (workOnCopy)
+{
+    var prevAlerts = wdApp.DisplayAlerts;
+    wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+    try { wdDoc.Save(); }
+    finally { wdApp.DisplayAlerts = prevAlerts; }
+}
+
+// --- report ---------------------------------------------------------------
+Console.WriteLine($"__WORDREP__ STATUS=OK replaced={replaced} copy={(workOnCopy ? 1 : 0)}");
+
+string opts;
+{
+    var parts = new System.Collections.Generic.List<string>();
+    if (matchCase) parts.Add("match case");
+    if (wholeWord) parts.Add("whole word");
+    if (useWildcards) parts.Add("wildcards");
+    opts = parts.Count > 0 ? string.Join(", ", parts) : "(none)";
+}
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Find & Replace complete");
+    Console.WriteLine();
+    Console.WriteLine($"- **Find:** `{findText}`");
+    Console.WriteLine($"- **Replace with:** `{replaceText}`");
+    Console.WriteLine($"- **Replacements made:** {replaced}");
+    Console.WriteLine($"- **Options:** {opts}");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"- **Worked on a copy:** yes — saved to `{copyPath}`");
+        Console.WriteLine($"- **Original untouched:** `{originalName}`");
+    }
+    else
+    {
+        Console.WriteLine($"- **Worked on a copy:** no — edits are in the open document `{originalName}`. Review them and save in Word when satisfied.");
+    }
+}
+else
+{
+    Console.WriteLine("Find & Replace complete");
+    Console.WriteLine($"  Find:             {findText}");
+    Console.WriteLine($"  Replace with:     {replaceText}");
+    Console.WriteLine($"  Replacements:     {replaced}");
+    Console.WriteLine($"  Options:          {opts}");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"  Worked on a copy: yes -> {copyPath}");
+        Console.WriteLine($"  Original:         {originalName} (untouched)");
+    }
+    else
+    {
+        Console.WriteLine($"  Worked on a copy: no -> edits are in {originalName}; review and save in Word.");
+    }
+}
+
+return 0;

@@ -1,0 +1,73 @@
+{
+  "schema_version": 3,
+  "name": "Tracked-Changes Processing Master (Word)",
+  "description": "Force-accepts OR force-rejects ALL tracked changes (revisions) in the open Word document in one pass, clearing the document's revision history so it is clean to send out. This is the inverse of the Corporate Style Sanitizer (which refuses revision-bearing documents) \u2014 this tool specifically TARGETS documents that have tracked changes.\n\nBy default it works on a COPY: the document is saved alongside the original as '<name>_Revisions_Processed.docx' and the accept/reject lands there, so your original file is never touched. Untick 'Work on a copy' to process the open document in place (the result stays UNSAVED in Word so you can review it first, and Ctrl+Z still undoes it).\n\nAfter processing, Track Changes is turned OFF on the processed document so it is not left in tracking mode. If the document has NO tracked changes the tool reports success and does nothing (no copy is made) \u2014 a document already free of revisions is the desired end state, not an error.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and the target document already open in a running Word instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "process_revisions.py",
+    [
+      "--action",
+      "{action}"
+    ],
+    "{work_on_copy?--work-on-copy}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "action",
+      "label": "Action",
+      "description": "What to do with every tracked change in the document. 'Accept all changes' incorporates each insertion/deletion/format change into the text as if approved (the same as Review \u2192 Accept All in Word). 'Reject all changes' reverts every change, restoring the document to its pre-revision state (Review \u2192 Reject All). Either way, ALL revisions are cleared in one pass.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "accept",
+      "choices": [
+        "accept",
+        "reject"
+      ],
+      "choice_labels": [
+        "Accept all changes",
+        "Reject all changes"
+      ]
+    },
+    {
+      "id": "work_on_copy",
+      "label": "Work on a copy (recommended)",
+      "description": "SAFETY GUARD. When ticked (the default), the document is first saved as '<name>_Revisions_Processed.docx' in the same folder and the accept/reject is applied to that copy \u2014 your original file is never modified. Untick to process the open document in place; in that case the result is left UNSAVED in Word so you can review it (Ctrl+Z still undoes it) before saving over the original. If you choose copy mode on a document that has never been saved, the run is refused (there is no folder to put the copy in).",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ]
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Word"
+}

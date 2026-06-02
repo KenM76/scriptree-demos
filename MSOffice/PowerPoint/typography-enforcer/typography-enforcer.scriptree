@@ -1,0 +1,159 @@
+{
+  "schema_version": 3,
+  "name": "Global Typography Enforcer (PowerPoint)",
+  "description": "Standardises the fonts used across the open PowerPoint deck and writes the result to a sibling copy named '<name>_Restyled.pptx'. Use it to bring a deck into brand compliance (swap one stray font for the approved one) or to tame a 'frankendeck' assembled from many sources (collapse every font to a single typeface).\n\nYour open deck is NEVER modified. The tool saves the restyled copy in the same folder and does all of its font rewriting on that copy (re-opened invisibly in the background), then leaves your original exactly as it was.\n\nTwo modes (choose below): 'Replace a single specific font' rewrites only the runs set in the font you name; 'Replace ALL text fonts' sets every text run to your target font. In BOTH modes the symbol/icon fonts \u2014 Wingdings, Wingdings 2/3, Webdings, Symbol, Marlett \u2014 are always left alone, so icon glyphs aren't turned into gibberish. By default the change is also applied to Slide Masters & Layouts (recommended, so new slides don't revert to the old font). SmartArt graphics and theme font schemes are NOT touched in this version. Requires combridge (bundled with ScripTree at lib/combridge) and the target deck already open in a running PowerPoint instance, saved at least once.\n\nNEW \u2014 read styles from a template deck: point 'Reference template deck (optional)' at a .pptx/.potx and the tool pulls styling from it instead of the manual source/target fonts. 'Use the template's theme fonts' reads the template's heading (major) and body (minor) theme fonts and applies them \u2014 titles/subtitles take the heading font, all other text the body font (symbol fonts still preserved). 'Apply the full template theme' applies the template's WHOLE theme (fonts + colours + masters) via PowerPoint's ApplyTemplate \u2014 broader than typography. Leave the template field blank to keep the original manual behaviour.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "font_enforcer.py",
+    [
+      "--replacement-mode",
+      "{replacement_mode}"
+    ],
+    [
+      "--source-font",
+      "{source_font}"
+    ],
+    [
+      "--target-font",
+      "{target_font}"
+    ],
+    "{include_masters?--include-masters}",
+    [
+      "--font-template",
+      "{font_template}"
+    ],
+    [
+      "--template-mode",
+      "{template_mode}"
+    ],
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "replacement_mode",
+      "label": "Replacement mode",
+      "description": "Decide WHAT gets restyled. 'Replace a single specific font' is the precision option for brand compliance \u2014 only runs set in the font you name in 'Target font to remove' are changed; every other font is left alone. 'Replace ALL text fonts' is the blanket option for a deck built from many sources \u2014 every text run is set to your new font (symbol/icon fonts are still preserved either way).",
+      "type": "enum",
+      "widget": "radio",
+      "required": true,
+      "default": "specific",
+      "choices": [
+        "specific",
+        "all"
+      ],
+      "choice_labels": [
+        "Replace a single specific font",
+        "Replace ALL text fonts (safely preserves icon/symbol fonts)"
+      ],
+      "section": "What to change"
+    },
+    {
+      "id": "source_font",
+      "label": "Target font to remove",
+      "description": "Only used in 'Replace a single specific font' mode: the exact name of the font you want replaced. Type it exactly as it appears in Windows / the PowerPoint font list (e.g. Calibri, Segoe UI, Times New Roman) \u2014 matching is case-insensitive but otherwise exact. Leave blank if you chose 'Replace ALL text fonts'.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "section": "What to change"
+    },
+    {
+      "id": "target_font",
+      "label": "New font to apply",
+      "description": "REQUIRED. The font every affected run will be set to. Type it exactly as it appears in Windows / the PowerPoint font list (e.g. Aptos, Arial, Segoe UI). If the font isn't installed on the machine that later opens the deck, PowerPoint will substitute it \u2014 so use a font your audience has.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "section": "What to change"
+    },
+    {
+      "id": "font_template",
+      "label": "Reference template deck (optional)",
+      "description": "OPTIONAL. Path to a .pptx or .potx whose styling you want to pull in \u2014 a corporate template or any well-styled reference deck. When set, the manual 'Replacement mode' / source / target font fields are IGNORED and the tool instead reads styling from this deck per the 'How to use the template' choice below. Leave blank to use the manual font swap. The template deck is opened read-only and never modified.",
+      "type": "path",
+      "widget": "file",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "file_filter": "PowerPoint decks (*.pptx *.potx);;All files (*)",
+      "section": "Template"
+    },
+    {
+      "id": "template_mode",
+      "label": "How to use the template",
+      "description": "Only relevant when a reference template deck is set above.\n\n\u2022 'Use the template's theme fonts (headings + body)' reads the template's theme MAJOR (heading) and MINOR (body) fonts, then sweeps your deck so titles/subtitles get the heading font and all other text gets the body font. This is a pure typography change; symbol/icon fonts are still preserved. NOTE: it reads the template's THEME font scheme \u2014 a deck that has no proper theme font scheme will report that the fonts could not be read; use the full-theme option instead.\n\n\u2022 'Apply the full template theme (fonts + colours + masters)' applies the template's ENTIRE theme to your deck via PowerPoint's ApplyTemplate \u2014 fonts AND colours AND master/layout design. This is broader than typography and the most reliable way to make a deck adopt a corporate template's look.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "fonts",
+      "choices": [
+        "fonts",
+        "theme"
+      ],
+      "choice_labels": [
+        "Use the template's theme fonts (headings + body)",
+        "Apply the full template theme (fonts + colours + masters)"
+      ],
+      "section": "Template"
+    },
+    {
+      "id": "include_masters",
+      "label": "Enforce on Slide Masters & Layouts",
+      "description": "Recommended (on by default). Also rewrite the fonts defined on the deck's Slide Masters and Custom Layouts. If left off, the visible slides are changed but any NEW slide you add afterwards inherits the OLD font from the master \u2014 making the deck appear to 'revert'. Turn off only if you deliberately want the masters untouched.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Scope & output"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Scope & output"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/PowerPoint",
+  "sections": [
+    {
+      "name": "What to change",
+      "collapsed": false,
+      "layout": "collapse"
+    },
+    {
+      "name": "Template",
+      "collapsed": false,
+      "layout": "collapse"
+    },
+    {
+      "name": "Scope & output",
+      "collapsed": false,
+      "layout": "collapse"
+    }
+  ]
+}

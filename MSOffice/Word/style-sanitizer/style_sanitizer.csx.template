@@ -1,0 +1,391 @@
+// Corporate Style Sanitizer (Word) — generated from this template by
+// style_sanitizer.py (Strategy A).  Globals: wdApp (Wd._Application),
+// wdDoc (Wd.Document?).  combridge swallows the return value, so the first
+// stdout line is a sentinel the shim parses; the shim owns the exit code.
+// ScriptUsings already imports Microsoft.Office.Interop.Word.
+//
+// WHAT THIS SCRIPT DOES (the logic, end to end)
+// ---------------------------------------------
+//   1. Refuses to run if no document is open (NODOC), if copy-mode is on but
+//      the doc was never saved (UNSAVED), or if the doc has tracked changes
+//      (TRACKED) — bulk-editing a document under review would bury it in
+//      revision marks.
+//   2. In copy-mode (the default) it SaveAs2-clones the doc to
+//      "<name>_Sanitized.docx" FIRST; SaveAs2 repoints the active document at
+//      the copy, so every edit below lands on the copy and the original file
+//      is left byte-for-byte untouched.
+//   3. Disables Track Changes on the working doc (saving the prior setting) so
+//      our clean-up edits don't themselves become revisions; restored in a
+//      finally.
+//   4. Runs the enabled clean-up passes:
+//        strip   -> Range.Font.Reset() + Range.ParagraphFormat.Reset() over the
+//                   body: reverts ALL manual character + paragraph formatting to
+//                   each paragraph's named STYLE. (This is the real "clear direct
+//                   formatting"; Find/Replacement.ClearFormatting only clears
+//                   SEARCH criteria, not the document — do not confuse them.)
+//                   Named styles, hyperlink fields, table cell shading and list
+//                   numbering survive; only manual overrides on top are removed.
+//        spaces  -> collapse runs of 2+ spaces to one (wildcard " {2,}") and drop
+//                   a space left before a paragraph mark (" ^p" -> "^p").
+//        blanks  -> collapse empty 'spacer' paragraphs ("^p^p" -> "^p"), looped.
+//        fonts   -> if a styleTemplate path is given, wdDoc.CopyStylesFromTemplate
+//                   copies that file's style definitions in (it SUPERSEDES the
+//                   font pair). Otherwise rewrite the Normal style to bodyFont and
+//                   Heading 1..9 to headingFont. Editing STYLE definitions (not
+//                   direct formatting) keeps the document clean + style-driven.
+//        quotes  -> straight quotes -> curly via Word's AutoFormatReplaceQuotes
+//                   engine (a Find/Replace of " -> " with the option ON inserts
+//                   the directional glyph based on context).
+//      ADVANCED, all opt-in (default OFF):
+//        bullets -> re-apply the default bullet ListTemplate to bulleted list
+//                   items at their existing level (ApplyListTemplateWithLevel),
+//                   standardising odd bullet glyphs. Numbered lists untouched.
+//        tables  -> clear each table's whole-range Shading.BackgroundPatternColor
+//                   to wdColorAutomatic (whole-range avoids the merged-cell trap).
+//        margins -> set each PageSetup margin of every Section to its own
+//                   InchesToPoints(marginTop/Bottom/Left/Right).
+//   5. In copy-mode, Save()s the copy. In-place mode leaves edits UNSAVED in the
+//      open document for the user to review.
+//
+// Find/Replace note: paragraph marks (^p) cannot be inserted via Range.Text
+// (that writes the literal characters '^','p'); they only work through Word's
+// native Find/Replace.  So every textual clean-up uses
+// find.Execute(Replace: WdReplace.wdReplaceAll), looped until a pass makes no
+// change (one replace-all pass does not catch newly-adjacent overlaps, e.g.
+// three blank lines collapsing).
+
+// combridge auto-imports Microsoft.Office.Interop.Word, so a bare `Range`
+// collides with System.Range (CS0104). Alias the interop namespace to `Wd`
+// (NOT `Word` — that shadows the plugin's own namespace) and qualify the
+// ambiguous Office types as Wd.*. See combridge LLM/scripting.md.
+using Wd = global::Microsoft.Office.Interop.Word;
+
+// --- baked-in form values -------------------------------------------------
+bool   stripFormatting = __STRIP_FORMATTING__;
+bool   collapseSpaces  = __COLLAPSE_SPACES__;
+bool   removeBlanks    = __REMOVE_BLANKS__;
+bool   normalizeFonts  = __NORMALIZE_FONTS__;
+string bodyFont        = "__BODY_FONT__";
+string headingFont     = "__HEADING_FONT__";
+string styleTemplate   = "__STYLE_TEMPLATE__";     // optional .docx/.dotx to copy styles from
+bool   smartQuotes     = __SMART_QUOTES__;
+bool   listNormalize   = __LIST_NORMALIZE__;       // advanced: standardise bullet glyphs
+bool   stripTableShade = __STRIP_TABLE_SHADING__;  // advanced: clear table cell fills
+bool   enforceMargins  = __ENFORCE_MARGINS__;      // advanced: set page margins
+double marginTop       = __MARGIN_TOP__;           // per-side margins (inches) when enforceMargins
+double marginBottom    = __MARGIN_BOTTOM__;
+double marginLeft      = __MARGIN_LEFT__;
+double marginRight     = __MARGIN_RIGHT__;
+bool   workOnCopy      = __WORK_ON_COPY__;
+string outputFormat    = "__OUTPUT_FORMAT__";
+
+if (wdDoc is null)
+{
+    Console.WriteLine("__WORDSAN__ STATUS=NODOC");
+    Console.WriteLine("No document is open in Word. Open the document you want to clean up, then run again.");
+    return 0;
+}
+
+// --- safety: never touch a document that is under review ------------------
+int revisionCount = 0;
+try { revisionCount = wdDoc.Revisions.Count; } catch { }
+if (revisionCount > 0)
+{
+    Console.WriteLine("__WORDSAN__ STATUS=TRACKED");
+    Console.WriteLine($"This document has {revisionCount} tracked change(s). Sanitising it now would turn the whole clean-up into a wall of revision marks. Accept or reject the existing changes first (Review → Accept/Reject All), then run again.");
+    return 0;
+}
+
+// --- if a style template was named, it must exist (fail early, before copy) -
+if (!string.IsNullOrEmpty(styleTemplate) && !System.IO.File.Exists(styleTemplate))
+{
+    Console.WriteLine("__WORDSAN__ STATUS=BADTEMPLATE");
+    Console.WriteLine($"The style template document was not found:\n  {styleTemplate}\nCheck the path (a .docx or .dotx), then run again — or clear the field to use the Body/Heading font fields instead.");
+    return 0;
+}
+
+string originalName = wdDoc.Name;
+string copyPath = "";
+
+// --- safety guard: clone to <name>_Sanitized.docx before editing ----------
+if (workOnCopy)
+{
+    string dir = wdDoc.Path; // "" for a never-saved document
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__WORDSAN__ STATUS=UNSAVED");
+        Console.WriteLine("\"Work on a copy\" is enabled but this document has never been saved, so there is no folder to put the copy in. Save the document once (Ctrl+S), then run again — or untick \"Work on a copy\" to sanitise the open document directly.");
+        return 0;
+    }
+
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+    copyPath = System.IO.Path.Combine(dir, baseName + "_Sanitized.docx");
+
+    var prevAlerts = wdApp.DisplayAlerts;
+    wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+    try
+    {
+        wdDoc.SaveAs2(copyPath, WdSaveFormat.wdFormatXMLDocument);
+    }
+    finally { wdApp.DisplayAlerts = prevAlerts; }
+}
+
+// ReplaceAll: whole-document Find/Replace, repeated until a pass changes
+// nothing (handles overlapping matches like runs of blank paragraphs).
+int ReplaceAll(string findText, string replaceText, bool wildcards)
+{
+    const int MAX_PASSES = 200;
+    int passes = 0;
+    while (passes < MAX_PASSES)
+    {
+        Wd.Range rng = wdDoc.Content;
+        Find f = rng.Find;
+        f.ClearFormatting();
+        f.Replacement.ClearFormatting();
+        f.Text = findText;
+        f.Replacement.Text = replaceText;
+        f.Forward = true;
+        f.Wrap = WdFindWrap.wdFindStop;
+        f.MatchCase = true;
+        f.MatchWholeWord = false;
+        f.MatchWildcards = wildcards;
+        bool any = f.Execute(Replace: WdReplace.wdReplaceAll);
+        passes++;
+        if (!any) break;
+    }
+    return passes;
+}
+
+// --- run the clean-up passes ----------------------------------------------
+var didOps = new System.Collections.Generic.List<string>();
+
+// Track Changes OFF while we work (so edits don't become revisions); restored
+// at the end. DisplayAlerts OFF guards the final Save against modal hangs in
+// the hidden COM instance.
+bool prevTrack = wdDoc.TrackRevisions;
+var prevAlerts2 = wdApp.DisplayAlerts;
+wdDoc.TrackRevisions = false;
+wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+
+int charsBefore = 0, charsAfter = 0;
+try
+{
+    try { charsBefore = wdDoc.Content.Characters.Count; } catch { }
+
+    if (stripFormatting)
+    {
+        Wd.Range body = wdDoc.Content;
+        body.Font.Reset();             // Ctrl+Space: char formatting -> style
+        body.ParagraphFormat.Reset();  // Ctrl+Q:    para formatting -> style
+        didOps.Add("stripped manual formatting (reverted to styles)");
+    }
+
+    if (collapseSpaces)
+    {
+        ReplaceAll(" {2,}", " ", true);  // 2+ spaces -> one (wildcard)
+        ReplaceAll(" ^p", "^p", false);  // drop a space before a paragraph mark
+        didOps.Add("collapsed repeated & trailing spaces");
+    }
+
+    if (removeBlanks)
+    {
+        int passes = ReplaceAll("^p^p", "^p", false);  // empty paragraphs away
+        didOps.Add("removed blank paragraphs");
+    }
+
+    // Style source: a named template SUPERSEDES the two-font normaliser.
+    // CopyStylesFromTemplate redefines this document's styles to match the
+    // template's, so (after the strip pass) text adopts the template's look.
+    if (!string.IsNullOrEmpty(styleTemplate))
+    {
+        try
+        {
+            wdDoc.CopyStylesFromTemplate(styleTemplate);
+            didOps.Add($"copied styles from template ({System.IO.Path.GetFileName(styleTemplate)})");
+        }
+        catch (System.Exception ex)
+        {
+            didOps.Add("style-template copy failed: " + ex.Message);
+        }
+    }
+    else if (normalizeFonts)
+    {
+        var applied = new System.Collections.Generic.List<string>();
+        if (!string.IsNullOrEmpty(bodyFont))
+        {
+            try
+            {
+                wdDoc.Styles[WdBuiltinStyle.wdStyleNormal].Font.Name = bodyFont;
+                applied.Add($"body → {bodyFont}");
+            }
+            catch { }
+        }
+        if (!string.IsNullOrEmpty(headingFont))
+        {
+            int headingsSet = 0;
+            // Heading 1..9 are builtin styles -2 .. -10.
+            for (int i = 1; i <= 9; i++)
+            {
+                try
+                {
+                    var st = wdDoc.Styles[(WdBuiltinStyle)(-(i + 1))];
+                    st.Font.Name = headingFont;
+                    headingsSet++;
+                }
+                catch { }
+            }
+            if (headingsSet > 0) applied.Add($"headings → {headingFont}");
+        }
+        if (applied.Count > 0)
+            didOps.Add("normalised fonts (" + string.Join(", ", applied) + ")");
+    }
+
+    if (smartQuotes)
+    {
+        bool prevQ = wdApp.Options.AutoFormatAsYouTypeReplaceQuotes;
+        wdApp.Options.AutoFormatAsYouTypeReplaceQuotes = true;
+        try
+        {
+            // With the option ON, replacing a straight quote with a straight
+            // quote makes Word insert the context-correct curly glyph.
+            ReplaceAll("\"", "\"", false);
+            ReplaceAll("'", "'", false);
+        }
+        finally { wdApp.Options.AutoFormatAsYouTypeReplaceQuotes = prevQ; }
+        didOps.Add("converted straight quotes to curly");
+    }
+
+    // --- ADVANCED (opt-in) passes -----------------------------------------
+    // Bullet-glyph normalisation: standardise non-standard bullets (Wingdings
+    // arrows, picture bullets) to the default round bullet, preserving each
+    // item's level. Numbered lists are deliberately left untouched (re-applying
+    // number templates is the fragile path that corrupts nested numbering).
+    if (listNormalize)
+    {
+        int reglyphed = 0;
+        try
+        {
+            var bulletTmpl = wdApp.ListGalleries[WdListGalleryType.wdBulletGallery]
+                                  .ListTemplates[1];   // default round bullet (1-based)
+            foreach (Paragraph p in wdDoc.Paragraphs)
+            {
+                try
+                {
+                    ListFormat lf = p.Range.ListFormat;
+                    if (lf.ListType == WdListType.wdListBullet ||
+                        lf.ListType == WdListType.wdListPictureBullet)
+                    {
+                        int lvl = lf.ListLevelNumber;            // keep the item's level
+                        lf.ApplyListTemplateWithLevel(
+                            bulletTmpl,
+                            ContinuePreviousList: true,
+                            ApplyTo: WdListApplyTo.wdListApplyToSelection,
+                            DefaultListBehavior: WdDefaultListBehavior.wdWord10ListBehavior,
+                            ApplyLevel: lvl);
+                        reglyphed++;
+                    }
+                }
+                catch { /* skip a stubborn list item rather than abort */ }
+            }
+        }
+        catch { /* gallery unavailable — skip the whole pass */ }
+        if (reglyphed > 0) didOps.Add($"normalised {reglyphed} bullet item(s)");
+        else didOps.Add("normalised bullet glyphs (no custom bullets found)");
+    }
+
+    // Table-shading strip: clear manual cell fills. Clearing each table's WHOLE
+    // range at once sidesteps the classic merged-cell exception you hit when
+    // iterating Rows.Cells individually.
+    if (stripTableShade)
+    {
+        int tablesCleared = 0;
+        foreach (Table t in wdDoc.Tables)
+        {
+            try
+            {
+                t.Range.Shading.BackgroundPatternColor = WdColor.wdColorAutomatic;
+                t.Range.Shading.Texture = WdTextureIndex.wdTextureNone;
+                tablesCleared++;
+            }
+            catch { /* skip a table that rejects a range-level shading write */ }
+        }
+        didOps.Add($"stripped shading from {tablesCleared} table(s)");
+    }
+
+    // Margin enforcement: set each side of every section to its own value.
+    if (enforceMargins)
+    {
+        float topPts    = wdApp.InchesToPoints((float)marginTop);
+        float bottomPts = wdApp.InchesToPoints((float)marginBottom);
+        float leftPts   = wdApp.InchesToPoints((float)marginLeft);
+        float rightPts  = wdApp.InchesToPoints((float)marginRight);
+        int sections = 0;
+        foreach (Section s in wdDoc.Sections)
+        {
+            try
+            {
+                PageSetup ps = s.PageSetup;
+                ps.TopMargin = topPts; ps.BottomMargin = bottomPts;
+                ps.LeftMargin = leftPts; ps.RightMargin = rightPts;
+                sections++;
+            }
+            catch { }
+        }
+        didOps.Add($"enforced margins (T {marginTop}\" / B {marginBottom}\" / L {marginLeft}\" / R {marginRight}\") on {sections} section(s)");
+    }
+
+    try { charsAfter = wdDoc.Content.Characters.Count; } catch { charsAfter = charsBefore; }
+
+    if (workOnCopy)
+        wdDoc.Save();
+}
+finally
+{
+    wdDoc.TrackRevisions = prevTrack;
+    wdApp.DisplayAlerts = prevAlerts2;
+}
+
+// --- report ---------------------------------------------------------------
+int removedChars = charsBefore - charsAfter;
+if (removedChars < 0) removedChars = 0;
+string opsLine = didOps.Count > 0 ? string.Join("; ", didOps) : "no clean-up options were selected";
+
+Console.WriteLine($"__WORDSAN__ STATUS=OK ops={didOps.Count} removed={removedChars} copy={(workOnCopy ? 1 : 0)}");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Style sanitised");
+    Console.WriteLine();
+    Console.WriteLine($"- **Document:** `{originalName}`");
+    Console.WriteLine($"- **Clean-up applied:** {opsLine}");
+    Console.WriteLine($"- **Characters removed (whitespace/blank lines):** {removedChars:n0}");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"- **Worked on a copy:** yes — saved to `{copyPath}`");
+        Console.WriteLine($"- **Original untouched:** `{originalName}`");
+    }
+    else
+    {
+        Console.WriteLine($"- **Worked on a copy:** no — edits are in the open document `{originalName}`. Review them and save in Word when satisfied.");
+    }
+    if (didOps.Count == 0)
+        Console.WriteLine("\n_Tip: tick at least one clean-up option (strip formatting, collapse spaces, remove blank paragraphs, normalise fonts, or curly quotes)._");
+}
+else
+{
+    Console.WriteLine("Style sanitised");
+    Console.WriteLine($"  Document:          {originalName}");
+    Console.WriteLine($"  Clean-up applied:  {opsLine}");
+    Console.WriteLine($"  Characters removed:{removedChars,8:n0}");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"  Worked on a copy:  yes -> {copyPath}");
+        Console.WriteLine($"  Original:          {originalName} (untouched)");
+    }
+    else
+    {
+        Console.WriteLine($"  Worked on a copy:  no -> edits are in {originalName}; review and save in Word.");
+    }
+}
+
+return 0;

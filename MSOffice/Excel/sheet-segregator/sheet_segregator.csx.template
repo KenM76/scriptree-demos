@@ -1,0 +1,403 @@
+// =============================================================================
+// Column-Based Sheet Segregator (Excel) — C# Roslyn script TEMPLATE
+// =============================================================================
+// This file is NOT run directly. sheet_segregator.py (the Strategy-A shim)
+// reads it, replaces every __PLACEHOLDER__ token with a validated, C#-escaped
+// form value, writes the result to a temp .csx, and runs it via:
+//     combridge.exe excel run-script <temp.csx> -
+//
+// combridge injects these globals before running the script (Excel plugin):
+//     Excel._Application xlApp    — the running Excel instance (never null)
+//     Excel.Workbook?    xlBook   — the active workbook (null if none open)
+//     Excel.Worksheet?   xlSheet  — the active worksheet (null if none)
+// The namespace Microsoft.Office.Interop.Excel is already imported (ScriptUsings).
+//
+// Roslyn-script rules honored here:
+//   * top-level statements only (no Main wrapper);
+//   * NO `using var x = ...` declaration form;
+//   * `dynamic` is available; Console.Out/Error are redirected to the bridge.
+//
+// OUTPUT CONTRACT: the FIRST line printed is the sentinel
+//     __XLSEG__ STATUS=<code> [groups=N] [mode=...]
+// which the shim parses to decide the process exit code. Everything after the
+// sentinel line is the human-readable report. combridge ignores `return`, so
+// the sentinel is the only channel that carries status back to the shim.
+// =============================================================================
+
+// combridge auto-imports Microsoft.Office.Interop.Excel, so a bare `Range`
+// collides with System.Range (CS0104). Alias the interop namespace to `Xl`
+// (NOT `Excel` — that shadows the plugin's own namespace) and qualify Office
+// types as Xl.*. See combridge LLM/scripting.md.
+using Xl = global::Microsoft.Office.Interop.Excel;
+
+// ---- baked-in form values (substituted by the shim) ------------------------
+string keyColumnSpec  = "__KEY_COLUMN__";       // header name | column letter | 1-based used-range position
+bool   hasHeader      = __HAS_HEADER__;          // first used-range row is a header row
+string outputMode     = "__OUTPUT_MODE__";       // "new_workbook" | "new_sheets"
+string sheetPrefix    = "__SHEET_NAME_PREFIX__"; // optional prefix on every created sheet name
+bool   backupFirst    = __BACKUP_FIRST__;        // new_sheets only: back up the workbook before adding sheets
+int    maxGroups      = __MAX_GROUPS__;          // safety cap on distinct key values
+string outputFormat   = "__OUTPUT_FORMAT__";     // "markdown" | "text"
+
+// ---- precondition: a workbook + active sheet must be open -------------------
+if (xlBook is null || xlSheet is null)
+{
+    Console.WriteLine("__XLSEG__ STATUS=NOWB");
+    Console.WriteLine("No workbook is open in Excel. Open the workbook whose active sheet you want to split, then run again.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 1 — bulk-read the active sheet's used range into memory.
+// =============================================================================
+// Reading the whole UsedRange.Value in one COM call is FAR faster than touching
+// cells one at a time (one marshalled call vs. thousands). Excel returns a
+// **1-based** two-dimensional object[,] for a multi-cell range, or a scalar for
+// a single cell. `data[r, c]` is therefore indexed 1..nRows / 1..nCols.
+Xl.Range used   = xlSheet.UsedRange;
+int   nRows  = used.Rows.Count;
+int   nCols  = used.Columns.Count;
+int   firstRow = used.Row;     // absolute worksheet row of data[1, *]
+int   firstCol = used.Column;  // absolute worksheet column of data[*, 1]
+
+// A usable table needs at least one column and at least one data row (i.e. one
+// row if header-less, two rows if the first row is a header).
+int minRows = hasHeader ? 2 : 1;
+if (nCols < 1 || nRows < minRows)
+{
+    Console.WriteLine("__XLSEG__ STATUS=NODATA");
+    Console.WriteLine($"The active sheet '{xlSheet.Name}' has no usable table to split (found {nRows} row(s) x {nCols} column(s)" + (hasHeader ? ", and a header row was expected" : "") + "). Make sure the data you want to split is on the active sheet.");
+    return 0;
+}
+
+object[,] data = used.Value as object[,];
+if (data is null)
+{
+    // Single-cell used range: Value is a scalar, never an array. Treated as
+    // "no table".
+    Console.WriteLine("__XLSEG__ STATUS=NODATA");
+    Console.WriteLine($"The active sheet '{xlSheet.Name}' contains only a single cell of data — nothing to split.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 2 — resolve the key column to a 1-based index within the used range.
+// =============================================================================
+// Resolution order (documented in the .scriptree help and the README):
+//   (a) if hasHeader: case-insensitive, trimmed match against the header cells
+//       (data[1, c]). Exactly one match wins.
+//   (b) else / if no header match: a run of letters (A, B, ..., AA, ...) is an
+//       ABSOLUTE Excel column letter; it must fall inside the used range.
+//   (c) else: a positive integer is a 1-based POSITION within the used range
+//       (1 = leftmost used column).
+//   (d) otherwise: unresolved → STATUS=BADCOL (and we list the headers to help).
+int keyCol = -1;
+string keyResolvedAs = "";
+
+// (a) header-name match
+if (hasHeader)
+{
+    string want = keyColumnSpec.Trim();
+    for (int c = 1; c <= nCols; c++)
+    {
+        string head = data[1, c]?.ToString()?.Trim() ?? "";
+        if (string.Equals(head, want, StringComparison.OrdinalIgnoreCase))
+        {
+            keyCol = c;
+            keyResolvedAs = $"header \"{head}\"";
+            break;
+        }
+    }
+}
+
+// (b) absolute column letter (e.g. "C", "AB")
+if (keyCol < 0)
+{
+    string spec = keyColumnSpec.Trim().ToUpperInvariant();
+    bool allLetters = spec.Length > 0;
+    foreach (char ch in spec) if (ch < 'A' || ch > 'Z') { allLetters = false; break; }
+    if (allLetters)
+    {
+        // Convert spreadsheet letters to an absolute 1-based column number
+        // (A=1, Z=26, AA=27, ...), then offset into the used range.
+        int abs = 0;
+        foreach (char ch in spec) abs = abs * 26 + (ch - 'A' + 1);
+        int rel = abs - firstCol + 1;
+        if (rel >= 1 && rel <= nCols)
+        {
+            keyCol = rel;
+            keyResolvedAs = $"column {spec}";
+        }
+    }
+}
+
+// (c) 1-based position within the used range
+if (keyCol < 0)
+{
+    if (int.TryParse(keyColumnSpec.Trim(), out int pos) && pos >= 1 && pos <= nCols)
+    {
+        keyCol = pos;
+        keyResolvedAs = $"position {pos}";
+    }
+}
+
+// (d) give up — tell the user exactly what is available so they can fix it
+if (keyCol < 0)
+{
+    Console.WriteLine("__XLSEG__ STATUS=BADCOL");
+    Console.WriteLine($"Could not resolve key column \"{keyColumnSpec}\" on sheet '{xlSheet.Name}'.");
+    if (hasHeader)
+    {
+        var names = new System.Collections.Generic.List<string>();
+        for (int c = 1; c <= nCols; c++)
+        {
+            string h = data[1, c]?.ToString()?.Trim() ?? "";
+            names.Add(h.Length > 0 ? h : "(blank)");
+        }
+        Console.WriteLine("Available header(s): " + string.Join(", ", names));
+        Console.WriteLine("Type one of those header names exactly, or a column letter (A, B, ...), or a 1-based position.");
+    }
+    else
+    {
+        Console.WriteLine($"The used range has {nCols} column(s). Give a column letter (A, B, ...) or a 1-based position (1..{nCols}). (Tick 'First row is a header' to match by header name instead.)");
+    }
+    return 0;
+}
+
+// =============================================================================
+// STEP 3 — group the data rows by their key-column value (single pass).
+// =============================================================================
+// We preserve first-seen order of the keys (so the output sheets appear in the
+// order the values first occur in the data). Blank/whitespace key cells are
+// bucketed under "(blank)". Values are compared by their string form.
+int dataStart = hasHeader ? 2 : 1;
+
+var order  = new System.Collections.Generic.List<string>();                                  // keys in first-seen order
+var groups = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<int>>(); // key -> data row indices (1-based into `data`)
+
+for (int r = dataStart; r <= nRows; r++)
+{
+    object cell = data[r, keyCol];
+    string key = cell?.ToString() ?? "";
+    if (string.IsNullOrWhiteSpace(key)) key = "(blank)";
+    if (!groups.TryGetValue(key, out var list))
+    {
+        list = new System.Collections.Generic.List<int>();
+        groups[key] = list;
+        order.Add(key);
+    }
+    list.Add(r);
+}
+
+// Safety cap: if the chosen column is near-unique (e.g. an ID column) we'd try
+// to make thousands of sheets. Refuse and explain rather than hammer Excel.
+if (order.Count > maxGroups)
+{
+    Console.WriteLine($"__XLSEG__ STATUS=TOOMANY groups={order.Count}");
+    Console.WriteLine($"The key column ({keyResolvedAs}) has {order.Count} distinct values, which is above the safety cap of {maxGroups}. That usually means the wrong column was chosen (e.g. a unique ID). Pick a column with fewer distinct values, or raise the 'Max distinct values' limit if you really do want that many sheets.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 4 — capture per-column number formats from the source (best-effort).
+// =============================================================================
+// A bulk Value-copy moves raw values but NOT cell formatting, so dates/currency
+// would display as raw serial numbers on the output sheets. To avoid that, we
+// read each used column's number-format string once (from the first data row)
+// and re-apply it to the matching column on every output sheet. Columns whose
+// format is the default "General" are skipped (nothing to carry).
+string[] colFormats = new string[nCols + 1]; // 1-based; index 0 unused
+for (int c = 1; c <= nCols; c++)
+{
+    try
+    {
+        Xl.Range src = (Xl.Range)xlSheet.Cells[firstRow + (dataStart - 1), firstCol + (c - 1)];
+        string fmt = src.NumberFormat as string;
+        colFormats[c] = (fmt != null && fmt != "General") ? fmt : null;
+    }
+    catch { colFormats[c] = null; } // never let a format read abort the run
+}
+
+// =============================================================================
+// STEP 5 — decide where the output sheets go, and prepare it.
+// =============================================================================
+// targetBook is the workbook the new sheets are added to. In new_workbook mode
+// it is a fresh workbook (original untouched); in new_sheets mode it is the
+// current workbook. `defaultSheets` (new_workbook only) holds the blank sheets
+// Excel created with the new workbook so we can delete them at the end.
+Workbook targetBook;
+var defaultSheets = new System.Collections.Generic.List<Worksheet>();
+string backupPath = "";
+
+if (outputMode == "new_sheets" && backupFirst)
+{
+    // Backup requires a folder to write into, i.e. the workbook must have been
+    // saved at least once. SaveCopyAs writes a copy WITHOUT changing the open
+    // workbook's own path or its dirty/clean state.
+    string dir = xlBook.Path; // "" for a never-saved workbook
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__XLSEG__ STATUS=UNSAVED");
+        Console.WriteLine("'Back up the workbook first' is on, but this workbook has never been saved, so there is no folder to put the backup in. Save the workbook once (Ctrl+S), then run again — or turn off the backup option, or use 'New workbook' output mode (which never touches this workbook).");
+        return 0;
+    }
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(xlBook.Name);
+    string ext = System.IO.Path.GetExtension(xlBook.Name);
+    if (string.IsNullOrEmpty(ext)) ext = ".xlsx";
+    backupPath = System.IO.Path.Combine(dir, baseName + "_backup" + ext);
+
+    // Hidden/attached Excel can hang on a modal "overwrite?" prompt — suppress.
+    bool prevAlerts = xlApp.DisplayAlerts;
+    xlApp.DisplayAlerts = false;
+    try { xlBook.SaveCopyAs(backupPath); }
+    finally { xlApp.DisplayAlerts = prevAlerts; }
+}
+
+if (outputMode == "new_workbook")
+{
+    targetBook = xlApp.Workbooks.Add();
+    // Remember the blank sheet(s) the new workbook came with; we remove them at
+    // the end (a workbook must always keep >= 1 sheet, so we only delete these
+    // AFTER at least one real output sheet exists).
+    foreach (Worksheet ws in targetBook.Worksheets) defaultSheets.Add(ws);
+}
+else
+{
+    targetBook = xlBook;
+}
+
+// =============================================================================
+// STEP 6 — build the existing-name set so created sheet names stay unique.
+// =============================================================================
+// Excel sheet names: max 31 chars; may not contain : \ / ? * [ ] ; may not be
+// blank; must be unique within the workbook (case-insensitive). We sanitize,
+// apply the optional prefix, truncate to 31, then de-duplicate with a numeric
+// suffix. The `taken` set seeds from the workbook's current sheet names so we
+// never collide with pre-existing sheets (important in new_sheets mode).
+var taken = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+foreach (Worksheet ws in targetBook.Worksheets) taken.Add(ws.Name);
+
+// Local helper: turn a key value into a legal, unique sheet name.
+string MakeSheetName(string raw)
+{
+    string s = (sheetPrefix ?? "") + (raw ?? "");
+    if (string.IsNullOrWhiteSpace(s)) s = "Sheet";
+    foreach (char bad in new[] { ':', '\\', '/', '?', '*', '[', ']' }) s = s.Replace(bad, '_');
+    if (s.Length > 31) s = s.Substring(0, 31);
+
+    string candidate = s;
+    int n = 2;
+    while (taken.Contains(candidate))
+    {
+        // Append " (n)" while keeping within the 31-char limit.
+        string suffix = " (" + n + ")";
+        int keep = Math.Max(1, 31 - suffix.Length);
+        candidate = (s.Length > keep ? s.Substring(0, keep) : s) + suffix;
+        n++;
+    }
+    taken.Add(candidate);
+    return candidate;
+}
+
+// =============================================================================
+// STEP 7 — create one sheet per key value and bulk-write its rows.
+// =============================================================================
+// For each group we build a 0-based object[,] block (optional header row + the
+// group's data rows), then assign it to the destination range in ONE COM call.
+// New sheets are appended after the last existing sheet so ordering is stable.
+var report = new System.Collections.Generic.List<(string sheet, string key, int rows)>();
+Worksheet anchor = (Worksheet)targetBook.Worksheets[targetBook.Worksheets.Count];
+
+foreach (string key in order)
+{
+    var rowsForKey = groups[key];
+    int outRows = (hasHeader ? 1 : 0) + rowsForKey.Count;
+
+    object[,] block = new object[outRows, nCols]; // 0-based; Excel maps [i,j] -> cell (i+1, j+1)
+    int o = 0;
+    if (hasHeader)
+    {
+        for (int c = 1; c <= nCols; c++) block[0, c - 1] = data[1, c];
+        o = 1;
+    }
+    foreach (int r in rowsForKey)
+    {
+        for (int c = 1; c <= nCols; c++) block[o, c - 1] = data[r, c];
+        o++;
+    }
+
+    Worksheet ws = (Worksheet)targetBook.Worksheets.Add(After: anchor);
+    ws.Name = MakeSheetName(key);
+    anchor = ws;
+
+    Xl.Range dest = ws.Range[ws.Cells[1, 1], ws.Cells[outRows, nCols]];
+    dest.Value = block;
+
+    // Re-apply captured number formats so dates/currency display correctly.
+    for (int c = 1; c <= nCols; c++)
+    {
+        if (colFormats[c] != null)
+        {
+            try { ((Xl.Range)ws.Columns[c]).NumberFormat = colFormats[c]; } catch { }
+        }
+    }
+
+    report.Add((ws.Name, key, rowsForKey.Count));
+}
+
+// new_workbook mode: now that real sheets exist, drop the blank default sheet(s).
+if (outputMode == "new_workbook" && report.Count > 0)
+{
+    bool prevAlerts = xlApp.DisplayAlerts;
+    xlApp.DisplayAlerts = false; // Worksheet.Delete prompts without this
+    try { foreach (Worksheet ws in defaultSheets) ws.Delete(); }
+    finally { xlApp.DisplayAlerts = prevAlerts; }
+}
+
+// =============================================================================
+// STEP 8 — emit the sentinel + the human-readable report.
+// =============================================================================
+int totalDataRows = nRows - (hasHeader ? 1 : 0);
+Console.WriteLine($"__XLSEG__ STATUS=OK groups={report.Count} mode={outputMode}");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Sheet segregation complete");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source sheet:** {xlSheet.Name}");
+    Console.WriteLine($"- **Key column:** {keyResolvedAs}");
+    Console.WriteLine($"- **Data rows read:** {totalDataRows}");
+    Console.WriteLine($"- **Sheets created:** {report.Count}");
+    Console.WriteLine($"- **Output mode:** " + (outputMode == "new_workbook"
+        ? "new workbook (original workbook untouched)"
+        : "new sheets added to the current workbook"));
+    if (backupPath.Length > 0) Console.WriteLine($"- **Backup saved to:** `{backupPath}`");
+    Console.WriteLine($"- **Header row copied to each sheet:** " + (hasHeader ? "yes" : "no"));
+    Console.WriteLine();
+    Console.WriteLine("| Sheet | Key value | Rows |");
+    Console.WriteLine("|---|---|---:|");
+    foreach (var row in report)
+        Console.WriteLine($"| {row.sheet} | {row.key} | {row.rows} |");
+    Console.WriteLine();
+    Console.WriteLine("> The result is OPEN but NOT yet saved — review it in Excel, then save it yourself (File > Save As).");
+}
+else
+{
+    Console.WriteLine("Sheet segregation complete");
+    Console.WriteLine($"  Source sheet:   {xlSheet.Name}");
+    Console.WriteLine($"  Key column:     {keyResolvedAs}");
+    Console.WriteLine($"  Data rows read: {totalDataRows}");
+    Console.WriteLine($"  Sheets created: {report.Count}");
+    Console.WriteLine($"  Output mode:    " + (outputMode == "new_workbook"
+        ? "new workbook (original untouched)"
+        : "new sheets in current workbook"));
+    if (backupPath.Length > 0) Console.WriteLine($"  Backup saved:   {backupPath}");
+    Console.WriteLine($"  Header copied:  " + (hasHeader ? "yes" : "no"));
+    Console.WriteLine();
+    foreach (var row in report)
+        Console.WriteLine($"  - {row.sheet}  (key={row.key}, rows={row.rows})");
+    Console.WriteLine();
+    Console.WriteLine("  The result is OPEN but NOT yet saved — review it in Excel, then save it yourself.");
+}
+
+return 0;

@@ -1,0 +1,12 @@
+# Generated at runtime / by examples — not tracked (regenerate via examples/make_example.py)
+__pycache__/
+*.py[cod]
+
+# Generated example artifacts (run examples/make_example.py to recreate)
+*.docx
+*.xlsx
+*.pptx
+examples/**/sample_images/
+
+# Runtime-rendered .csx the shims write (templates ARE tracked)
+*_tmp.csx

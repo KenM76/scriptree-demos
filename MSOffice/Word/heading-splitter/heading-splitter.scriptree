@@ -1,0 +1,126 @@
+{
+  "schema_version": 3,
+  "name": "Heading-Based Document Splitter (Word)",
+  "description": "Splits the open Word document into one file per section, cutting at every paragraph set to the heading level you choose (Heading 1, 2, or 3). Each section is written to its own Word and/or PDF file, named after its heading with a zero-padded sequence prefix (e.g. '01_Introduction.docx', '02_Methods.docx'). Use it to break a long report, manual, or manuscript into per-chapter files for separate review, distribution, or printing.\n\nYour open document is NEVER modified. The tool only reads from it and creates new files in the output folder you pick (or, if you leave that blank, a '<DocName>_Chapters' folder created next to the original).\n\nSplitting is by OUTLINE LEVEL, so it works regardless of the language of your heading-style names and even catches paragraphs promoted to a heading outline level without the named style. Content before the first heading ('front matter' \u2014 a title page, abstract, table of contents) is saved as chapter '00' when the box below is ticked. Requires combridge (bundled with ScripTree at lib/combridge) and the target document already open in a running Word instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "split_by_heading.py",
+    [
+      "--heading-level",
+      "{heading_level}"
+    ],
+    [
+      "--output-folder",
+      "{output_folder}"
+    ],
+    [
+      "--file-format",
+      "{file_format}"
+    ],
+    "{include_front_matter?--include-front-matter}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "heading_level",
+      "label": "Split at heading level",
+      "description": "Which heading level marks the start of a new file. 'Heading 1' splits at top-level sections (typical for chapters); 'Heading 2' or 'Heading 3' split more finely (sub-sections). Matching is by outline level, so it is independent of your heading-style names and language, and also catches paragraphs given that outline level without the built-in style.",
+      "type": "enum",
+      "widget": "radio",
+      "required": true,
+      "default": "1",
+      "choices": [
+        "1",
+        "2",
+        "3"
+      ],
+      "choice_labels": [
+        "Heading 1 (top-level chapters)",
+        "Heading 2 (sub-sections)",
+        "Heading 3 (finer sub-sections)"
+      ],
+      "section": "Split"
+    },
+    {
+      "id": "output_folder",
+      "label": "Output folder",
+      "description": "Where to write the per-chapter files. Leave blank to create a '<DocName>_Chapters' folder next to the original document (that default requires the document to have been saved at least once). If you pick a folder that doesn't exist yet, it will be created.",
+      "type": "path",
+      "widget": "folder",
+      "required": false,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "file_format",
+      "label": "Output file format",
+      "description": "What to write for each section. 'Word' produces .docx files (fully editable). 'PDF' produces .pdf files (fixed, for distribution/printing). 'Both' writes a .docx AND a .pdf for every section.",
+      "type": "enum",
+      "widget": "radio",
+      "required": true,
+      "default": "docx",
+      "choices": [
+        "docx",
+        "pdf",
+        "both"
+      ],
+      "choice_labels": [
+        "Word (.docx)",
+        "PDF (.pdf)",
+        "Both Word and PDF"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "include_front_matter",
+      "label": "Save front matter as chapter 00",
+      "description": "When ticked (default), any content BEFORE the first heading \u2014 a title page, abstract, or table of contents \u2014 is saved as its own file '00_Front-Matter'. Untick to discard that leading content and start the output at the first heading.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Split"
+    },
+    {
+      "id": "output_format",
+      "label": "Report format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Output"
+    }
+  ],
+  "sections": [
+    {
+      "name": "Split",
+      "layout": "collapse"
+    },
+    {
+      "name": "Output",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Word"
+}

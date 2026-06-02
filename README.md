@@ -48,6 +48,22 @@ That's it. No code, no flag-memorisation, no shell-quoting headaches.
 
 More on the way — every useful CLI tool I run into is a candidate.
 
+## Office automation apps (beta)
+
+A different category lives in [`MSOffice/`](MSOffice/): **15 ScripTree apps that
+automate Microsoft Word, Excel, PowerPoint, and Outlook** via COM, through
+[combridge](https://github.com/KenM76/combridge) — they act on the document /
+workbook / presentation / mailbox you already have open in Office, rather than
+wrapping a CLI. Highlights: a Corporate Style Sanitizer, a Broken External Link
+Auditor, a Mailbox Age & Size Auditor, a Tracked-Changes processor, an
+image-to-deck builder, and a drafts-only Outlook mail-merge (never sends).
+
+> ⚠️ **Beta — pending live verification.** These pass schema validation and an
+> offline render-check, but (except the Excel link-auditor) haven't yet been run
+> against a live Office instance. Mutating apps default to working on a **copy**.
+> See [`MSOffice/README.md`](MSOffice/README.md) for the full list, the
+> combridge/ScripTree requirements, and the safety model.
+
 ## Suggest a tool
 
 Open an issue with a link to the tool's repo. Good candidates:

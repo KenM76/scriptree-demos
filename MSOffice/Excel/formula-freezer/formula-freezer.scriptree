@@ -1,0 +1,73 @@
+{
+  "schema_version": 3,
+  "name": "Formula-to-Value Freezer (Excel)",
+  "description": "Converts every formula in the open Excel workbook into its current static value \u2014 locking down the calculated data state so the numbers can never silently change again. Classic uses: a month-end snapshot, a figure handed to an auditor, or a file sent outside the company where the source data behind cross-sheet references may be missing.\n\nSafe by default. With 'Work on a copy' left ON (the default), the tool saves a sibling '<name>_Frozen.xlsx', freezes the formulas in that copy, saves and closes it, and leaves your ORIGINAL workbook OPEN and completely UNTOUCHED \u2014 your live formulas survive in the instance you are looking at. Turn 'Work on a copy' OFF to freeze the open workbook in memory instead; it is then left OPEN and UNSAVED for you to review (Ctrl+Z still undoes it). The tool never silently overwrites your original file on disk.\n\nEach formula cell is replaced by the constant it currently produces; cell number formats (dates, currency) are preserved, so only the formulas go away \u2014 the displayed values are identical. If a target worksheet is protected the run is refused (its cells cannot be overwritten) before any change is made.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and the target workbook already open in a running Excel instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "freeze_formulas.py",
+    [
+      "--scope",
+      "{scope}"
+    ],
+    "{work_on_copy?--work-on-copy}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "scope",
+      "label": "Scope",
+      "description": "Which worksheets to freeze. 'All worksheets' (the default) converts every formula in the entire workbook. 'Active sheet only' limits the freeze to the one sheet currently active in Excel \u2014 useful when only one tab is final.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "all_sheets",
+      "choices": [
+        "all_sheets",
+        "active_sheet"
+      ],
+      "choice_labels": [
+        "All worksheets",
+        "Active sheet only"
+      ]
+    },
+    {
+      "id": "work_on_copy",
+      "label": "Work on a copy (recommended)",
+      "description": "SAFETY GUARD. When ticked (the default), the workbook is first copied to a sibling '<name>_Frozen.xlsx' and the freeze happens in that copy, which is then saved and closed \u2014 your original stays open with its live formulas intact. Untick to freeze the open workbook in memory instead; it is left open and UNSAVED for you to review. If the workbook has never been saved, copy mode is refused (there is no folder to put the copy in).",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ]
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Excel"
+}

@@ -1,0 +1,191 @@
+// =============================================================================
+// Image-to-Slide Deck Builder (PowerPoint) — C# Roslyn script TEMPLATE
+// =============================================================================
+// This file is NOT run directly. build_image_deck.py (the Strategy-A shim)
+// reads it, replaces every __PLACEHOLDER__ token with a validated, C#-escaped
+// form value (and bakes in the shim-enumerated image list), writes the result
+// to a temp .csx, and runs it via:
+//     combridge.exe powerpoint run-script <temp.csx> -
+//
+// combridge injects these globals before running the script (PowerPoint plugin):
+//     Pp._Application  pptApp   — the running PowerPoint instance (never null)
+//     Pp.Presentation? pptPres  — the active presentation (= ActivePresentation;
+//                                  may be null — UNUSED here, we CREATE a deck)
+// The namespaces Microsoft.Office.Interop.PowerPoint and Microsoft.Office.Core
+// are already imported (ScriptUsings), so MsoTriState / MsoTextOrientation and
+// the Pp* enums are available unqualified.
+//
+// Roslyn-script rules honored here:
+//   * top-level statements only (no Main wrapper);
+//   * NO `using var x = ...` declaration form;
+//   * `dynamic` is available; Console.Out/Error are redirected to the bridge.
+//
+// WHAT THIS TOOL DOES (and why it needs NO work-on-a-copy guard):
+//   It builds a BRAND-NEW presentation (pptApp.Presentations.Add) and saves it
+//   to a fresh, de-duplicated output path the shim resolved. It NEVER opens,
+//   reads, or writes any existing presentation — pptPres is not touched — so
+//   there is no original to protect and no copy guard. The only collision risk
+//   is the output file name, which the shim already de-duped with " (n)".
+//
+// THE IMAGE LIST is baked in by the shim (it does the NON-recursive folder scan
+// in Python). __IMAGE_PATHS__ expands to the comma-separated body of a C# string
+// array initialiser of absolute paths in filename order. If it is EMPTY the
+// array is empty and we report NOIMAGES (the deck is never created).
+//
+// OUTPUT CONTRACT: the FIRST line printed is the sentinel
+//     __PPTIMG__ STATUS=<code> [slides=N] [failed=F] [out=PATH]
+// which the shim parses to decide the process exit code. Everything after the
+// sentinel line is the human-readable report. combridge ignores `return`, so
+// the sentinel is the only channel that carries status back to the shim.
+//   STATUS=NOIMAGES -> folder had no supported images (shim exit 2)
+//   STATUS=OK ...   -> deck built (slides/failed/out follow) (shim exit 0)
+// =============================================================================
+
+// ---- baked-in form values + image list (substituted by the shim) -----------
+string[] imagePaths = new string[] {
+    __IMAGE_PATHS__
+};
+string outputPath  = "__OUTPUT_PATH__";    // de-duped destination (.pptx)
+bool   addCaptions = __ADD_CAPTIONS__;      // label each slide with the filename
+string outputFormat = "__OUTPUT_FORMAT__";  // "markdown" | "text"
+
+// ---- precondition: at least one image ---------------------------------------
+// The shim already rejected a missing folder (BADFOLDER). Here the only remaining
+// pre-build failure is "the folder existed but held no supported images".
+if (imagePaths.Length == 0)
+{
+    Console.WriteLine("__PPTIMG__ STATUS=NOIMAGES");
+    Console.WriteLine("The image folder contained no supported images (.jpg .jpeg .png .gif .bmp .tif .tiff). Add some images, or pick a different folder, then run again.");
+    return 0;
+}
+
+// Headless/automation COM instances hang on modal prompts (overwrite, etc.).
+// We create a WITH-WINDOW deck so the user can review it, but still guard the
+// SaveAs path against any modal prompt.
+var prevAlerts = pptApp.DisplayAlerts;
+pptApp.DisplayAlerts = PpAlertLevel.ppAlertsNone;
+
+int added  = 0;   // slides successfully built
+int failed = 0;   // images skipped because AddPicture (or layout) threw
+
+try
+{
+    // (1) Create a brand-new presentation WITH a window (msoTrue) so the result
+    //     is visible to the user the moment the run finishes. This is an empty
+    //     deck we own outright; pptPres (any other open deck) is untouched.
+    var prs = pptApp.Presentations.Add(MsoTriState.msoTrue);
+
+    // Slide canvas size in points. AddPicture/positioning are all in points, so
+    // we scale and center against these.
+    float sw = prs.PageSetup.SlideWidth;
+    float sh = prs.PageSetup.SlideHeight;
+
+    int idx = 1;   // 1-based slide insert position (Slides.Add is 1-based)
+    foreach (string path in imagePaths)
+    {
+        try
+        {
+            // (2) A blank slide (ppLayoutBlank) so nothing competes with the
+            //     image — no title/body placeholders to fight the centering.
+            var slide = prs.Slides.Add(idx, PpSlideLayout.ppLayoutBlank);
+            idx++;
+
+            // (3) Insert the picture at its NATIVE size at (0,0):
+            //       AddPicture(FileName, LinkToFile, SaveWithDocument, Left, Top)
+            //     LinkToFile = msoFalse  -> embed the bytes (deck is portable,
+            //                               doesn't break if the source moves).
+            //     SaveWithDocument = msoTrue -> the embedded copy is saved in
+            //                                    the .pptx.
+            //     We pass native size (omit Width/Height) so pic.Width/Height
+            //     report the image's real point dimensions for the scale math.
+            var pic = slide.Shapes.AddPicture(
+                path,
+                MsoTriState.msoFalse,   // LinkToFile = no (embed)
+                MsoTriState.msoTrue,    // SaveWithDocument = yes
+                0, 0);                  // Left, Top (re-centered below)
+
+            // (4) Scale to FIT the slide while preserving aspect ratio, then
+            //     center. Lock the aspect ratio first so setting Width also
+            //     adjusts Height proportionally (one assignment, no distortion).
+            //     scale = min(slideW/picW, slideH/picH): the limiting dimension
+            //     touches the slide edge; the other is letter/pillar-boxed by
+            //     the centering. scale may be >1 (upscale a small image) or <1
+            //     (shrink a large one) — both are correct "fit".
+            pic.LockAspectRatio = MsoTriState.msoTrue;
+            float scale = Math.Min(sw / pic.Width, sh / pic.Height);
+            pic.Width = pic.Width * scale;          // Height follows (locked)
+            pic.Left = (sw - pic.Width) / 2;
+            pic.Top  = (sh - pic.Height) / 2;
+
+            // (5) Optional caption: the filename without its extension, in a
+            //     text box spanning the slide width near the bottom. Wrapped in
+            //     its own try/catch — a caption failure must not lose the slide.
+            if (addCaptions)
+            {
+                try
+                {
+                    string caption = System.IO.Path.GetFileNameWithoutExtension(path);
+                    var tb = slide.Shapes.AddTextbox(
+                        MsoTextOrientation.msoTextOrientationHorizontal,
+                        0,        // Left
+                        sh - 40,  // Top — 40pt strip at the bottom
+                        sw,       // Width — full slide width
+                        36);      // Height
+                    tb.TextFrame.TextRange.Text = caption;
+                }
+                catch { /* caption is cosmetic — never fail the slide for it */ }
+            }
+
+            added++;
+        }
+        catch
+        {
+            // A single unreadable/corrupt image (or a layout hiccup) must not
+            // abort the whole build — count it and move on.
+            failed++;
+        }
+    }
+
+    // (6) Save the new deck to the de-duped output path. ppSaveAsOpenXMLPresentation
+    //     writes a modern .pptx. We then LEAVE THE DECK OPEN (no Close) so the
+    //     user can review it immediately in its window.
+    prs.SaveAs(outputPath, PpSaveAsFileType.ppSaveAsOpenXMLPresentation);
+}
+finally
+{
+    pptApp.DisplayAlerts = prevAlerts;
+}
+
+// --- report ------------------------------------------------------------------
+Console.WriteLine($"__PPTIMG__ STATUS=OK slides={added} failed={failed} out={outputPath}");
+
+string srcNote = (failed > 0)
+    ? $"{added} slide(s) built, {failed} image(s) skipped (unreadable/unsupported)."
+    : $"{added} slide(s) built.";
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Image deck built");
+    Console.WriteLine();
+    Console.WriteLine($"- **Images found:** {imagePaths.Length}");
+    Console.WriteLine($"- **Slides added:** {added}");
+    if (failed > 0)
+        Console.WriteLine($"- **Images skipped:** {failed} (unreadable/unsupported)");
+    Console.WriteLine($"- **Captions:** {(addCaptions ? "filename per slide" : "(none)")}");
+    Console.WriteLine($"- **Saved to:** `{outputPath}`");
+    Console.WriteLine();
+    Console.WriteLine("> The new deck is open in PowerPoint for you to review. Nothing else was modified.");
+}
+else
+{
+    Console.WriteLine("Image deck built");
+    Console.WriteLine($"  Images found:   {imagePaths.Length}");
+    Console.WriteLine($"  Slides added:   {added}");
+    if (failed > 0)
+        Console.WriteLine($"  Images skipped: {failed} (unreadable/unsupported)");
+    Console.WriteLine($"  Captions:       {(addCaptions ? "filename per slide" : "(none)")}");
+    Console.WriteLine($"  Saved to:       {outputPath}");
+    Console.WriteLine($"  Note:           the new deck is open for you to review; nothing else was modified.");
+}
+
+return 0;

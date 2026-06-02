@@ -1,0 +1,183 @@
+// Hidden Assets & Notes Purger (PowerPoint) — generated from this template by
+// ppt_purger.py (Strategy A).  Globals: pptApp (Pp._Application, non-null),
+// pptPres (Pp.Presentation?, = ActivePresentation).  combridge swallows the
+// return value, so the first stdout line is a sentinel the shim parses; the
+// shim owns the exit code.  ScriptUsings imports
+// Microsoft.Office.Interop.PowerPoint and Microsoft.Office.Core.
+//
+// SAFETY MODEL — the open deck is NEVER mutated:
+//   1. SaveCopyAs writes a sibling <name>_Sanitized.pptx (SaveCopyAs, unlike
+//      Word's SaveAs2, does NOT repoint the active presentation — the deck the
+//      user is looking at stays open and untouched).
+//   2. We then Open that copy headless (WithWindow=msoFalse) and do ALL the
+//      stripping there, save it, and close it.  Only the copy is ever changed.
+
+// --- baked-in form values -------------------------------------------------
+bool   stripNotes         = __STRIP_NOTES__;
+bool   stripComments      = __STRIP_COMMENTS__;
+bool   stripMetadata      = __STRIP_METADATA__;
+bool   deleteHiddenSlides = __DELETE_HIDDEN_SLIDES__;
+string outputFormat       = "__OUTPUT_FORMAT__";
+
+if (pptPres is null)
+{
+    Console.WriteLine("__PPTPURGE__ STATUS=NODECK");
+    Console.WriteLine("No presentation is open in PowerPoint. Open the deck you want to sanitize, then run again.");
+    return 0;
+}
+
+string originalName = pptPres.Name;
+string dir = pptPres.Path; // "" for a never-saved presentation
+if (string.IsNullOrEmpty(dir))
+{
+    Console.WriteLine("__PPTPURGE__ STATUS=UNSAVED");
+    Console.WriteLine("This presentation has never been saved, so there is no folder to put the sanitized copy in. Save the deck once (Ctrl+S), then run again.");
+    return 0;
+}
+
+string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+string copyPath = System.IO.Path.Combine(dir, baseName + "_Sanitized.pptx");
+
+// Hidden/headless COM instances hang on modal prompts (overwrite, etc.).
+var prevAlerts = pptApp.DisplayAlerts;
+pptApp.DisplayAlerts = PpAlertLevel.ppAlertsNone;
+
+int notesCleared    = 0;
+int commentsDeleted = 0;
+int hiddenDeleted   = 0;
+bool metaStripped   = false;
+string note = "";
+
+Presentation work = null;
+try
+{
+    // (1) Write the sanitized copy next to the original. SaveCopyAs leaves the
+    //     active presentation (pptPres) open and pointed at the original file.
+    pptPres.SaveCopyAs(copyPath, PpSaveAsFileType.ppSaveAsOpenXMLPresentation);
+
+    // (2) Open the copy headless so every edit below lands ONLY on the copy.
+    work = pptApp.Presentations.Open(
+        copyPath,
+        MsoTriState.msoFalse,   // ReadOnly  = no
+        MsoTriState.msoFalse,   // Untitled  = no (keep the saved path)
+        MsoTriState.msoFalse);  // WithWindow = no (headless)
+
+    // (3a) Delete hidden slides FIRST, iterating BACKWARD so deleting slide i
+    //      never shifts the index of a slide we have yet to visit.
+    if (deleteHiddenSlides)
+    {
+        for (int i = work.Slides.Count; i >= 1; i--)
+        {
+            try
+            {
+                var s = work.Slides[i];
+                if (s.SlideShowTransition.Hidden == MsoTriState.msoTrue)
+                {
+                    s.Delete();
+                    hiddenDeleted++;
+                }
+            }
+            catch { /* one stubborn slide must not abort the sweep */ }
+        }
+    }
+
+    // (3b) Clear speaker notes on the surviving slides. The NotesPage holds a
+    //      slide-image placeholder AND a body placeholder; only the body holds
+    //      the notes text, so we clear just the msoPlaceholder/ppPlaceholderBody.
+    if (stripNotes)
+    {
+        foreach (Slide s in work.Slides)
+        {
+            try
+            {
+                foreach (Shape sh in s.NotesPage.Shapes)
+                {
+                    if (sh.Type != MsoShapeType.msoPlaceholder) continue;
+                    if (sh.PlaceholderFormat.Type != PpPlaceholderType.ppPlaceholderBody) continue;
+                    if (sh.HasTextFrame != MsoTriState.msoTrue) continue;
+                    if (sh.TextFrame.HasText != MsoTriState.msoTrue) continue;
+                    sh.TextFrame.TextRange.Text = "";
+                    notesCleared++;
+                }
+            }
+            catch { /* some system/odd slides throw on NotesPage — skip them */ }
+        }
+    }
+
+    // (3c) Delete comments. Slide.Comments is 1-based; always delete [1] and
+    //      let the collection shrink. NOTE: this reaches the CLASSIC comment
+    //      collection; modern threaded comments may not be exposed here.
+    if (stripComments)
+    {
+        foreach (Slide s in work.Slides)
+        {
+            try
+            {
+                while (s.Comments.Count > 0)
+                {
+                    s.Comments[1].Delete();
+                    commentsDeleted++;
+                }
+            }
+            catch { /* comment API absent/odd on this slide — skip */ }
+        }
+    }
+
+    // (3d) Strip author + document metadata from the copy.
+    if (stripMetadata)
+    {
+        try
+        {
+            work.RemoveDocumentInformation(PpRemoveDocInfoType.ppRDIAll);
+            metaStripped = true;
+        }
+        catch
+        {
+            note = "Metadata removal is not supported by this PowerPoint version; the copy was made but author/document properties were left intact.";
+        }
+    }
+
+    // (4) Persist the sanitized copy and close it (it was opened headless).
+    work.Save();
+}
+finally
+{
+    try { if (work != null) work.Close(); } catch { }
+    pptApp.DisplayAlerts = prevAlerts;
+}
+
+// --- report ---------------------------------------------------------------
+Console.WriteLine($"__PPTPURGE__ STATUS=OK notes={notesCleared} comments={commentsDeleted} hidden={hiddenDeleted} meta={(metaStripped ? 1 : 0)}");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Deck sanitized");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source (untouched):** `{originalName}`");
+    Console.WriteLine($"- **Sanitized copy:** `{copyPath}`");
+    Console.WriteLine($"- **Speaker-note bodies cleared:** {(stripNotes ? notesCleared.ToString() : "(skipped)")}");
+    Console.WriteLine($"- **Comments deleted:** {(stripComments ? commentsDeleted.ToString() : "(skipped)")}");
+    Console.WriteLine($"- **Hidden slides deleted:** {(deleteHiddenSlides ? hiddenDeleted.ToString() : "(skipped)")}");
+    Console.WriteLine($"- **Author/document metadata stripped:** {(stripMetadata ? (metaStripped ? "yes" : "attempted (unsupported)") : "(skipped)")}");
+    if (!string.IsNullOrEmpty(note))
+    {
+        Console.WriteLine();
+        Console.WriteLine($"> {note}");
+    }
+}
+else
+{
+    Console.WriteLine("Deck sanitized");
+    Console.WriteLine($"  Source (untouched):    {originalName}");
+    Console.WriteLine($"  Sanitized copy:        {copyPath}");
+    Console.WriteLine($"  Note bodies cleared:   {(stripNotes ? notesCleared.ToString() : "(skipped)")}");
+    Console.WriteLine($"  Comments deleted:      {(stripComments ? commentsDeleted.ToString() : "(skipped)")}");
+    Console.WriteLine($"  Hidden slides deleted: {(deleteHiddenSlides ? hiddenDeleted.ToString() : "(skipped)")}");
+    Console.WriteLine($"  Metadata stripped:     {(stripMetadata ? (metaStripped ? "yes" : "attempted (unsupported)") : "(skipped)")}");
+    if (!string.IsNullOrEmpty(note))
+    {
+        Console.WriteLine($"  Note: {note}");
+    }
+}
+
+return 0;

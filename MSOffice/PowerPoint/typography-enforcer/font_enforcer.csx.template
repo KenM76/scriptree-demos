@@ -1,0 +1,578 @@
+// Global Typography Enforcer (PowerPoint) — generated from this template by
+// font_enforcer.py (Strategy A).  Globals: pptApp (Pp._Application, non-null),
+// pptPres (Pp.Presentation?, = ActivePresentation).  combridge swallows the
+// return value, so the first stdout line is a sentinel the shim parses; the
+// shim owns the exit code.  ScriptUsings imports
+// Microsoft.Office.Interop.PowerPoint and Microsoft.Office.Core.
+//
+// WHAT IT DOES — THREE PATHS, chosen by whether a template deck is supplied
+// -------------------------------------------------------------------------
+//   This tool has ONE original behaviour (manual) plus TWO new "read styles
+//   from a template deck" behaviours, selected like this:
+//
+//     fontTemplate == ""        -> MANUAL path (the original behaviour):
+//         Rewrites the font of every text RUN per `replacementMode`:
+//           * specific : runs whose Font.Name == sourceFont (case-insensitive)
+//                        are re-set to targetFont; everything else untouched.
+//           * all      : every run is re-set to targetFont.
+//         The NOTARGET / NOSOURCE precondition guards apply ONLY here.
+//
+//     fontTemplate != "" && templateMode == "theme"  -> TEMPLATE-THEME path:
+//         After SaveCopyAs + headless-open of the working copy, call
+//         work.ApplyTemplate(fontTemplate). This applies the template deck's
+//         WHOLE theme — fonts AND colours AND masters/layouts — to the copy.
+//         This is broader than typography (it is not a pure font sweep); it is
+//         the most reliable way to make a deck "look like" a corporate
+//         template. The per-run sweep is SKIPPED in this path.
+//
+//     fontTemplate != "" && templateMode == "fonts"  -> TEMPLATE-FONTS path:
+//         Read the template deck's theme MAJOR (heading) + MINOR (body) Latin
+//         fonts, then sweep the working copy routing every TITLE/SUBTITLE
+//         placeholder's text to the major font and ALL other text to the minor
+//         font. This is a pure typography change (colours/masters layout are
+//         left as they are in the copy except for font names). Symbol fonts are
+//         always preserved.
+//
+//   In ALL sweeping paths a hard-coded blocklist of symbol/icon fonts
+//   (Wingdings, Wingdings 2, Wingdings 3, Webdings, Symbol, Marlett) is ALWAYS
+//   skipped — those fonts map glyphs by codepoint, so reflowing them to a text
+//   font would corrupt the icons they draw.
+//
+// WHY PER-RUN (not per-TextRange)
+//   Setting Font.Name on a whole TextRange would clobber symbol runs and (in
+//   specific mode) non-matching runs.  A "run" is a maximal span of uniform
+//   character formatting, so per-run is the correct granularity: each run has a
+//   single Font.Name we can test and conditionally rewrite.  We walk runs by
+//   character offset (Runs(pos,1) returns the whole run overlapping char pos;
+//   advance pos by that run's Length) — this is indexing-robust and needs no
+//   assumption about a run-collection index base.  TextRange character
+//   positions are 1-based and RELATIVE to the range (PowerPoint convention).
+//
+// SAFETY MODEL — the open deck is NEVER mutated:
+//   1. SaveCopyAs writes a sibling <name>_Restyled.pptx (SaveCopyAs, unlike
+//      Word's SaveAs2, does NOT repoint the active presentation — the deck the
+//      user is looking at stays open and untouched).
+//   2. We then Open that copy headless (WithWindow=msoFalse) and rewrite fonts
+//      (or ApplyTemplate) ONLY there, save it, and close it.  Only the copy is
+//      ever changed.  The template deck (when supplied) is opened READ-ONLY and
+//      headless solely to read its theme font names, then closed immediately.
+
+// --- baked-in form values -------------------------------------------------
+string replacementMode = "__REPLACEMENT_MODE__";   // "specific" | "all" (manual path only)
+string sourceFont      = "__SOURCE_FONT__";        // only used when specific (manual path)
+string targetFont      = "__TARGET_FONT__";        // required in MANUAL path only
+bool   includeMasters  = __INCLUDE_MASTERS__;
+string outputFormat    = "__OUTPUT_FORMAT__";
+string fontTemplate    = "__FONT_TEMPLATE__";       // optional reference .pptx/.potx; empty => manual path
+string templateMode    = "__TEMPLATE_MODE__";       // "fonts" | "theme" (only relevant when fontTemplate set)
+
+// Which high-level path are we on?
+bool useTemplate = !string.IsNullOrWhiteSpace(fontTemplate);
+bool templateThemeMode = useTemplate &&
+    string.Equals(templateMode, "theme", StringComparison.OrdinalIgnoreCase);
+bool templateFontsMode = useTemplate && !templateThemeMode;   // default to "fonts"
+
+// --- precondition guards ---------------------------------------------------
+if (pptPres is null)
+{
+    Console.WriteLine("__PPTFONT__ STATUS=NODECK");
+    Console.WriteLine("No presentation is open in PowerPoint. Open the deck you want to restyle, then run again.");
+    return 0;
+}
+
+// In TEMPLATE mode the source/target font fields are not used, so the
+// NOTARGET / NOSOURCE guards apply ONLY to the MANUAL path.
+bool specific = string.Equals(replacementMode, "specific", StringComparison.OrdinalIgnoreCase);
+if (!useTemplate)
+{
+    if (string.IsNullOrWhiteSpace(targetFont))
+    {
+        Console.WriteLine("__PPTFONT__ STATUS=NOTARGET");
+        Console.WriteLine("No target font was given. Enter the font you want applied (e.g. Aptos, Arial, Calibri).");
+        return 0;
+    }
+
+    if (specific && string.IsNullOrWhiteSpace(sourceFont))
+    {
+        Console.WriteLine("__PPTFONT__ STATUS=NOSOURCE");
+        Console.WriteLine("Specific-font mode needs the font to replace. Enter the source font name, or switch to 'Replace ALL text fonts'.");
+        return 0;
+    }
+}
+
+// In TEMPLATE mode the named template deck must exist — fail EARLY, before any
+// copy is written. (Skips the NOTARGET/NOSOURCE guards above; those are manual-only.)
+if (useTemplate && !System.IO.File.Exists(fontTemplate))
+{
+    Console.WriteLine("__PPTFONT__ STATUS=BADTEMPLATE");
+    Console.WriteLine($"The font template deck was not found:\n  {fontTemplate}\nCheck the path (a .pptx or .potx), then run again — or clear the field to use the manual source/target font fields instead.");
+    return 0;
+}
+
+string originalName = pptPres.Name;
+string dir = pptPres.Path; // "" for a never-saved presentation
+if (string.IsNullOrEmpty(dir))
+{
+    Console.WriteLine("__PPTFONT__ STATUS=UNSAVED");
+    Console.WriteLine("This presentation has never been saved, so there is no folder to put the restyled copy in. Save the deck once (Ctrl+S), then run again.");
+    return 0;
+}
+
+string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+string copyPath = System.IO.Path.Combine(dir, baseName + "_Restyled.pptx");
+
+// Symbol/icon fonts are ALWAYS preserved (case-insensitive match).
+var symbolFonts = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "Wingdings", "Wingdings 2", "Wingdings 3", "Webdings", "Symbol", "Marlett"
+};
+bool IsSymbolFont(string name) => !string.IsNullOrEmpty(name) && symbolFonts.Contains(name);
+
+// Counters (closed over by the sweep helpers below).
+int runsChanged    = 0;
+int slidesVisited  = 0;
+int mastersVisited = 0;
+int layoutsVisited = 0;
+int smartArtSkipped = 0;
+
+// ===========================================================================
+// MANUAL-path helpers (UNCHANGED behaviour — used only when fontTemplate is "")
+// ===========================================================================
+
+// --- core: rewrite the fonts of one TextFrame's runs (MANUAL path) ---------
+void SweepTextFrame(TextFrame tf)
+{
+    if (tf == null) return;
+    try
+    {
+        if (tf.HasText != MsoTriState.msoTrue) return;
+        TextRange tr = tf.TextRange;
+        int len = tr.Length;
+        if (len <= 0) return;
+
+        int pos = 1;            // 1-based, relative to this TextRange
+        int guard = 0;          // belt-and-suspenders against a 0-length run
+        while (pos <= len && guard <= len)
+        {
+            guard++;
+            TextRange run;
+            try { run = tr.Runs(pos, 1); }   // whole run overlapping char `pos`
+            catch { break; }
+            int rlen = run.Length;
+            if (rlen <= 0) { pos++; continue; }
+
+            try
+            {
+                string fn = run.Font.Name;
+                if (!IsSymbolFont(fn))
+                {
+                    if (specific)
+                    {
+                        if (string.Equals(fn, sourceFont, StringComparison.OrdinalIgnoreCase))
+                        {
+                            run.Font.Name = targetFont;
+                            runsChanged++;
+                        }
+                    }
+                    else // all
+                    {
+                        if (!string.Equals(fn, targetFont, StringComparison.OrdinalIgnoreCase))
+                        {
+                            run.Font.Name = targetFont;
+                            runsChanged++;
+                        }
+                    }
+                }
+            }
+            catch { /* a run we can't read/set — leave it, keep going */ }
+
+            pos += rlen;
+        }
+    }
+    catch { /* TextFrame that throws on HasText/TextRange — skip it */ }
+}
+
+// --- recurse over a shape (MANUAL path: groups, tables, plain text shapes) --
+void SweepShape(Shape sh)
+{
+    if (sh == null) return;
+    try
+    {
+        // Groups: recurse into members (a group has no TextFrame of its own).
+        if (sh.Type == MsoShapeType.msoGroup)
+        {
+            foreach (Shape child in sh.GroupItems) SweepShape(child);
+            return;
+        }
+
+        // Tables: each cell owns a Shape with a TextFrame.
+        if (sh.HasTable == MsoTriState.msoTrue)
+        {
+            Table tbl = sh.Table;
+            for (int r = 1; r <= tbl.Rows.Count; r++)
+                for (int c = 1; c <= tbl.Columns.Count; c++)
+                {
+                    try { SweepTextFrame(tbl.Cell(r, c).Shape.TextFrame); }
+                    catch { /* odd/merged cell — skip */ }
+                }
+            return;
+        }
+
+        // SmartArt — DEFERRED (v2). The SmartArt text API (Shape.SmartArt
+        // .AllNodes via TextFrame2) is erratic over COM across M365 patch
+        // levels, so we count it as skipped rather than risk a throw/corrupt.
+        if (sh.Type == MsoShapeType.msoSmartArt)
+        {
+            smartArtSkipped++;
+            return;
+        }
+
+        // Plain text-bearing shapes (titles, bodies, text boxes, autoshapes).
+        if (sh.HasTextFrame == MsoTriState.msoTrue)
+            SweepTextFrame(sh.TextFrame);
+    }
+    catch { /* a shape that throws on any probe — skip it, never abort */ }
+}
+
+void SweepShapes(Shapes shapes)
+{
+    if (shapes == null) return;
+    foreach (Shape sh in shapes) SweepShape(sh);
+}
+
+// ===========================================================================
+// TEMPLATE-FONTS-path helpers (NEW — kept SEPARATE so the manual sweep above is
+// never touched).  Routes title/subtitle placeholders -> headingFont and every
+// other run -> bodyFont, preserving symbol fonts.
+// ===========================================================================
+
+// Set EVERY non-symbol run in this TextFrame to `font`.
+void SweepTextFrameTo(TextFrame tf, string font)
+{
+    if (tf == null || string.IsNullOrEmpty(font)) return;
+    try
+    {
+        if (tf.HasText != MsoTriState.msoTrue) return;
+        TextRange tr = tf.TextRange;
+        int len = tr.Length;
+        if (len <= 0) return;
+
+        int pos = 1;
+        int guard = 0;
+        while (pos <= len && guard <= len)
+        {
+            guard++;
+            TextRange run;
+            try { run = tr.Runs(pos, 1); }
+            catch { break; }
+            int rlen = run.Length;
+            if (rlen <= 0) { pos++; continue; }
+
+            try
+            {
+                string fn = run.Font.Name;
+                if (!IsSymbolFont(fn) &&
+                    !string.Equals(fn, font, StringComparison.OrdinalIgnoreCase))
+                {
+                    run.Font.Name = font;
+                    runsChanged++;
+                }
+            }
+            catch { /* a run we can't read/set — leave it, keep going */ }
+
+            pos += rlen;
+        }
+    }
+    catch { /* TextFrame that throws — skip it */ }
+}
+
+// Is this shape a TITLE / CENTER-TITLE / SUBTITLE placeholder? (theme MAJOR font
+// targets.)  Non-placeholder shapes throw on .PlaceholderFormat, so the access
+// is wrapped: any throw means "not a title placeholder" -> route to body.
+bool IsTitlePlaceholder(Shape sh)
+{
+    try
+    {
+        if (sh.Type != MsoShapeType.msoPlaceholder) return false;
+        PpPlaceholderType t = sh.PlaceholderFormat.Type;
+        return t == PpPlaceholderType.ppPlaceholderTitle        // 13
+            || t == PpPlaceholderType.ppPlaceholderCenterTitle  // 11
+            || t == PpPlaceholderType.ppPlaceholderSubtitle;    // 4
+    }
+    catch { return false; }
+}
+
+// Recurse over a shape choosing heading vs body font (TEMPLATE-FONTS path).
+void SweepShapeTemplate(Shape sh, string bodyFont, string headingFont)
+{
+    if (sh == null) return;
+    try
+    {
+        // Groups: recurse into members. Group members aren't title placeholders
+        // in their own right, so members route to the body font.
+        if (sh.Type == MsoShapeType.msoGroup)
+        {
+            foreach (Shape child in sh.GroupItems)
+                SweepShapeTemplate(child, bodyFont, bodyFont);
+            return;
+        }
+
+        // Tables: every cell is body text.
+        if (sh.HasTable == MsoTriState.msoTrue)
+        {
+            Table tbl = sh.Table;
+            for (int r = 1; r <= tbl.Rows.Count; r++)
+                for (int c = 1; c <= tbl.Columns.Count; c++)
+                {
+                    try { SweepTextFrameTo(tbl.Cell(r, c).Shape.TextFrame, bodyFont); }
+                    catch { /* odd/merged cell — skip */ }
+                }
+            return;
+        }
+
+        // SmartArt — DEFERRED, same as the manual path.
+        if (sh.Type == MsoShapeType.msoSmartArt)
+        {
+            smartArtSkipped++;
+            return;
+        }
+
+        // Plain text shapes: title/subtitle placeholders take the heading font;
+        // everything else takes the body font.
+        if (sh.HasTextFrame == MsoTriState.msoTrue)
+        {
+            string font = IsTitlePlaceholder(sh) ? headingFont : bodyFont;
+            SweepTextFrameTo(sh.TextFrame, font);
+        }
+    }
+    catch { /* a shape that throws on any probe — skip it, never abort */ }
+}
+
+void SweepShapesTemplate(Shapes shapes, string bodyFont, string headingFont)
+{
+    if (shapes == null) return;
+    foreach (Shape sh in shapes) SweepShapeTemplate(sh, bodyFont, headingFont);
+}
+
+// ===========================================================================
+// TEMPLATE-FONTS: read the template deck's theme MAJOR/MINOR Latin fonts.
+// Returns true on success (names non-blank), false otherwise (-> NOTHEME).
+// The template deck is opened READ-ONLY headless purely to read the names, then
+// closed immediately (we never edit it).  msoThemeLatin == 1.
+// ===========================================================================
+string majorFont = "";
+string minorFont = "";
+bool ReadTemplateThemeFonts()
+{
+    Presentation tpl = null;
+    try
+    {
+        tpl = pptApp.Presentations.Open(
+            fontTemplate,
+            MsoTriState.msoTrue,    // ReadOnly  = yes
+            MsoTriState.msoFalse,   // Untitled  = no
+            MsoTriState.msoFalse);  // WithWindow = no (headless)
+
+        try
+        {
+            var fs = tpl.SlideMaster.Theme.ThemeFontScheme;
+            // msoThemeLatin == 1 (MsoFontLanguageIndex). Cast the int to the enum.
+            majorFont = fs.MajorFont[(MsoFontLanguageIndex)1].Name;
+            minorFont = fs.MinorFont[(MsoFontLanguageIndex)1].Name;
+        }
+        catch { majorFont = ""; minorFont = ""; }
+    }
+    catch { majorFont = ""; minorFont = ""; }
+    finally
+    {
+        try { if (tpl != null) tpl.Close(); } catch { }
+    }
+    return !string.IsNullOrWhiteSpace(majorFont) && !string.IsNullOrWhiteSpace(minorFont);
+}
+
+// In TEMPLATE-FONTS mode, read the theme fonts BEFORE writing any copy so that
+// an unreadable theme fails as NOTHEME without leaving a stray _Restyled file.
+if (templateFontsMode)
+{
+    if (!ReadTemplateThemeFonts())
+    {
+        Console.WriteLine("__PPTFONT__ STATUS=NOTHEME");
+        Console.WriteLine("The template deck's theme fonts (heading + body) could not be read. Try \"Apply the full template theme\" mode instead, or clear the template field and enter the fonts manually.");
+        return 0;
+    }
+}
+
+// Hidden/headless COM instances hang on modal prompts (overwrite, etc.).
+var prevAlerts = pptApp.DisplayAlerts;
+pptApp.DisplayAlerts = PpAlertLevel.ppAlertsNone;
+
+string runPath;   // which behaviour actually ran (for the report)
+Presentation work = null;
+try
+{
+    // (1) Write the restyled copy next to the original. SaveCopyAs leaves the
+    //     active presentation (pptPres) open and pointed at the original file.
+    pptPres.SaveCopyAs(copyPath, PpSaveAsFileType.ppSaveAsOpenXMLPresentation);
+
+    // (2) Open the copy headless so every edit below lands ONLY on the copy.
+    work = pptApp.Presentations.Open(
+        copyPath,
+        MsoTriState.msoFalse,   // ReadOnly  = no
+        MsoTriState.msoFalse,   // Untitled  = no (keep the saved path)
+        MsoTriState.msoFalse);  // WithWindow = no (headless)
+
+    if (templateThemeMode)
+    {
+        // TEMPLATE-THEME path: apply the template deck's WHOLE theme to the copy
+        // (fonts + colours + masters/layouts). This is broader than a font sweep.
+        // We do NOT sweep runs here.
+        runPath = "template-theme";
+        work.ApplyTemplate(fontTemplate);
+    }
+    else if (templateFontsMode)
+    {
+        // TEMPLATE-FONTS path: route titles/subtitles -> majorFont, all other
+        // text -> minorFont, preserving symbol fonts.
+        runPath = "template-fonts";
+
+        foreach (Slide s in work.Slides)
+        {
+            try { SweepShapesTemplate(s.Shapes, minorFont, majorFont); slidesVisited++; }
+            catch { /* a slide that throws on .Shapes — skip it */ }
+        }
+
+        if (includeMasters)
+        {
+            foreach (Design d in work.Designs)
+            {
+                try
+                {
+                    SweepShapesTemplate(d.SlideMaster.Shapes, minorFont, majorFont);
+                    mastersVisited++;
+                    foreach (CustomLayout cl in d.SlideMaster.CustomLayouts)
+                    {
+                        try { SweepShapesTemplate(cl.Shapes, minorFont, majorFont); layoutsVisited++; }
+                        catch { /* a layout that throws — skip it */ }
+                    }
+                }
+                catch { /* a design/master that throws — skip it */ }
+            }
+        }
+    }
+    else
+    {
+        // MANUAL path (UNCHANGED): the original specific/all per-run sweep.
+        runPath = "manual";
+
+        // (3) Sweep every normal slide.
+        foreach (Slide s in work.Slides)
+        {
+            try { SweepShapes(s.Shapes); slidesVisited++; }
+            catch { /* a slide that throws on .Shapes — skip it */ }
+        }
+
+        // (4) Optionally sweep Slide Masters + their Custom Layouts. This is
+        //     important: text on a master/layout (e.g. the title style) keeps its
+        //     old font otherwise, and any NEW slide added later inherits it — the
+        //     deck would silently "revert". We iterate every Design so multi-master
+        //     decks are fully covered.
+        if (includeMasters)
+        {
+            foreach (Design d in work.Designs)
+            {
+                try
+                {
+                    SweepShapes(d.SlideMaster.Shapes);
+                    mastersVisited++;
+                    foreach (CustomLayout cl in d.SlideMaster.CustomLayouts)
+                    {
+                        try { SweepShapes(cl.Shapes); layoutsVisited++; }
+                        catch { /* a layout that throws — skip it */ }
+                    }
+                }
+                catch { /* a design/master that throws — skip it */ }
+            }
+        }
+    }
+
+    // (5) Persist the restyled copy and close it (it was opened headless).
+    work.Save();
+}
+finally
+{
+    try { if (work != null) work.Close(); } catch { }
+    pptApp.DisplayAlerts = prevAlerts;
+}
+
+// --- report ----------------------------------------------------------------
+Console.WriteLine($"__PPTFONT__ STATUS=OK path={runPath} changed={runsChanged} slides={slidesVisited} masters={mastersVisited} layouts={layoutsVisited} smartart_skipped={smartArtSkipped}");
+
+// Human-readable description of what ran.
+string modeLabel;
+if (runPath == "template-theme")
+    modeLabel = $"applied the full theme of template \"{System.IO.Path.GetFileName(fontTemplate)}\" (fonts + colours + masters)";
+else if (runPath == "template-fonts")
+    modeLabel = $"applied template theme fonts — headings/titles → \"{majorFont}\", body → \"{minorFont}\"";
+else
+    modeLabel = specific ? $"replaced \"{sourceFont}\" with \"{targetFont}\"" : $"set every text run to \"{targetFont}\"";
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Typography enforced");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source (untouched):** `{originalName}`");
+    Console.WriteLine($"- **Restyled copy:** `{copyPath}`");
+    Console.WriteLine($"- **Mode:** {modeLabel}");
+    if (runPath == "template-theme")
+    {
+        Console.WriteLine($"- **Applied from template:** `{fontTemplate}`");
+        Console.WriteLine($"- **Note:** the FULL theme was applied (fonts, colours, masters/layouts) — this is broader than a typography-only change.");
+    }
+    else
+    {
+        if (runPath == "template-fonts")
+        {
+            Console.WriteLine($"- **Template (read-only):** `{fontTemplate}`");
+            Console.WriteLine($"- **Heading/title font:** `{majorFont}`");
+            Console.WriteLine($"- **Body font:** `{minorFont}`");
+        }
+        Console.WriteLine($"- **Text runs changed:** {runsChanged}");
+        Console.WriteLine($"- **Slides swept:** {slidesVisited}");
+        Console.WriteLine($"- **Masters / layouts swept:** {(includeMasters ? $"{mastersVisited} / {layoutsVisited}" : "(skipped)")}");
+        Console.WriteLine($"- **SmartArt shapes skipped (unsupported):** {smartArtSkipped}");
+    }
+    Console.WriteLine($"- **Symbol/icon fonts preserved:** Wingdings, Wingdings 2/3, Webdings, Symbol, Marlett");
+    if (smartArtSkipped > 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine("> Some SmartArt graphics were left as-is — PowerPoint's SmartArt text API is not safely scriptable. Re-apply the font to those by hand if needed.");
+    }
+}
+else
+{
+    Console.WriteLine("Typography enforced");
+    Console.WriteLine($"  Source (untouched):  {originalName}");
+    Console.WriteLine($"  Restyled copy:       {copyPath}");
+    Console.WriteLine($"  Mode:                {modeLabel}");
+    if (runPath == "template-theme")
+    {
+        Console.WriteLine($"  Applied from:        {fontTemplate}");
+        Console.WriteLine($"  Note:                FULL theme applied (fonts + colours + masters) — broader than typography.");
+    }
+    else
+    {
+        if (runPath == "template-fonts")
+        {
+            Console.WriteLine($"  Template (readonly): {fontTemplate}");
+            Console.WriteLine($"  Heading/title font:  {majorFont}");
+            Console.WriteLine($"  Body font:           {minorFont}");
+        }
+        Console.WriteLine($"  Text runs changed:   {runsChanged}");
+        Console.WriteLine($"  Slides swept:        {slidesVisited}");
+        Console.WriteLine($"  Masters/layouts:     {(includeMasters ? $"{mastersVisited} / {layoutsVisited}" : "(skipped)")}");
+        Console.WriteLine($"  SmartArt skipped:    {smartArtSkipped}");
+    }
+    Console.WriteLine($"  Symbol fonts kept:   Wingdings, Wingdings 2/3, Webdings, Symbol, Marlett");
+}
+
+return 0;
