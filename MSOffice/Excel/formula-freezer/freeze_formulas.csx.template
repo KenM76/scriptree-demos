@@ -1,0 +1,281 @@
+// =============================================================================
+// Formula-to-Value Freezer (Excel) — C# Roslyn script TEMPLATE
+// =============================================================================
+// This file is NOT run directly. freeze_formulas.py (the Strategy-A shim) reads
+// it, replaces every __PLACEHOLDER__ token with a validated, C#-escaped form
+// value, writes the result to a temp .csx, and runs it via:
+//     combridge.exe excel run-script <temp.csx> -
+//
+// combridge injects these globals before running the script (Excel plugin):
+//     Excel._Application xlApp    — the running Excel instance (never null)
+//     Excel.Workbook?    xlBook   — the active workbook (null if none open)
+//     Excel.Worksheet?   xlSheet  — the active worksheet (null if none)
+// The namespace Microsoft.Office.Interop.Excel is already imported (ScriptUsings).
+//
+// Roslyn-script rules honored here:
+//   * top-level statements only (no Main wrapper);
+//   * NO `using var x = ...` declaration form;
+//   * `dynamic` is available; Console.Out/Error are redirected to the bridge.
+//
+// OUTPUT CONTRACT: the FIRST line printed is the sentinel
+//     __XLFREEZE__ STATUS=<code> [frozen=N] [sheets=N] [copy=0/1]
+// which the shim parses to decide the process exit code. Everything after the
+// sentinel line is the human-readable report. combridge ignores `return`, so
+// the sentinel is the only channel that carries status back to the shim.
+//
+// WHAT "FREEZING" MEANS (the crux of the algorithm):
+//   For each target worksheet we take its UsedRange and assign its Value2 back
+//   to itself:  ur.Value2 = ur.Value2;
+//   Reading Value2 returns the CURRENT calculated constants (numbers/strings/
+//   booleans/errors), with NO formulas attached. Writing those constants back
+//   overwrites the formula cells with the constants — the formulas are gone but
+//   every displayed value is identical, and NumberFormat is untouched (Value2
+//   carries values only, never formatting), so dates/currency still display
+//   correctly. (We use Value2 rather than Value so that currency/date cells come
+//   back as raw doubles, not Currency/DateTime COM variants — assigning Value2
+//   round-trips cleanly and the existing NumberFormat keeps the display.)
+// =============================================================================
+
+// combridge auto-imports Microsoft.Office.Interop.Excel, so a bare `Range`
+// collides with System.Range (CS0104) and the `Excel.` prefix is NOT a valid
+// alias in a script. Alias the interop namespace to `Xl` (NOT `Excel` — that
+// shadows the plugin's own namespace) and qualify Office types as Xl.*.
+// See combridge LLM/scripting.md.
+using Xl = global::Microsoft.Office.Interop.Excel;
+
+// ---- baked-in form values (substituted by the shim) ------------------------
+string scope        = "__SCOPE__";        // "all_sheets" | "active_sheet"
+bool   workOnCopy   = __WORK_ON_COPY__;    // true = freeze a saved <name>_Frozen.xlsx copy; false = freeze open book in place (unsaved)
+string outputFormat = "__OUTPUT_FORMAT__"; // "markdown" | "text"
+
+// ---- precondition: a workbook must be open ---------------------------------
+if (xlBook is null)
+{
+    Console.WriteLine("__XLFREEZE__ STATUS=NOBOOK");
+    Console.WriteLine("No workbook is open in Excel. Open the workbook whose formulas you want to freeze, then run again.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 1 — choose the target worksheets per the scope.
+// =============================================================================
+// We resolve the target sheet list against the OPEN workbook (xlBook) first so
+// the protection guard (step 2) reports the names the user recognises. In copy
+// mode the actual freeze later runs over the *copy's* sheets (same names, same
+// order) — SaveCopyAs produces a byte-identical workbook, so the target set is
+// equivalent.
+var targetNames = new System.Collections.Generic.List<string>();
+if (scope == "active_sheet")
+{
+    // The active sheet of the OPEN workbook. xlSheet is the app's active sheet;
+    // fall back to xlBook.ActiveSheet to be safe if they ever differ.
+    Worksheet act = (xlSheet as Worksheet) ?? (xlBook.ActiveSheet as Worksheet);
+    if (act != null) targetNames.Add(act.Name);
+}
+else // all_sheets
+{
+    foreach (Worksheet ws in xlBook.Worksheets) targetNames.Add(ws.Name);
+}
+
+if (targetNames.Count == 0)
+{
+    // No worksheet at all (e.g. only chart sheets) — nothing to freeze.
+    Console.WriteLine("__XLFREEZE__ STATUS=OK frozen=0 sheets=0 copy=" + (workOnCopy ? "1" : "0"));
+    Console.WriteLine("No worksheets were found to process.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 2 — PROTECTION GUARD. Freezing writes cells; a protected sheet rejects
+// the write and would throw mid-run, possibly after partial changes. So we
+// enumerate the targets up front and ABORT (before any mutation) if any target
+// has ProtectContents == true. We name the first such sheet so the user knows
+// exactly what to unprotect.
+// =============================================================================
+foreach (Worksheet ws in xlBook.Worksheets)
+{
+    if (!targetNames.Contains(ws.Name)) continue;
+    bool isProtected = false;
+    try { isProtected = ws.ProtectContents; } catch { isProtected = false; }
+    if (isProtected)
+    {
+        Console.WriteLine("__XLFREEZE__ STATUS=PROTECTED");
+        Console.WriteLine($"The worksheet '{ws.Name}' is protected, so its formula cells cannot be overwritten with values. Unprotect that sheet (Review > Unprotect Sheet) and run again. No changes were made.");
+        return 0;
+    }
+}
+
+// =============================================================================
+// STEP 3 — decide WHICH workbook we operate on (copy-mode safety).
+// =============================================================================
+// work = the workbook whose formulas we actually freeze.
+//   * copy mode  : SaveCopyAs a sibling <name>_Frozen.xlsx, then open THAT copy
+//                  headless and freeze it; the user's original xlBook is never
+//                  touched. Requires the original to have been saved (so there
+//                  is a folder to put the copy in) -> else STATUS=UNSAVED.
+//   * in-place   : freeze xlBook itself; leave it OPEN and UNSAVED for review.
+Workbook work;
+string frozenPath = "";
+bool prevAlerts = xlApp.DisplayAlerts; // DisplayAlerts is a BOOL on Excel
+
+if (workOnCopy)
+{
+    string dir = xlBook.Path; // "" for a never-saved workbook
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__XLFREEZE__ STATUS=UNSAVED");
+        Console.WriteLine("'Work on a copy' is on, but this workbook has never been saved, so there is no folder to put the frozen copy in. Save the workbook once (Ctrl+S), then run again — or untick 'Work on a copy' to freeze the open workbook in memory (it will be left open and unsaved for you to review).");
+        return 0;
+    }
+    // Build <dir>/<base>_Frozen.xlsx. We force the .xlsx extension (the frozen
+    // deliverable is a plain values workbook; .xlsx is the right modern target
+    // regardless of the original's .xls/.xlsm extension), mirroring the
+    // filename handling used elsewhere in the catalog.
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(xlBook.Name);
+    frozenPath = System.IO.Path.Combine(dir, baseName + "_Frozen.xlsx");
+
+    xlApp.DisplayAlerts = false; // suppress modal "overwrite?" / compatibility prompts on a hidden instance
+    try
+    {
+        // SaveCopyAs writes a byte-identical copy WITHOUT changing xlBook's own
+        // path or dirty/clean state (the user's open book is left exactly as is).
+        xlBook.SaveCopyAs(frozenPath);
+        // Open that copy to operate on. It opens in the same Excel instance; it
+        // becomes the active workbook for the duration, which is fine — we close
+        // it again at the end and the original is re-activated.
+        work = xlApp.Workbooks.Open(frozenPath);
+    }
+    catch
+    {
+        xlApp.DisplayAlerts = prevAlerts;
+        throw; // surfaces as combridge exit 4 (unhandled throw); shim passes it through
+    }
+}
+else
+{
+    // In-place: operate on the open workbook. We never Save it here.
+    work = xlBook;
+}
+
+// =============================================================================
+// STEP 4 — freeze formulas on each target sheet of `work`.
+// =============================================================================
+// For each target sheet:
+//   * count its formula cells (for the report) via
+//     UsedRange.SpecialCells(xlCellTypeFormulas) — which THROWS when the sheet
+//     has no formulas at all, so we wrap it in try/catch and treat the throw as
+//     "zero formula cells";
+//   * strip the formulas by reassigning the constant values back onto the range:
+//     ur.Value2 = ur.Value2;  (writes constants, removes formulas, keeps the
+//     existing NumberFormat so dates/currency still display correctly).
+// Guard the single-cell scalar case: a one-cell UsedRange returns a scalar from
+// Value2 (not an array); assigning a scalar back is still valid and freezes it.
+long formulaCount = 0;
+int  sheetsProcessed = 0;
+var  perSheet = new System.Collections.Generic.List<(string sheet, long formulas, long cells)>();
+
+try
+{
+    foreach (Worksheet ws in work.Worksheets)
+    {
+        if (!targetNames.Contains(ws.Name)) continue;
+        sheetsProcessed++;
+
+        Xl.Range ur = ws.UsedRange;
+        if (ur is null) { perSheet.Add((ws.Name, 0, 0)); continue; }
+
+        long cellCount = 0;
+        try { cellCount = ur.Count; } catch { cellCount = 0; }
+
+        // Count formula cells (report only). SpecialCells throws "No cells were
+        // found" when the range contains no formulas — catch => zero.
+        long fcells = 0;
+        try
+        {
+            Xl.Range formulaCells = ur.SpecialCells(Xl.XlCellType.xlCellTypeFormulas);
+            fcells = formulaCells.Count;
+        }
+        catch { fcells = 0; }
+        formulaCount += fcells;
+
+        // The freeze itself. Even on sheets with zero formulas this is a harmless
+        // value round-trip; restricting it to formula-bearing sheets is a possible
+        // optimisation but the simple, uniform write is robust and keeps the
+        // single-cell scalar path trivially correct.
+        try
+        {
+            object vals = ur.Value2;     // current constants (no formulas)
+            ur.Value2 = vals;            // write them back -> formulas gone, formats kept
+        }
+        catch { /* a sheet that refuses the write is left as-is; should not happen post-guard */ }
+
+        perSheet.Add((ws.Name, fcells, cellCount));
+    }
+
+    // =============================================================================
+    // STEP 5 — copy mode: save + close the frozen deliverable; restore alerts.
+    // =============================================================================
+    if (workOnCopy)
+    {
+        work.Save();        // persist the now-frozen copy to <name>_Frozen.xlsx
+        work.Close(false);  // close without further save prompts; user's original stays open
+    }
+}
+finally
+{
+    // Restore whatever DisplayAlerts was before we touched it (only changed in
+    // copy mode, but harmless to assign back unconditionally).
+    xlApp.DisplayAlerts = prevAlerts;
+}
+
+// =============================================================================
+// STEP 6 — emit the sentinel + the human-readable report.
+// =============================================================================
+string bookName = xlBook.Name; // report against the ORIGINAL workbook's name
+Console.WriteLine($"__XLFREEZE__ STATUS=OK frozen={formulaCount} sheets={sheetsProcessed} copy=" + (workOnCopy ? "1" : "0"));
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Formulas frozen to values");
+    Console.WriteLine();
+    Console.WriteLine($"- **Workbook:** {bookName}");
+    Console.WriteLine($"- **Scope:** " + (scope == "active_sheet" ? "active sheet only" : "all worksheets"));
+    Console.WriteLine($"- **Worksheets processed:** {sheetsProcessed}");
+    Console.WriteLine($"- **Formula cells converted to values:** {formulaCount}");
+    if (workOnCopy)
+        Console.WriteLine($"- **Frozen copy saved to:** `{frozenPath}`");
+    else
+        Console.WriteLine($"- **Mode:** in place (the open workbook was frozen in memory)");
+    Console.WriteLine();
+    Console.WriteLine("| Sheet | Formula cells frozen | Cells in used range |");
+    Console.WriteLine("|---|---:|---:|");
+    foreach (var row in perSheet)
+        Console.WriteLine($"| {row.sheet} | {row.formulas} | {row.cells} |");
+    Console.WriteLine();
+    if (workOnCopy)
+        Console.WriteLine("> The frozen copy was SAVED to disk and closed. Your original workbook is still OPEN and UNTOUCHED (its live formulas are intact).");
+    else
+        Console.WriteLine("> The open workbook was frozen IN MEMORY and left UNSAVED — review it in Excel, then save (or press Ctrl+Z to undo) yourself. Your file on disk has NOT been changed.");
+}
+else
+{
+    Console.WriteLine("Formulas frozen to values");
+    Console.WriteLine($"  Workbook:            {bookName}");
+    Console.WriteLine($"  Scope:               " + (scope == "active_sheet" ? "active sheet only" : "all worksheets"));
+    Console.WriteLine($"  Worksheets processed: {sheetsProcessed}");
+    Console.WriteLine($"  Formula cells frozen: {formulaCount}");
+    if (workOnCopy)
+        Console.WriteLine($"  Frozen copy saved:   {frozenPath}");
+    else
+        Console.WriteLine($"  Mode:                in place (open workbook frozen in memory)");
+    Console.WriteLine();
+    foreach (var row in perSheet)
+        Console.WriteLine($"  - {row.sheet}  (formulas frozen={row.formulas}, used cells={row.cells})");
+    Console.WriteLine();
+    if (workOnCopy)
+        Console.WriteLine("  The frozen copy was SAVED and closed. Your original workbook is still OPEN and UNTOUCHED.");
+    else
+        Console.WriteLine("  The open workbook was frozen IN MEMORY and left UNSAVED — review it, then save (or Ctrl+Z) yourself. Your file on disk is unchanged.");
+}
+
+return 0;

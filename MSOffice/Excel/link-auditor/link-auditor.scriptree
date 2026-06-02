@@ -1,0 +1,76 @@
+{
+  "schema_version": 3,
+  "name": "Broken External Link Auditor",
+  "description": "Audits the external workbook links of the Excel workbook that is currently open and active. For every link source it reports OK (the source file exists), BROKEN (the source file is missing), URL (a web/DDE link that isn't checked on disk), or OFFLINE (the source lives on a drive/share you flagged as currently unavailable, so it is reported without forcing a slow filesystem timeout).\n\nRead-only: this tool never modifies the workbook. Open the workbook you want to audit in Excel first, then Run.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and a running Excel instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "link_auditor.py",
+    [
+      "--report-mode",
+      "{report_mode}"
+    ],
+    [
+      "--offline-drives",
+      "{offline_drives}"
+    ],
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "report_mode",
+      "label": "Report",
+      "description": "Which links to list. 'Broken / offline only' shows just the problems (the default \u2014 what you usually want). 'All external links' lists every external link with its status, useful for a full inventory.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "broken",
+      "choices": [
+        "broken",
+        "all"
+      ],
+      "choice_labels": [
+        "Broken / offline only",
+        "All external links"
+      ]
+    },
+    {
+      "id": "offline_drives",
+      "label": "Offline drives / shares (optional)",
+      "description": "Comma-separated list of drive letters or UNC prefixes that are currently disconnected (e.g. 'X:, \\\\\\\\nas\\\\archive'). Any link source whose path starts with one of these is reported as OFFLINE instead of BROKEN, and is NOT probed on disk \u2014 this avoids a long filesystem timeout when a mapped drive or server is unreachable. Leave blank to probe every link normally.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": ""
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the report is rendered in the output pane. 'Markdown table' is easy to paste into notes or a ticket; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown table",
+        "Plain text"
+      ]
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Excel"
+}

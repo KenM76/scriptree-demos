@@ -1,0 +1,72 @@
+{
+  "schema_version": 3,
+  "name": "Slide Deck Slimmer (PowerPoint)",
+  "description": "Reduces the SAVED FILE SIZE of the open PowerPoint deck by removing UNUSED custom slide layouts \u2014 and, optionally, any design/master left with no layouts in use. Template-heavy decks carry many layouts no slide uses, and each unused layout can drag along its own background images and logos, bloating the file.\n\nBy default the tool works on a COPY: it saves a sibling file named '<name>_Slimmed.pptx' in the same folder and does all editing there, leaving your open deck untouched. Untick 'Work on a copy' to slim the open deck in place (it is left open and UNSAVED for you to review).\n\nIMPORTANT: this tool does NOT recompress images or media. PowerPoint exposes picture recompression only through an interactive 'Compress Pictures' dialog that cannot be driven automatically, so no image recompression is performed \u2014 the size reduction comes solely from removing unused layouts (and empty designs/masters). It is conservative: a layout is deleted only when no slide uses it, the last layout of a master is always kept, and on any uncertainty the layout is kept.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and the target deck already open in a running PowerPoint instance (saved at least once if you keep 'Work on a copy' on).",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "slim_deck.py",
+    "{remove_unused_layouts?--remove-unused-layouts}",
+    "{remove_empty_masters?--remove-empty-masters}",
+    "{work_on_copy?--work-on-copy}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "remove_unused_layouts",
+      "label": "Remove unused custom layouts",
+      "description": "Delete every custom slide layout that no slide uses. This is the main slimming action \u2014 unused layouts often carry background images and logos that bloat the file. Conservative: a layout is removed only when no slide demonstrably uses it, the last remaining layout of a master is always kept, and on any uncertainty the layout is kept.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "id": "remove_empty_masters",
+      "label": "Also remove empty designs / slide masters",
+      "description": "OPT-IN, more aggressive. After the layout purge, delete any design (slide master) that has zero layouts left AND that no slide uses. Off by default. The last remaining design is always kept.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false
+    },
+    {
+      "id": "work_on_copy",
+      "label": "Work on a copy (leave my open deck untouched)",
+      "description": "ON (recommended): save a sibling '<name>_Slimmed.pptx' and do all editing on that copy \u2014 your open deck is never modified. Requires the deck to have been saved at least once. OFF: slim the open deck in place; it is left open and UNSAVED so you can review and decide whether to keep the changes.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ]
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/PowerPoint"
+}

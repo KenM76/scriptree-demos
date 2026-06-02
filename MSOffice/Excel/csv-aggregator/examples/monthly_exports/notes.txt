@@ -1,0 +1,4 @@
+Region	Manager	Target
+East	Alice	10000
+West	Bob	9000
+North	Carol	8500

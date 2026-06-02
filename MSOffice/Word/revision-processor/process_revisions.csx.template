@@ -1,0 +1,182 @@
+// Tracked-Changes Processing Master (Word) — generated from this template by
+// process_revisions.py (Strategy A).  Globals: wdApp (Wd._Application),
+// wdDoc (Wd.Document?).  combridge swallows the return value, so the first
+// stdout line is a sentinel the shim parses; the shim owns the exit code.
+// ScriptUsings already imports Microsoft.Office.Interop.Word.
+//
+// WHAT THIS SCRIPT DOES (the logic, end to end)
+// ---------------------------------------------
+// This tool TARGETS documents that HAVE tracked changes (revisions) and
+// clears them in one pass — the INVERSE of the Style Sanitizer, which refuses
+// to touch a revision-bearing document. Use it to finalise a reviewed
+// document's revision history before sending it out.
+//
+//   1. If no document is open -> sentinel NODOC, exit 0 from the .csx (the
+//      shim maps NODOC -> process exit 2).
+//   2. Count revisions (guarded; Revisions.Count can throw on odd documents).
+//      If there are ZERO revisions there is nothing to do -> sentinel
+//      STATUS=OK revisions=0. This is a SUCCESS, not a precondition failure
+//      (the shim returns exit 0): "the document already has no tracked
+//      changes" is exactly the end state the user wants.
+//   3. Copy-mode (the default): if "work on a copy" is on but the document was
+//      never saved (Path == "") -> sentinel UNSAVED (shim -> exit 2). Otherwise
+//      SaveAs2-clone the doc to "<name>_Revisions_Processed.docx" FIRST;
+//      SaveAs2 REPOINTS the active document at the copy, so the accept/reject
+//      below lands on the copy and the original file is left byte-for-byte
+//      untouched. DisplayAlerts is silenced around the save (a hidden
+//      COM-launched Word hangs on the overwrite/compat modal otherwise).
+//   4. Apply, on the working document (the copy in copy-mode, else the open
+//      doc): action == "accept" -> wdDoc.AcceptAllRevisions();
+//      action == "reject" -> wdDoc.RejectAllRevisions(). Then set
+//      wdDoc.TrackRevisions = false so the processed copy isn't left in
+//      tracking mode (otherwise subsequent edits would start marking up the
+//      "clean" document again). The whole apply block is wrapped in
+//      try/finally that restores the prior DisplayAlerts level.
+//   5. Persist only in copy-mode: wdDoc.Save() writes the cleaned copy. In
+//      in-place mode the open document is left UNSAVED so the user can review
+//      the result (and Ctrl+Z still undoes it) before saving over the original.
+//   6. Report a first-line sentinel followed by a markdown/plain-text summary.
+//
+// WHY AcceptAllRevisions/RejectAllRevisions and not a loop over Revisions:
+// the Document-level AcceptAllRevisions()/RejectAllRevisions() methods process
+// every revision in the body in one atomic call (the same as Review -> Accept
+// All / Reject All in the ribbon). Looping wdDoc.Revisions and calling
+// Accept()/Reject() per-item is both slower and fragile (the collection
+// mutates as you accept). The collection-level wdDoc.Revisions.AcceptAll() /
+// .RejectAll() exist too and are equivalent; we use the Document-level form.
+
+// --- baked-in form values -------------------------------------------------
+string action       = "__ACTION__";          // "accept" | "reject"
+bool   workOnCopy   = __WORK_ON_COPY__;
+string outputFormat = "__OUTPUT_FORMAT__";    // "markdown" | "text"
+
+if (wdDoc is null)
+{
+    Console.WriteLine("__WORDREV__ STATUS=NODOC");
+    Console.WriteLine("No document is open in Word. Open the reviewed document whose tracked changes you want to process, then run again.");
+    return 0;
+}
+
+// --- count revisions (guarded) --------------------------------------------
+int revisionCount = 0;
+try { revisionCount = wdDoc.Revisions.Count; } catch { }
+
+string originalName = wdDoc.Name;
+
+if (revisionCount == 0)
+{
+    // Not a failure — the document is already free of tracked changes, which
+    // is the desired end state. Report success and exit 0 (via the shim).
+    Console.WriteLine("__WORDREV__ STATUS=OK revisions=0 action=" + action + " copy=" + (workOnCopy ? "1" : "0"));
+    if (outputFormat == "markdown")
+    {
+        Console.WriteLine("# No tracked changes");
+        Console.WriteLine();
+        Console.WriteLine($"- **Document:** `{originalName}`");
+        Console.WriteLine("- **Tracked changes found:** 0 — nothing to do.");
+        Console.WriteLine();
+        Console.WriteLine("_The document has no revisions to accept or reject. No copy was made and the document was not modified._");
+    }
+    else
+    {
+        Console.WriteLine("No tracked changes");
+        Console.WriteLine($"  Document:               {originalName}");
+        Console.WriteLine("  Tracked changes found:  0 - nothing to do.");
+        Console.WriteLine("  The document was not modified.");
+    }
+    return 0;
+}
+
+string copyPath = "";
+
+// --- safety guard: clone to <name>_Revisions_Processed.docx before editing -
+if (workOnCopy)
+{
+    string dir = wdDoc.Path; // "" for a never-saved document
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__WORDREV__ STATUS=UNSAVED");
+        Console.WriteLine("\"Work on a copy\" is enabled but this document has never been saved, so there is no folder to put the copy in. Save the document once (Ctrl+S), then run again — or untick \"Work on a copy\" to process the open document directly.");
+        return 0;
+    }
+
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+    copyPath = System.IO.Path.Combine(dir, baseName + "_Revisions_Processed.docx");
+
+    var prevAlerts = wdApp.DisplayAlerts;
+    wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+    try
+    {
+        // SaveAs2 repoints the active document at the copy, so the
+        // accept/reject below lands on the copy and the original is untouched.
+        wdDoc.SaveAs2(copyPath, WdSaveFormat.wdFormatXMLDocument);
+    }
+    finally { wdApp.DisplayAlerts = prevAlerts; }
+}
+
+// --- apply: force-accept or force-reject ALL revisions in one pass ---------
+var prevAlerts2 = wdApp.DisplayAlerts;
+wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+try
+{
+    if (action == "reject")
+        wdDoc.RejectAllRevisions();
+    else
+        wdDoc.AcceptAllRevisions();
+
+    // Stop tracking on the processed document so it isn't left in tracking
+    // mode (otherwise the next edit would immediately start marking up the
+    // freshly-cleaned document again).
+    wdDoc.TrackRevisions = false;
+
+    // Persist only in copy-mode; in-place leaves the result UNSAVED for review.
+    if (workOnCopy)
+        wdDoc.Save();
+}
+finally
+{
+    wdApp.DisplayAlerts = prevAlerts2;
+}
+
+// --- report ---------------------------------------------------------------
+string actionWord = action == "reject" ? "rejected" : "accepted";
+
+Console.WriteLine($"__WORDREV__ STATUS=OK revisions={revisionCount} action={action} copy={(workOnCopy ? 1 : 0)}");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Tracked changes processed");
+    Console.WriteLine();
+    Console.WriteLine($"- **Document:** `{originalName}`");
+    Console.WriteLine($"- **Tracked changes {actionWord}:** {revisionCount:n0}");
+    Console.WriteLine($"- **Action:** {(action == "reject" ? "Reject all changes" : "Accept all changes")}");
+    Console.WriteLine("- **Tracking turned off** on the processed document.");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"- **Worked on a copy:** yes — saved to `{copyPath}`");
+        Console.WriteLine($"- **Original untouched:** `{originalName}`");
+    }
+    else
+    {
+        Console.WriteLine($"- **Worked on a copy:** no — changes were {actionWord} in the open document `{originalName}` and left **unsaved**. Review them and save in Word when satisfied.");
+    }
+}
+else
+{
+    Console.WriteLine("Tracked changes processed");
+    Console.WriteLine($"  Document:               {originalName}");
+    Console.WriteLine($"  Tracked changes {actionWord,-9}{revisionCount,8:n0}");
+    Console.WriteLine($"  Action:                 {(action == "reject" ? "Reject all changes" : "Accept all changes")}");
+    Console.WriteLine("  Tracking turned off on the processed document.");
+    if (workOnCopy)
+    {
+        Console.WriteLine($"  Worked on a copy:       yes -> {copyPath}");
+        Console.WriteLine($"  Original:               {originalName} (untouched)");
+    }
+    else
+    {
+        Console.WriteLine($"  Worked on a copy:       no -> changes {actionWord} in {originalName}; left unsaved for review.");
+    }
+}
+
+return 0;

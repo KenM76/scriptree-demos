@@ -1,0 +1,265 @@
+{
+  "schema_version": 3,
+  "name": "Corporate Style Sanitizer (Word)",
+  "description": "Forces the open Word document into a clean, consistent corporate look in one pass: strips rogue manual (direct) formatting back to each paragraph's named style, tidies messy whitespace, normalises body and heading fonts (or copies an entire style set from a template/reference document), and (optionally) converts straight quotes to curly typographer's quotes.\n\nBy default it works on a COPY: the document is saved alongside the original as '<name>_Sanitized.docx' and every change lands there, so your original file is never touched. Untick 'Work on a copy' to sanitise the open document in place (the edits stay UNSAVED in Word so you can review them first).\n\nSAFETY: if the document contains tracked changes (revisions), the tool refuses and asks you to accept or reject them first \u2014 running a bulk clean-up over a document under review would otherwise bury it in revision marks. On the working copy, Track Changes is disabled so the clean-up edits do not themselves become revisions.\n\nWhat it PRESERVES: your named styles (Heading 1, Normal, \u2026), hyperlinks, table cell shading, and list/bullet numbering are all kept by the core passes \u2014 only manual overrides on top of them are removed. (The ADVANCED options below, all OFF by default, can intentionally change tables, bullets, or page margins when you tick them.) Requires combridge (bundled with ScripTree at lib/combridge) and the target document already open in a running Word instance.\n\nADVANCED (all OFF by default): normalise non-standard bullet glyphs to the default round bullet (numbered lists untouched), strip manual table cell shading for clean monochrome grids, and enforce page margins (set per side: top, bottom, left, right) across every section. These are opt-in because they deliberately alter tables, lists, or layout.\n\nMATCH A TEMPLATE: point 'Style template document' at any .docx/.dotx (a corporate template or just a well-formatted reference document) and the tool copies that file's style definitions into your document so it adopts the template's look. This supersedes the Body/Heading font fields. Pair it with 'Strip manual formatting' so text actually follows the copied styles.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "style_sanitizer.py",
+    "{strip_formatting?--strip-formatting}",
+    "{collapse_spaces?--collapse-spaces}",
+    "{remove_blank_paragraphs?--remove-blank-paragraphs}",
+    "{normalize_fonts?--normalize-fonts}",
+    [
+      "--body-font",
+      "{body_font}"
+    ],
+    [
+      "--heading-font",
+      "{heading_font}"
+    ],
+    [
+      "--style-template",
+      "{style_template}"
+    ],
+    "{smart_quotes?--smart-quotes}",
+    "{list_normalize_bullets?--list-normalize-bullets}",
+    "{strip_table_shading?--strip-table-shading}",
+    "{enforce_margins?--enforce-margins}",
+    [
+      "--margin-top",
+      "{margin_top}"
+    ],
+    [
+      "--margin-bottom",
+      "{margin_bottom}"
+    ],
+    [
+      "--margin-left",
+      "{margin_left}"
+    ],
+    [
+      "--margin-right",
+      "{margin_right}"
+    ],
+    "{work_on_copy?--work-on-copy}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "strip_formatting",
+      "label": "Strip manual (direct) formatting",
+      "description": "Reverts every character and paragraph back to its style's definition \u2014 the equivalent of selecting all and pressing Ctrl+Space then Ctrl+Q. This removes rogue manual font colours, sizes, fonts, bold/italic, highlighting, odd indents and line spacing, etc., while KEEPING the named styles (Heading 1, Normal), hyperlinks, table shading and list numbering. Turn this OFF if you want to keep manually-applied emphasis like bold and italic.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Clean-up"
+    },
+    {
+      "id": "collapse_spaces",
+      "label": "Collapse repeated & trailing spaces",
+      "description": "Replaces every run of two or more spaces with a single space (fixing double spaces after sentences and accidental gaps), and removes spaces left dangling at the end of a line before the paragraph mark. Tabs are left alone.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Clean-up"
+    },
+    {
+      "id": "remove_blank_paragraphs",
+      "label": "Remove blank paragraphs",
+      "description": "Deletes empty 'spacer' paragraphs so a run of blank lines collapses away, leaving paragraphs separated normally. Vertical spacing should come from the style's paragraph spacing, not from hammering Enter. Empty cells in tables are not affected.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Clean-up"
+    },
+    {
+      "id": "normalize_fonts",
+      "label": "Normalise fonts to the corporate pair",
+      "description": "Rewrites the document's Normal style to the Body font and the Heading 1\u20139 styles to the Heading font, so all text snaps to a consistent two-font scheme instead of a patchwork of pasted-in fonts. Because it edits the STYLE definitions (not direct formatting), the document stays clean and style-driven. For a full effect, leave 'Strip manual formatting' on as well \u2014 otherwise text with a hard-coded font override keeps that override.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Fonts & template"
+    },
+    {
+      "id": "body_font",
+      "label": "Body font",
+      "description": "Font applied to the Normal style (and everything that inherits from it) when 'Normalise fonts' is on. Defaults to Calibri, the standard Office body font. Use your corporate body typeface here (e.g. 'Arial', 'Georgia').",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "Calibri",
+      "no_split": true,
+      "section": "Fonts & template"
+    },
+    {
+      "id": "heading_font",
+      "label": "Heading font",
+      "description": "Font applied to the Heading 1\u20139 styles when 'Normalise fonts' is on. Defaults to 'Calibri Light', the standard Office heading font. Set it equal to the body font for a single-font look, or to your corporate display typeface.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "Calibri Light",
+      "no_split": true,
+      "section": "Fonts & template"
+    },
+    {
+      "id": "style_template",
+      "label": "Style template document",
+      "description": "OPTIONAL. Path to a .docx/.dotx whose styles you want to adopt \u2014 a corporate template or any well-formatted reference document. When set, the tool copies that file's style definitions into your document (Word's CopyStylesFromTemplate), so headings, body, captions, etc. all match the template. This SUPERSEDES the Body font / Heading font fields above. Leave blank to use the two-font normaliser instead. For the copy to fully take effect, keep 'Strip manual formatting' on so text follows the copied styles rather than manual overrides.",
+      "type": "path",
+      "widget": "file",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "section": "Fonts & template"
+    },
+    {
+      "id": "smart_quotes",
+      "label": "Convert straight quotes to curly quotes",
+      "description": "Turns straight quotes ( ' and \" ) into typographer's curly quotes ( \u2018 \u2019 and \u201c \u201d ), choosing opening vs closing based on context (via Word's smart-quotes engine). Leave OFF for documents that contain code, file paths, or measurements in inches/feet, where straight quotes are required.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Clean-up"
+    },
+    {
+      "id": "list_normalize_bullets",
+      "label": "Normalise bullet glyphs",
+      "description": "Standardises non-standard bullet symbols (custom Wingdings arrows, picture bullets, stray glyphs) to the default round bullet, preserving each item's indent level. Numbered lists are left untouched. OFF by default: very unusual multi-level bullet styling may be simplified, so keep 'Work on a copy' on when you use it.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Advanced"
+    },
+    {
+      "id": "strip_table_shading",
+      "label": "Strip table cell shading",
+      "description": "Removes manual cell background fills/shading from every table, leaving clean monochrome grids (the gridlines/borders stay). OFF by default because some shading is intentional brand styling. Merged cells are handled by clearing each table's whole range at once.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Advanced"
+    },
+    {
+      "id": "enforce_margins",
+      "label": "Enforce page margins",
+      "description": "Sets the page margins of every section to the four per-side values below (top, bottom, left, right \u2014 each in inches). OFF by default. Note: absolutely-positioned shapes and text boxes keep their fixed position and may then sit outside the new margins.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Advanced"
+    },
+    {
+      "id": "margin_top",
+      "label": "Top margin (inches)",
+      "description": "The top page margin, in inches, applied to every section when 'Enforce page margins' is on. Defaults to 1 inch.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": 1.0,
+      "section": "Advanced"
+    },
+    {
+      "id": "margin_bottom",
+      "label": "Bottom margin (inches)",
+      "description": "The bottom page margin, in inches, applied to every section when 'Enforce page margins' is on. Defaults to 1 inch.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": 1.0,
+      "section": "Advanced"
+    },
+    {
+      "id": "margin_left",
+      "label": "Left margin (inches)",
+      "description": "The left page margin, in inches, applied to every section when 'Enforce page margins' is on. Defaults to 1 inch.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": 1.0,
+      "section": "Advanced"
+    },
+    {
+      "id": "margin_right",
+      "label": "Right margin (inches)",
+      "description": "The right page margin, in inches, applied to every section when 'Enforce page margins' is on. Defaults to 1 inch.",
+      "type": "number",
+      "widget": "number",
+      "required": false,
+      "default": 1.0,
+      "section": "Advanced"
+    },
+    {
+      "id": "work_on_copy",
+      "label": "Work on a copy (recommended)",
+      "description": "SAFETY GUARD. When ticked (the default), the document is first saved as '<name>_Sanitized.docx' in the same folder and all changes are made to that copy \u2014 your original file is never modified. Untick to sanitise the open document in place; in that case the edits are left UNSAVED in Word so you can review and save them yourself.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Output & safety"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Output & safety"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "sections": [
+    {
+      "name": "Clean-up",
+      "collapsed": false,
+      "layout": "tab"
+    },
+    {
+      "name": "Fonts & template",
+      "collapsed": false,
+      "layout": "tab"
+    },
+    {
+      "name": "Advanced",
+      "collapsed": false,
+      "layout": "tab"
+    },
+    {
+      "name": "Output & safety",
+      "collapsed": false,
+      "layout": "tab"
+    }
+  ],
+  "category": "MSOffice/Word"
+}

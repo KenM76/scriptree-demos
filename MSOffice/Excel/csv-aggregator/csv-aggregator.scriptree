@@ -1,0 +1,90 @@
+{
+  "schema_version": 3,
+  "name": "Multi-CSV Sheet Aggregator (Excel)",
+  "description": "Imports every .csv and .txt file in a folder you choose as a separate new sheet in the Excel workbook you already have open \u2014 one sheet per file, each named after its source file. Classic use: a folder of monthly exports (jan.csv, feb.csv, ...) becomes one workbook with a sheet per month, ready to consolidate.\n\nThe files on disk are only READ, never changed. The tool only ADDS sheets to your open workbook (it never overwrites your existing sheets or saves over your file). Because adding sheets is still a change to your workbook, you can tick 'Backup workbook first' to save a '<name>_Backup' copy to disk before any sheet is added. After the import the workbook is left OPEN and UNSAVED so you can review the new sheets and save (or discard) the workbook yourself.\n\nThe delimiter can be auto-detected per file (handles comma, tab, and European semicolon files), or you can force a specific one if auto-detect guesses wrong. Sheet names are sanitised, truncated to Excel's 31-character limit, and de-duplicated automatically. Files that fail to import are skipped and listed in the report; the rest still import.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and a workbook already open in a running Excel instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "csv_aggregator.py",
+    [
+      "--source-folder",
+      "{source_folder}"
+    ],
+    [
+      "--delimiter",
+      "{delimiter}"
+    ],
+    "{backup_first?--backup-first}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "source_folder",
+      "label": "Source folder",
+      "description": "The folder to scan. Every .csv and .txt file directly inside it is imported as a new sheet (subfolders are not searched). Required.",
+      "type": "path",
+      "widget": "folder",
+      "required": true,
+      "default": ""
+    },
+    {
+      "id": "delimiter",
+      "label": "Delimiter",
+      "description": "How each file's columns are separated. 'Auto-detect' (recommended) inspects each file's first line and picks comma, tab, or semicolon \u2014 this correctly handles European semicolon-delimited CSVs that a plain comma split would mangle. Choose a specific delimiter only if auto-detect guesses wrong for your files.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "auto",
+      "choices": [
+        "auto",
+        "comma",
+        "tab",
+        "semicolon"
+      ],
+      "choice_labels": [
+        "Auto-detect (recommended)",
+        "Comma ( , )",
+        "Tab",
+        "Semicolon ( ; )"
+      ]
+    },
+    {
+      "id": "backup_first",
+      "label": "Backup workbook first",
+      "description": "When ticked (the default), a '<name>_Backup' copy of the open workbook is saved to disk before any sheet is added \u2014 a safety net you can return to. If the workbook has never been saved there is no folder to put the backup in, so the run is refused; save the workbook once (Ctrl+S) or untick this. Untick to import without making a backup.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ]
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Excel"
+}

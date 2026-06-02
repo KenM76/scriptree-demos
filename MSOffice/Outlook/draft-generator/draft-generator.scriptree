@@ -1,0 +1,132 @@
+{
+  "schema_version": 3,
+  "name": "Draft Generator from Template (Outlook)",
+  "description": "Turns an Excel mailing list into one DRAFT Outlook email per row \u2014 a mail merge that STOPS at drafts for human review. Give it an .xlsx whose first row is column headers (Email, Name, Company, ...), plus a subject and body template containing {ColumnName} placeholders. For each data row it creates a personalised draft in your Outlook Drafts folder, substituting each {Header} token with that row's value.\n\nSAFETY \u2014 this tool CREATES DRAFTS ONLY and NEVER SENDS. Every generated message is an unsent draft you review and send yourself. It also enforces a hard cap of 50 drafts per run, so a bad merge can never blast a list. Rows with a blank recipient cell are skipped.\n\nThe Excel is read by the tool's Python helper (openpyxl) \u2014 Excel itself need not be installed or open; only Outlook must be running. Requires combridge (bundled with ScripTree at lib/combridge).",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "generate_drafts.py",
+    [
+      "--mailing-list",
+      "{mailing_list}"
+    ],
+    [
+      "--email-column",
+      "{email_column}"
+    ],
+    [
+      "--subject-template",
+      "{subject_template}"
+    ],
+    [
+      "--body-template",
+      "{body_template}"
+    ],
+    [
+      "--max-drafts",
+      "{max_drafts}"
+    ],
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "mailing_list",
+      "label": "Mailing list (.xlsx)",
+      "description": "The Excel workbook holding your recipients. Row 1 must be column headers (e.g. Email, Name, Company); each row below is one recipient. The active sheet is used. Required.",
+      "type": "path",
+      "widget": "file",
+      "required": true,
+      "default": "",
+      "no_split": true,
+      "file_filter": "Excel workbooks (*.xlsx);;All files (*)",
+      "section": "Mailing list"
+    },
+    {
+      "id": "email_column",
+      "label": "Recipient column header",
+      "description": "The exact header text of the column that holds the recipient email addresses. Matched case-insensitively. Default 'Email'. If no header matches, the run is refused.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "Email",
+      "no_split": true,
+      "section": "Mailing list"
+    },
+    {
+      "id": "subject_template",
+      "label": "Subject template",
+      "description": "The subject line for every draft. May contain {ColumnName} placeholders that are replaced per row, e.g. 'Your Q3 statement, {Name}'. Tokens are the brace-wrapped exact header text (case-sensitive).",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "section": "Message"
+    },
+    {
+      "id": "body_template",
+      "label": "Body template",
+      "description": "The message body for every draft (multi-line). Use {ColumnName} placeholders to merge per-row values, e.g. 'Dear {Name},\\n\\nYour statement from {Company} is ready.'. Tokens are the brace-wrapped exact header text (case-sensitive); unknown braces are left as-is. Required.",
+      "type": "string",
+      "widget": "textarea",
+      "required": true,
+      "default": "",
+      "no_split": true,
+      "section": "Message"
+    },
+    {
+      "id": "max_drafts",
+      "label": "Maximum drafts (cap 50)",
+      "description": "The most drafts to create in one run. Hard-capped at 50 (the absolute maximum) and floored at 1 \u2014 a safety limit so a mistaken merge can't generate a huge batch even as drafts. If the list has more usable rows than this, only the first N are drafted.",
+      "type": "integer",
+      "widget": "number",
+      "required": false,
+      "default": 50,
+      "section": "Options"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Options"
+    }
+  ],
+  "sections": [
+    {
+      "name": "Mailing list",
+      "layout": "collapse"
+    },
+    {
+      "name": "Message",
+      "layout": "collapse"
+    },
+    {
+      "name": "Options",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Outlook"
+}

@@ -1,0 +1,131 @@
+{
+  "schema_version": 3,
+  "name": "Batch Find & Replace (Word)",
+  "description": "Finds every occurrence of a phrase in the open Word document and replaces it in one pass, then reports exactly how many replacements were made. Faster and more auditable than Word's built-in dialog when you just want a clean count and a safe copy.\n\nBy default it works on a COPY: the document is saved alongside the original as '<name>_Replacements.docx' and all edits land there, leaving your original file untouched. Untick 'Work on a copy' to edit the open document directly (the edits stay unsaved in Word so you can review them before saving).\n\nSupports match-case, whole-word, and Word wildcard matching. Requires combridge (bundled with ScripTree at lib/combridge) and the target document already open in a running Word instance.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "word_find_replace.py",
+    [
+      "--find",
+      "{find_text}"
+    ],
+    [
+      "--replace",
+      "{replace_text}"
+    ],
+    "{match_case?--match-case}",
+    "{whole_word?--whole-word}",
+    "{use_wildcards?--use-wildcards}",
+    "{work_on_copy?--work-on-copy}",
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "find_text",
+      "label": "Find what",
+      "description": "The text to search for. Required. With 'Use wildcards' on, this is a Word wildcard pattern (e.g. '<colou?r>' style expressions) rather than a literal phrase.",
+      "type": "string",
+      "widget": "text",
+      "required": true,
+      "default": "",
+      "no_split": true,
+      "section": "Find & replace"
+    },
+    {
+      "id": "replace_text",
+      "label": "Replace with",
+      "description": "The replacement text. Leave this blank to DELETE every occurrence of the 'Find what' text.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "section": "Find & replace"
+    },
+    {
+      "id": "match_case",
+      "label": "Match case",
+      "description": "When ticked, 'Report' matches 'Report' but not 'report'. When unticked, matching ignores case.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Matching"
+    },
+    {
+      "id": "whole_word",
+      "label": "Whole words only",
+      "description": "When ticked, only complete words match \u2014 searching 'cat' will not match the 'cat' inside 'category'.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Matching"
+    },
+    {
+      "id": "use_wildcards",
+      "label": "Use wildcards",
+      "description": "Treat 'Find what' as a Word wildcard pattern instead of literal text (the same engine as Word's 'Use wildcards' checkbox). Leave off for ordinary phrase replacement.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Matching"
+    },
+    {
+      "id": "work_on_copy",
+      "label": "Work on a copy (recommended)",
+      "description": "SAFETY GUARD. When ticked (the default), the document is first saved as '<name>_Replacements.docx' in the same folder and all edits are made to that copy \u2014 your original file is never modified. Untick to edit the open document in place; in that case the edits are left UNSAVED in Word so you can review and save them yourself.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": true,
+      "section": "Output & safety"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Output & safety"
+    }
+  ],
+  "sections": [
+    {
+      "name": "Find & replace",
+      "layout": "collapse"
+    },
+    {
+      "name": "Matching",
+      "layout": "collapse"
+    },
+    {
+      "name": "Output & safety",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Word"
+}

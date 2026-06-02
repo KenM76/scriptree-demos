@@ -1,0 +1,275 @@
+// Heading-Based Document Splitter (Word) — generated from this template by
+// split_by_heading.py (Strategy A).  Globals: wdApp (Wd._Application),
+// wdDoc (Wd.Document?).  combridge swallows the return value, so the first
+// stdout line is a sentinel the shim parses; the shim owns the exit code.
+// ScriptUsings already imports Microsoft.Office.Interop.Word.
+//
+// WHAT IT DOES
+//   Cuts the open document at every paragraph whose OUTLINE LEVEL equals the
+//   chosen heading level (1/2/3) and writes each resulting section to its own
+//   file in a target folder.  Content before the first heading ("front
+//   matter") is optionally emitted as chapter 00.
+//
+// WHY OUTLINE LEVEL, NOT STYLE NAME
+//   Built-in "Heading N" styles set OutlineLevel N, but style NAMES are
+//   localized ("Heading 1" vs "Überschrift 1") and users sometimes promote a
+//   body paragraph to an outline level without the style.  OutlineLevel is the
+//   locale-independent, intent-accurate signal.  wdOutlineLevel1..9 = 1..9,
+//   wdOutlineLevelBodyText = 10, so a chosen level of 1/2/3 compares directly.
+//
+// WHY FormattedText (not clipboard Copy/Paste)
+//   We copy each section into a fresh document via
+//   newDoc.Content.FormattedText = sourceRange.FormattedText.  This preserves
+//   character + paragraph formatting WITHOUT touching the clipboard (clipboard
+//   Copy/Paste is racy and unreliable in a headless COM Word).  Section-level
+//   constructs (headers/footers) are intentionally not carried — a chapter
+//   split wants the body content, not the original's running headers.
+//
+// SAFETY MODEL — the open document is NEVER mutated
+//   This tool only READS ranges from wdDoc and CREATES new documents; it never
+//   calls SaveAs2/Save on wdDoc.  So the original is untouched by construction
+//   (no "work on a copy" guard is needed — there is nothing that could write
+//   back to it).  New documents are created invisibly, saved, and closed.
+
+// combridge auto-imports Microsoft.Office.Interop.Word, so a bare `Range`
+// collides with System.Range (CS0104). Alias to `Wd` and qualify Office types
+// as Wd.* (see combridge LLM/scripting.md). `Word` would shadow the plugin ns.
+using Wd = global::Microsoft.Office.Interop.Word;
+
+// --- baked-in form values -------------------------------------------------
+string headingLevelStr  = "__HEADING_LEVEL__";   // "1" | "2" | "3"
+string outputFolder     = "__OUTPUT_FOLDER__";   // "" => sibling <name>_Chapters
+string fileFormat       = "__FILE_FORMAT__";     // "docx" | "pdf" | "both"
+bool   includeFront     = __INCLUDE_FRONT_MATTER__;
+string outputFormat     = "__OUTPUT_FORMAT__";   // report rendering: markdown|text
+
+int headingLevel = int.Parse(headingLevelStr);
+bool wantDocx = fileFormat == "docx" || fileFormat == "both";
+bool wantPdf  = fileFormat == "pdf"  || fileFormat == "both";
+
+// --- precondition guards ---------------------------------------------------
+if (wdDoc is null)
+{
+    Console.WriteLine("__WORDSPLIT__ STATUS=NODOC");
+    Console.WriteLine("No document is open in Word. Open the document you want to split, then run again.");
+    return 0;
+}
+
+string originalName = wdDoc.Name;
+string baseName = System.IO.Path.GetFileNameWithoutExtension(originalName);
+
+// Resolve the target folder: explicit choice wins; otherwise a sibling
+// "<name>_Chapters" folder next to the original (which needs a saved doc).
+string targetDir;
+if (!string.IsNullOrWhiteSpace(outputFolder))
+{
+    targetDir = outputFolder;
+}
+else
+{
+    string dir = wdDoc.Path; // "" for a never-saved document
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__WORDSPLIT__ STATUS=UNSAVED");
+        Console.WriteLine("No output folder was given and this document has never been saved, so there is nowhere to create the default '<name>_Chapters' folder. Either pick an output folder, or save the document once (Ctrl+S) and run again.");
+        return 0;
+    }
+    targetDir = System.IO.Path.Combine(dir, baseName + "_Chapters");
+}
+
+try { System.IO.Directory.CreateDirectory(targetDir); }
+catch (System.Exception ex)
+{
+    Console.WriteLine("__WORDSPLIT__ STATUS=BADFOLDER");
+    Console.WriteLine($"The output folder could not be created: {targetDir}");
+    Console.WriteLine(ex.Message);
+    return 0;
+}
+
+// --- locate the heading boundaries -----------------------------------------
+// Each boundary is (start character position, cleaned heading title).
+var heads = new List<(int Start, string Title)>();
+foreach (Paragraph p in wdDoc.Paragraphs)
+{
+    try
+    {
+        if ((int)p.OutlineLevel == headingLevel)
+            heads.Add((p.Range.Start, CleanTitle(p.Range.Text)));
+    }
+    catch { /* a paragraph that throws on OutlineLevel — skip it */ }
+}
+
+int docStart = wdDoc.Content.Start;
+int docEnd   = wdDoc.Content.End;
+
+if (heads.Count == 0)
+{
+    Console.WriteLine("__WORDSPLIT__ STATUS=NOHEADINGS");
+    Console.WriteLine($"No 'Heading {headingLevel}' paragraphs were found, so there is nothing to split on. Check the heading level, or apply the built-in Heading {headingLevel} style to your section titles.");
+    return 0;
+}
+
+// --- build the list of (start, end, title) chapters ------------------------
+var chapters = new List<(int Start, int End, string Title)>();
+
+// Front matter: everything before the first heading, if non-empty.
+if (includeFront && heads[0].Start > docStart)
+{
+    Wd.Range pre = wdDoc.Range(docStart, heads[0].Start);
+    if (!string.IsNullOrWhiteSpace(pre.Text))
+        chapters.Add((docStart, heads[0].Start, "Front-Matter"));
+}
+
+bool hasFront = chapters.Count > 0;
+for (int i = 0; i < heads.Count; i++)
+{
+    int start = heads[i].Start;
+    int end = (i + 1 < heads.Count) ? heads[i + 1].Start : docEnd;
+    chapters.Add((start, end, heads[i].Title));
+}
+
+// --- emit each chapter as its own document ---------------------------------
+// Width of the zero-padded sequence prefix (>=2 digits).
+int seqWidth = Math.Max(2, chapters.Count.ToString().Length);
+
+// Hidden COM Word hangs on modal prompts (overwrite / compat / export dialog).
+var prevAlerts = wdApp.DisplayAlerts;
+wdApp.DisplayAlerts = WdAlertLevel.wdAlertsNone;
+
+var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+int chaptersWritten = 0, docxCount = 0, pdfCount = 0, failed = 0;
+var failures = new List<string>();
+
+try
+{
+    for (int i = 0; i < chapters.Count; i++)
+    {
+        // Sequence number: front matter (when present) is 00, the rest 01..N.
+        int seq = hasFront ? i : i + 1;
+        string stem = MakeFileName(seq.ToString().PadLeft(seqWidth, '0'), chapters[i].Title, usedNames);
+
+        Document nd = null;
+        try
+        {
+            Wd.Range src = wdDoc.Range(chapters[i].Start, chapters[i].End);
+            nd = wdApp.Documents.Add(Visible: false);
+            nd.Content.FormattedText = src.FormattedText;
+
+            if (wantDocx)
+            {
+                string docxPath = System.IO.Path.Combine(targetDir, stem + ".docx");
+                nd.SaveAs2(docxPath, WdSaveFormat.wdFormatXMLDocument);
+                docxCount++;
+            }
+            if (wantPdf)
+            {
+                string pdfPath = System.IO.Path.Combine(targetDir, stem + ".pdf");
+                nd.ExportAsFixedFormat(pdfPath, WdExportFormat.wdExportFormatPDF);
+                pdfCount++;
+            }
+            chaptersWritten++;
+        }
+        catch (System.Exception ex)
+        {
+            failed++;
+            failures.Add($"{stem}: {ex.Message}");
+        }
+        finally
+        {
+            try { if (nd != null) nd.Close(WdSaveOptions.wdDoNotSaveChanges); } catch { }
+        }
+    }
+}
+finally
+{
+    wdApp.DisplayAlerts = prevAlerts;
+}
+
+// --- report ----------------------------------------------------------------
+Console.WriteLine($"__WORDSPLIT__ STATUS=OK chapters={chaptersWritten} docx={docxCount} pdf={pdfCount} failed={failed} front={(hasFront ? 1 : 0)}");
+
+string fmtLabel = fileFormat == "both" ? "Word + PDF" : (fileFormat == "pdf" ? "PDF" : "Word");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# Document split by heading");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source (untouched):** `{originalName}`");
+    Console.WriteLine($"- **Split at:** Heading {headingLevel}");
+    Console.WriteLine($"- **Output folder:** `{targetDir}`");
+    Console.WriteLine($"- **File format:** {fmtLabel}");
+    Console.WriteLine($"- **Chapters written:** {chaptersWritten}{(hasFront ? " (incl. front matter as 00)" : "")}");
+    Console.WriteLine($"- **Files created:** {docxCount} .docx, {pdfCount} .pdf");
+    if (failed > 0)
+    {
+        Console.WriteLine($"- **Sections that failed:** {failed}");
+        Console.WriteLine();
+        Console.WriteLine("> The following sections could not be written:");
+        foreach (string f in failures) Console.WriteLine($"> - {f}");
+    }
+}
+else
+{
+    Console.WriteLine("Document split by heading");
+    Console.WriteLine($"  Source (untouched): {originalName}");
+    Console.WriteLine($"  Split at:           Heading {headingLevel}");
+    Console.WriteLine($"  Output folder:      {targetDir}");
+    Console.WriteLine($"  File format:        {fmtLabel}");
+    Console.WriteLine($"  Chapters written:   {chaptersWritten}{(hasFront ? " (incl. front matter as 00)" : "")}");
+    Console.WriteLine($"  Files created:      {docxCount} .docx, {pdfCount} .pdf");
+    if (failed > 0)
+    {
+        Console.WriteLine($"  Sections failed:    {failed}");
+        foreach (string f in failures) Console.WriteLine($"    - {f}");
+    }
+}
+
+return 0;
+
+// ===========================================================================
+// Helpers
+// ===========================================================================
+
+// Clean a heading paragraph's raw text into a human title: drop the trailing
+// paragraph/cell marks and control chars, collapse internal whitespace, trim.
+string CleanTitle(string raw)
+{
+    if (string.IsNullOrEmpty(raw)) return "";
+    var sb = new System.Text.StringBuilder(raw.Length);
+    foreach (char ch in raw)
+    {
+        // \r (13) and \a (7) are Word paragraph / cell marks; skip all control.
+        if (char.IsControl(ch)) { sb.Append(' '); continue; }
+        sb.Append(ch);
+    }
+    // Collapse runs of whitespace to single spaces and trim.
+    string collapsed = System.Text.RegularExpressions.Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
+    return collapsed;
+}
+
+// Build a filesystem-safe, unique file stem: "<seq>_<title>", with invalid
+// characters stripped, length-capped, and de-duplicated with a " (n)" suffix.
+string MakeFileName(string seq, string title, HashSet<string> used)
+{
+    string t = string.IsNullOrWhiteSpace(title) ? "Untitled" : title;
+
+    // Strip characters illegal in Windows file names.
+    foreach (char bad in new[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' })
+        t = t.Replace(bad, ' ');
+    t = System.Text.RegularExpressions.Regex.Replace(t, @"\s+", " ").Trim();
+    if (t.Length == 0) t = "Untitled";
+
+    // Cap the title portion so the whole stem stays comfortably short.
+    const int MAX_TITLE = 60;
+    if (t.Length > MAX_TITLE) t = t.Substring(0, MAX_TITLE).Trim();
+
+    string stem = seq + "_" + t;
+
+    // De-dupe (two headings with the same text) with a " (n)" suffix.
+    string candidate = stem;
+    int n = 2;
+    while (used.Contains(candidate))
+        candidate = $"{stem} ({n++})";
+    used.Add(candidate);
+    return candidate;
+}

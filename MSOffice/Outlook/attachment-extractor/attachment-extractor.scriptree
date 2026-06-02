@@ -1,0 +1,143 @@
+{
+  "schema_version": 3,
+  "name": "Surgical Attachment Extractor (Outlook)",
+  "description": "Saves the file attachments from your selected Outlook emails (or every email in the open folder) to a folder on disk, in one pass \u2014 no more clicking 'Save Attachments' on each message. Classic use: select a batch of invoice emails and pull every PDF into one folder.\n\nThis tool is strictly read-only with respect to your mailbox: it ONLY copies the attachment bytes to disk. It never deletes attachments from the emails, never edits or moves the messages \u2014 the emails are left exactly as they were, and only new files appear in your output folder.\n\nFilter by extension (e.g. 'pdf, docx') or take everything. Inline signature/logo images are skipped by default. When two attachments share a name (like 'invoice.pdf'), choose whether to keep both (rename), skip, or overwrite.\n\nRequires combridge (bundled with ScripTree at lib/combridge) and Outlook running with a mailbox open.",
+  "executable": "python",
+  "working_directory": ".",
+  "argument_template": [
+    "attachment_extractor.py",
+    [
+      "--scope",
+      "{scope}"
+    ],
+    [
+      "--output-folder",
+      "{output_folder}"
+    ],
+    [
+      "--extensions",
+      "{extensions}"
+    ],
+    "{include_inline?--include-inline}",
+    [
+      "--on-name-clash",
+      "{on_name_clash}"
+    ],
+    [
+      "--output-format",
+      "{output_format}"
+    ]
+  ],
+  "params": [
+    {
+      "id": "scope",
+      "label": "Which emails",
+      "description": "'Selected emails' (recommended) processes only the messages you currently have highlighted in Outlook \u2014 fast and precise. 'Current folder' processes every item in the open folder, which can be slow on large folders.",
+      "type": "enum",
+      "widget": "radio",
+      "required": false,
+      "default": "selection",
+      "choices": [
+        "selection",
+        "folder"
+      ],
+      "choice_labels": [
+        "Selected emails (recommended)",
+        "Current folder (every item)"
+      ],
+      "section": "Which emails"
+    },
+    {
+      "id": "output_folder",
+      "label": "Save attachments to",
+      "description": "The folder on disk where the extracted attachments are saved. It is created automatically if it does not already exist. Required.",
+      "type": "path",
+      "widget": "folder",
+      "required": true,
+      "default": "",
+      "section": "Output"
+    },
+    {
+      "id": "extensions",
+      "label": "Only these extensions",
+      "description": "Optional comma- or space-separated list of file extensions to extract (e.g. 'pdf, docx, xlsx'). Matching ignores case and leading dots. Leave blank to save every attachment.",
+      "type": "string",
+      "widget": "text",
+      "required": false,
+      "default": "",
+      "no_split": true,
+      "section": "Filter"
+    },
+    {
+      "id": "include_inline",
+      "label": "Include inline images (signature logos)",
+      "description": "When ticked, embedded images from email bodies and signatures (logos, tracking pixels) are also saved. Left unticked by default because these are usually noise rather than real attachments.",
+      "type": "boolean",
+      "widget": "checkbox",
+      "required": false,
+      "default": false,
+      "section": "Filter"
+    },
+    {
+      "id": "on_name_clash",
+      "label": "If a file already exists",
+      "description": "What to do when an attachment's name matches a file already in the output folder (very common \u2014 many emails carry a file literally named 'invoice.pdf'). 'Rename' keeps both by appending ' (1)', ' (2)', ...; 'Skip' leaves the existing file and ignores the new one; 'Overwrite' replaces the existing file.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "rename",
+      "choices": [
+        "rename",
+        "skip",
+        "overwrite"
+      ],
+      "choice_labels": [
+        "Rename (keep both)",
+        "Skip (keep existing)",
+        "Overwrite"
+      ],
+      "section": "Output"
+    },
+    {
+      "id": "output_format",
+      "label": "Output format",
+      "description": "How the result summary is rendered in the output pane. 'Markdown' is easy to paste into notes; 'Plain text' is a simple aligned list.",
+      "type": "enum",
+      "widget": "dropdown",
+      "required": false,
+      "default": "markdown",
+      "choices": [
+        "markdown",
+        "text"
+      ],
+      "choice_labels": [
+        "Markdown",
+        "Plain text"
+      ],
+      "section": "Output"
+    }
+  ],
+  "sections": [
+    {
+      "name": "Which emails",
+      "layout": "collapse"
+    },
+    {
+      "name": "Filter",
+      "layout": "collapse"
+    },
+    {
+      "name": "Output",
+      "layout": "collapse"
+    }
+  ],
+  "source": {
+    "mode": "manual",
+    "help_text_cached": null
+  },
+  "cell": {
+    "icon_data": "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",
+    "icon_format": "png"
+  },
+  "category": "MSOffice/Outlook"
+}

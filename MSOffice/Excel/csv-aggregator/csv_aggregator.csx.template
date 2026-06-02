@@ -1,0 +1,295 @@
+// =============================================================================
+// Multi-CSV Sheet Aggregator (Excel) — C# Roslyn script TEMPLATE
+// =============================================================================
+// This file is NOT run directly. csv_aggregator.py (the Strategy-A shim) reads
+// it, replaces every __PLACEHOLDER__ token with a validated, C#-escaped form
+// value, writes the result to a temp .csx, and runs it via:
+//     combridge.exe excel run-script <temp.csx> -
+//
+// combridge injects these globals before running the script (Excel plugin):
+//     Excel._Application xlApp    — the running Excel instance (never null)
+//     Excel.Workbook?    xlBook   — the active workbook (null if none open)
+//     Excel.Worksheet?   xlSheet  — the active worksheet (null if none)
+// The namespace Microsoft.Office.Interop.Excel is already imported (ScriptUsings),
+// and so is System.IO (Directory/Path/File are available unqualified-ish; we
+// fully-qualify with System.IO. for clarity).
+//
+// Roslyn-script rules honored here:
+//   * top-level statements only (no Main wrapper);
+//   * NO `using var x = ...` declaration form;
+//   * `dynamic` is available; Console.Out/Error are redirected to the bridge.
+//
+// WHAT THIS TOOL DOES (and why it is a MUTATOR):
+//   It IMPORTS every .csv/.txt file in a chosen folder as a NEW worksheet in the
+//   ALREADY-OPEN active workbook. That adds sheets to the user's workbook — a
+//   mutation — so the tool offers a "back up first" guard (SaveCopyAs to
+//   <name>_Backup<ext> on disk, which does NOT change the open book's own path
+//   or dirty state) and otherwise leaves the workbook OPEN and UNSAVED for the
+//   user to review and save (or discard) themselves. There is no in-place file
+//   overwrite and no Save() of the user's workbook.
+//
+// OUTPUT CONTRACT: the FIRST line printed is the sentinel
+//     __CSVAGG__ STATUS=<code> [files=N] [failed=N]
+// which the shim parses to decide the process exit code. Everything after the
+// sentinel line is the human-readable report. combridge ignores `return`, so
+// the sentinel is the only channel that carries status back to the shim.
+//   STATUS=NOWB    -> no workbook open                       (shim exit 2)
+//   STATUS=UNSAVED -> backup requested but workbook unsaved  (shim exit 2)
+//   STATUS=NOFILES -> no .csv/.txt files in the folder       (shim exit 2)
+//   STATUS=OK ...  -> import ran (files/failed counts follow) (shim exit 0)
+// =============================================================================
+
+// ---- baked-in form values (substituted by the shim) ------------------------
+string sourceFolder = "__SOURCE_FOLDER__";   // folder to scan for .csv/.txt files
+string delimiterMode = "__DELIMITER__";       // "auto" | "comma" | "tab" | "semicolon"
+bool   backupFirst   = __BACKUP_FIRST__;       // back up the workbook before adding sheets
+string outputFormat  = "__OUTPUT_FORMAT__";    // "markdown" | "text"
+
+// ---- precondition: a workbook must be open ---------------------------------
+// We import INTO the active workbook, so one must be open. (xlSheet may be any
+// sheet; we never read or modify it — we only append new sheets after the last.)
+if (xlBook is null)
+{
+    Console.WriteLine("__CSVAGG__ STATUS=NOWB");
+    Console.WriteLine("No workbook is open in Excel. Open (or create) the workbook you want the CSV files imported into, then run again.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 1 — gather the source files (.csv / .txt), case-insensitive, sorted.
+// =============================================================================
+// We sort by file name so the imported sheets land in a stable, predictable
+// order (and re-runs are deterministic). A missing/unreadable folder is treated
+// the same as "no files" so the user gets one clear message either way.
+var sourceFiles = new System.Collections.Generic.List<string>();
+try
+{
+    if (System.IO.Directory.Exists(sourceFolder))
+    {
+        foreach (string f in System.IO.Directory.GetFiles(sourceFolder))
+        {
+            string ext = System.IO.Path.GetExtension(f).ToLowerInvariant();
+            if (ext == ".csv" || ext == ".txt") sourceFiles.Add(f);
+        }
+    }
+}
+catch { /* unreadable folder -> handled as NOFILES below */ }
+
+sourceFiles.Sort(StringComparer.OrdinalIgnoreCase);
+
+if (sourceFiles.Count == 0)
+{
+    Console.WriteLine("__CSVAGG__ STATUS=NOFILES");
+    Console.WriteLine($"No .csv or .txt files were found in:\n    {sourceFolder}\nCheck the folder path and make sure it contains the files you want to import.");
+    return 0;
+}
+
+// =============================================================================
+// STEP 2 — optional backup of the workbook BEFORE we add any sheets.
+// =============================================================================
+// Importing appends sheets to the open workbook (a mutation). If the user asked
+// to back up first, we SaveCopyAs a disk copy named <name>_Backup<ext>. That
+// writes a copy WITHOUT changing the open workbook's own path or dirty/clean
+// state. A backup needs a folder to live in, i.e. the workbook must have been
+// saved at least once; a never-saved workbook (Path == "") cannot be backed up.
+string backupPath = "";
+if (backupFirst)
+{
+    string dir = xlBook.Path; // "" for a never-saved workbook
+    if (string.IsNullOrEmpty(dir))
+    {
+        Console.WriteLine("__CSVAGG__ STATUS=UNSAVED");
+        Console.WriteLine("'Back up the workbook first' is on, but this workbook has never been saved, so there is no folder to put the backup in. Save the workbook once (Ctrl+S), then run again — or turn off the backup option.");
+        return 0;
+    }
+    string baseName = System.IO.Path.GetFileNameWithoutExtension(xlBook.Name);
+    string ext = System.IO.Path.GetExtension(xlBook.Name);
+    if (string.IsNullOrEmpty(ext)) ext = ".xlsx";
+    backupPath = System.IO.Path.Combine(dir, baseName + "_Backup" + ext);
+
+    // Hidden/attached Excel can hang on a modal "overwrite?" prompt — suppress.
+    bool prevAlerts = xlApp.DisplayAlerts;
+    xlApp.DisplayAlerts = false;
+    try { xlBook.SaveCopyAs(backupPath); }
+    finally { xlApp.DisplayAlerts = prevAlerts; }
+}
+
+// =============================================================================
+// STEP 3 — set up sheet-name uniqueness + a delimiter sniffer.
+// =============================================================================
+// Excel sheet names: max 31 chars; may not contain : \ / ? * [ ] ; may not be
+// blank; must be unique within the workbook (case-insensitive). We name each
+// sheet after its source file (without extension), sanitize, truncate to 31,
+// then de-duplicate with a numeric suffix. Seed `taken` from the workbook's
+// current sheet names so we never collide with sheets that are already there.
+var taken = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+foreach (Worksheet ws in xlBook.Worksheets) taken.Add(ws.Name);
+
+string MakeSheetName(string raw)
+{
+    string s = raw ?? "";
+    if (string.IsNullOrWhiteSpace(s)) s = "Sheet";
+    foreach (char bad in new[] { ':', '\\', '/', '?', '*', '[', ']' }) s = s.Replace(bad, '_');
+    if (s.Length > 31) s = s.Substring(0, 31);
+
+    string candidate = s;
+    int n = 2;
+    while (taken.Contains(candidate))
+    {
+        // Append " (n)" while keeping within the 31-char limit (Gemini's spec:
+        // truncate the base so the suffix always fits).
+        string suffix = " (" + n + ")";
+        int keep = Math.Max(1, 31 - suffix.Length);
+        candidate = (s.Length > keep ? s.Substring(0, keep) : s) + suffix;
+        n++;
+    }
+    taken.Add(candidate);
+    return candidate;
+}
+
+// Auto-detect: read the first non-empty line and count the candidate delimiters;
+// the most frequent wins. Ties resolve to comma (the common case). This guards
+// against European semicolon-delimited CSVs that pure comma-splitting mangles.
+// Returns one of "comma" | "tab" | "semicolon".
+string SniffDelimiter(string path)
+{
+    try
+    {
+        foreach (string line in System.IO.File.ReadLines(path))
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            int commas = 0, tabs = 0, semis = 0;
+            foreach (char ch in line)
+            {
+                if (ch == ',') commas++;
+                else if (ch == '\t') tabs++;
+                else if (ch == ';') semis++;
+            }
+            if (tabs > commas && tabs >= semis) return "tab";
+            if (semis > commas && semis > tabs) return "semicolon";
+            return "comma";
+        }
+    }
+    catch { /* fall through to default */ }
+    return "comma"; // empty/unreadable file -> harmless default
+}
+
+// =============================================================================
+// STEP 4 — import each file as a new sheet via a QueryTable text import.
+// =============================================================================
+// QueryTables.Add("TEXT;<path>", destinationRange) creates a refreshable text
+// import. We configure it as a DELIMITED import with exactly the chosen
+// delimiter, Refresh(false) to pull the data synchronously, then Delete() the
+// query definition (this KEEPS the imported cells but removes the live query so
+// the sheet is plain values, not a connected table). Each file is wrapped in
+// its own try/catch: one bad file is recorded and skipped, the rest still run.
+//
+// New sheets are appended AFTER the current last sheet so the user's existing
+// sheets are left in place and the imports appear in folder order at the end.
+var report  = new System.Collections.Generic.List<(string sheet, string file, int rows, string delim)>();
+var failures = new System.Collections.Generic.List<(string file, string error)>();
+
+bool prevAlertsAll = xlApp.DisplayAlerts;
+xlApp.DisplayAlerts = false; // suppress any import/overwrite prompts for the whole batch
+try
+{
+    Worksheet anchor = (Worksheet)xlBook.Worksheets[xlBook.Worksheets.Count];
+
+    foreach (string path in sourceFiles)
+    {
+        string fileName = System.IO.Path.GetFileName(path);
+        try
+        {
+            // Resolve the delimiter for THIS file (auto = sniff per file).
+            string delim = (delimiterMode == "auto") ? SniffDelimiter(path) : delimiterMode;
+
+            Worksheet ws = (Worksheet)xlBook.Worksheets.Add(After: anchor);
+            ws.Name = MakeSheetName(System.IO.Path.GetFileNameWithoutExtension(fileName));
+            anchor = ws;
+
+            QueryTable qt = ws.QueryTables.Add("TEXT;" + path, ws.Range["A1"]);
+            qt.TextFileParseType = XlTextParsingType.xlDelimited;
+            qt.TextFileConsecutiveDelimiter = false;       // empty cells stay empty (don't merge runs)
+            qt.TextFileTabDelimiter       = (delim == "tab");
+            qt.TextFileSemicolonDelimiter = (delim == "semicolon");
+            qt.TextFileCommaDelimiter     = (delim == "comma");
+            qt.TextFileSpaceDelimiter     = false;
+            qt.TextFileOtherDelimiter     = '\0';
+            qt.AdjustColumnWidth          = true;
+            qt.RefreshStyle               = XlCellInsertionMode.xlOverwriteCells;
+            qt.Refresh(false);                              // BackgroundQuery:false => synchronous
+            qt.Delete();                                    // drop the query, keep the data
+
+            int rows = 0;
+            try { rows = ws.UsedRange.Rows.Count; } catch { rows = 0; }
+            report.Add((ws.Name, fileName, rows, delim));
+        }
+        catch (System.Exception ex)
+        {
+            failures.Add((fileName, ex.Message));
+        }
+    }
+}
+finally
+{
+    xlApp.DisplayAlerts = prevAlertsAll;
+}
+
+// =============================================================================
+// STEP 5 — emit the sentinel + the human-readable report.
+// =============================================================================
+// The workbook is intentionally LEFT OPEN AND UNSAVED. The backup (if made) is
+// the safety net; the user reviews the imported sheets and saves or discards.
+Console.WriteLine($"__CSVAGG__ STATUS=OK files={report.Count} failed={failures.Count}");
+
+if (outputFormat == "markdown")
+{
+    Console.WriteLine("# CSV/TXT import complete");
+    Console.WriteLine();
+    Console.WriteLine($"- **Source folder:** `{sourceFolder}`");
+    Console.WriteLine($"- **Files imported:** {report.Count}");
+    if (failures.Count > 0) Console.WriteLine($"- **Files skipped (errors):** {failures.Count}");
+    Console.WriteLine($"- **Delimiter:** " + (delimiterMode == "auto" ? "auto-detected per file" : delimiterMode));
+    if (backupPath.Length > 0) Console.WriteLine($"- **Backup saved to:** `{backupPath}`");
+    Console.WriteLine();
+    if (report.Count > 0)
+    {
+        Console.WriteLine("| Sheet | Source file | Rows | Delimiter |");
+        Console.WriteLine("|---|---|---:|---|");
+        foreach (var r in report)
+            Console.WriteLine($"| {r.sheet} | {r.file} | {r.rows} | {r.delim} |");
+        Console.WriteLine();
+    }
+    if (failures.Count > 0)
+    {
+        Console.WriteLine("## Skipped files");
+        Console.WriteLine();
+        foreach (var f in failures)
+            Console.WriteLine($"- **{f.file}** — {f.error}");
+        Console.WriteLine();
+    }
+    Console.WriteLine("> The workbook now has these new sheets but is NOT yet saved — review them in Excel, then save (or discard) the workbook yourself.");
+}
+else
+{
+    Console.WriteLine("CSV/TXT import complete");
+    Console.WriteLine($"  Source folder:  {sourceFolder}");
+    Console.WriteLine($"  Files imported: {report.Count}");
+    if (failures.Count > 0) Console.WriteLine($"  Files skipped:  {failures.Count}");
+    Console.WriteLine($"  Delimiter:      " + (delimiterMode == "auto" ? "auto-detected per file" : delimiterMode));
+    if (backupPath.Length > 0) Console.WriteLine($"  Backup saved:   {backupPath}");
+    Console.WriteLine();
+    foreach (var r in report)
+        Console.WriteLine($"  - {r.sheet}  (file={r.file}, rows={r.rows}, delim={r.delim})");
+    if (failures.Count > 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine("  Skipped files:");
+        foreach (var f in failures)
+            Console.WriteLine($"    - {f.file}: {f.error}");
+    }
+    Console.WriteLine();
+    Console.WriteLine("  The workbook now has these new sheets but is NOT yet saved — review them in Excel, then save (or discard) yourself.");
+}
+
+return 0;
