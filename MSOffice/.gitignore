@@ -10,3 +10,6 @@ examples/**/sample_images/
 
 # Runtime-rendered .csx the shims write (templates ARE tracked)
 *_tmp.csx
+
+# stray build zips must never be committed
+*.zip
